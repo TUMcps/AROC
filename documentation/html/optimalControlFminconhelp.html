@@ -1,0 +1,595 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>optimalControlFmincon</title><meta name="generator" content="MATLAB 9.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-10-27"><meta name="DC.source" content="optimalControlFminconhelp.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+
+
+table
+{
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+    border: 0px solid #d6d4d4;
+}
+
+table p
+{ 
+    padding: 0px;
+    margin: 0px 0px 6px;
+}
+
+td:first-child
+{
+    width: 100px;
+}
+
+th
+{
+    background: green;
+    color: white;
+}
+
+td, th
+{
+    text-align: left;
+    padding: 7px 5px;
+    background: #f7f7f7;
+    border: 1px solid #d6d4d4;
+}
+
+
+
+tr:hover td {background: #f0f0f0;}
+
+div.info 
+{
+    text-align:left;
+    padding:7px 5px;
+    background:#D6EDFF;
+    border: 2px solid #d6d4d4;
+}
+div.syntax
+{
+    text-align:left;
+    padding:0px 25px;
+    background: white;
+    font-family:Monospace;
+}
+
+  </style></head><body><div class="content"><h1>optimalControlFmincon</h1><!--introduction--><p>Solve optimal control problem with FMINCON</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Syntax</a></li><li><a href="#2">Description</a></li><li><a href="#3">Input Arguments</a></li><li><a href="#4">Output Arguments</a></li><li><a href="#5">See Also</a></li><li><a href="#6">References</a></li></ul></div><h2>Syntax<a name="1"></a></h2><p>
+       <div class="syntax">
+[u,x] = optimalControlFmincon(system,xf,x0,h,Q,R,steps, ... <br>
+u0,maxFunEvals,lenHorizon,Opts) <br>
+       </div>
+</p><h2>Description<a name="2"></a></h2><p>This function solves an optimal control problem using a multiple shooting algorithm and FMINCON</p><h2>Input Arguments<a name="3"></a></h2><p>
+<table cellspacing="0" cellpadding="4" width="" border="1" frame="box" rules="none" class="">
+<tbody valign="top">
+   <tr bgcolor="#F2F2F2">
+   <td>
+       <p class="table">
+           system
+       </p>
+   </td>
+   <td>
+       <p class="table">
+           object containing the system dynamics (class:;
+           nonlinearSys)
+       </p>
+   </td>
+   </tr>
+   <tr bgcolor="#F2F2F2">
+   <td>
+       <p class="table">
+           xf
+       </p>
+   </td>
+   <td>
+       <p class="table">
+           desired final state at the end of the control
+           process (dimension: [nx, 1])
+       </p>
+   </td>
+   </tr>
+   <tr bgcolor="#F2F2F2">
+   <td>
+       <p class="table">
+           x0
+       </p>
+   </td>
+   <td>
+       <p class="table">
+           initial state (dimension: [nx, 1])
+       </p>
+   </td>
+   </tr>
+   <tr bgcolor="#F2F2F2">
+   <td>
+       <p class="table">
+           vert
+       </p>
+   </td>
+   <td>
+       <p class="table">
+           vertices of the initial parallelotope.
+           (dimension: [nu,2^nx])
+       </p>
+   </td>
+   </tr>
+   <tr bgcolor="#F2F2F2">
+   <td>
+       <p class="table">
+           h
+       </p>
+   </td>
+   <td>
+       <p class="table">
+           length of one timestep of the corner trajectories
+           during which the control input is constant
+       </p>
+   </td>
+   </tr>
+   <tr bgcolor="#F2F2F2">
+   <td>
+       <p class="table">
+           Q
+       </p>
+   </td>
+   <td>
+       <p class="table">
+           weighting matrix for the final state of the optimal
+           control problem
+           (dimension: [nx,nx])
+       </p>
+   </td>
+   </tr>
+   <tr bgcolor="#F2F2F2">
+   <td>
+       <p class="table">
+           R
+       </p>
+   </td>
+   <td>
+       <p class="table">
+           weighting matrix for the input term of the optimal
+           control problem
+           (dimension: [nu,nu])
+       </p>
+   </td>
+   </tr>
+   <tr bgcolor="#F2F2F2">
+   <td>
+       <p class="table">
+           steps
+       </p>
+   </td>
+   <td>
+       <p class="table">
+           number of intermediate timesteps of the corner
+           trajectories during one timestep of the center
+           trajectory
+       </p>
+   </td>
+   </tr>
+   <tr bgcolor="#F2F2F2">
+   <td>
+       <p class="table">
+           u0
+       </p>
+   </td>
+   <td>
+       <p class="table">
+           input value for computing the initial point for
+           fmincon by integrating with Runge-Kutta
+           (scalar value)
+       </p>
+   </td>
+   </tr>
+   <tr bgcolor="#F2F2F2">
+   <td>
+       <p class="table">
+           maxFunEvals
+       </p>
+   </td>
+   <td>
+       <p class="table">
+           Maximum number of function evaluations for fmincon
+       </p>
+   </td>
+   </tr>
+   <tr bgcolor="#F2F2F2">
+   <td>
+       <p class="table">
+           lenHorizon
+       </p>
+   </td>
+   <td>
+       <p class="table">
+           length of the optimization horizon in center
+           trajectory time steps
+       </p>
+   </td>
+   </tr>
+   <tr bgcolor="#F2F2F2">
+   <td>
+       <p class="table">
+           Opts
+       </p>
+   </td>
+   <td>
+       <p class="table">
+           structure containing user defined options for the
+           algorithm
+       </p>
+   </td>
+   </tr>
+</tbody>
+</table>
+</p><h2>Output Arguments<a name="4"></a></h2><p>
+<table cellspacing="0" cellpadding="4" width="" border="1" frame="box" rules="none" class="">
+<tbody valign="top">
+   <tr bgcolor="#F2F2F2">
+   <td>
+       <p class="table">
+           u
+       </p>
+   </td>
+   <td>
+       <p class="table">
+           optimal control input
+           (dimension: [nu,steps*lenHorizon])
+       </p>
+   </td>
+   </tr>
+   <tr bgcolor="#F2F2F2">
+   <td>
+       <p class="table">
+           x
+       </p>
+   </td>
+   <td>
+       <p class="table">
+           resulting state trajectories
+           (dimension: [nx,steps*lenHorizon])
+       </p>
+   </td>
+   </tr>
+</tbody>
+</table>
+</p><h2>See Also<a name="5"></a></h2><p><a href="convexInterpolationControlhelp.html"><tt>convexInterpolationControl</tt></a>, <a href="optimalControlFminconhelp.html"><tt>optimalControlFmincon</tt></a></p><h2>References<a name="6"></a></h2><div><ul><li><b>[1] Schuermann et al. (2017)</b>, Convex interpolation control with formal guarantees for disturbed and constrained nonlinear systems</li></ul></div><p>
+  <hr>
+  <p class="copy">&copy; 2018-2020 I6 Technische Universit&auml;t M&uuml;nchen
+       <tt class="minicdot">&#149;</tt>
+       <a href="https://tumcps.github.io/AROC/">Website</a>
+       <tt class="minicdot">&#149;</tt>
+       <a href="file:txts/LICENSE.txt">License</a>
+  </p>
+<div>
+<table>
+ <tr>
+  <td style="background-color:#ffffff; border:0; width:25%; vertical-align:middle; text-align:center">
+            <img src="img/logoAroc.png" alt="logoAroc" height="40px">
+     </td>
+  <td style="background-color:#ffffff; border:0; width:25%; vertical-align:middle; text-align:center">
+     <img src="img/logoCora.png" alt="logoCora" height="40px"></td>
+  <td style="background-color:#ffffff; border:0; width:25%; vertical-align:middle; text-align:center">
+     <img src="img/logoChair.png" alt="logoChair" height="40px"></td>
+  <td style="background-color:#ffffff; border:0; width:25%; vertical-align:middle; text-align:center">
+     <img src="img/logoTum.png" alt="logoTum" height="40px"></td>
+ </tr>
+</table>
+</div>
+</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% optimalControlFmincon
+% Solve optimal control problem with FMINCON
+%
+%% Syntax
+%
+% <html>
+%        <div class="syntax">
+% [u,x] = optimalControlFmincon(system,xf,x0,h,Q,R,steps, ... <br>
+% u0,maxFunEvals,lenHorizon,Opts) <br>
+%        </div>
+% </html>
+%
+%% Description
+% This function solves an optimal control problem using a multiple
+% shooting algorithm and FMINCON
+%
+%% Input Arguments
+%
+%
+% <html>
+% <table cellspacing="0" cellpadding="4" width="" border="1" frame="box" rules="none" class="">
+% <tbody valign="top">
+%    <tr bgcolor="#F2F2F2">
+%    <td>
+%        <p class="table">
+%            system
+%        </p>
+%    </td>
+%    <td>
+%        <p class="table">
+%            object containing the system dynamics (class:;
+%            nonlinearSys)
+%        </p>
+%    </td>
+%    </tr>
+%    <tr bgcolor="#F2F2F2">
+%    <td>
+%        <p class="table">
+%            xf
+%        </p>
+%    </td>
+%    <td>
+%        <p class="table">
+%            desired final state at the end of the control
+%            process (dimension: [nx, 1])
+%        </p>
+%    </td>
+%    </tr>
+%    <tr bgcolor="#F2F2F2">
+%    <td>
+%        <p class="table">
+%            x0
+%        </p>
+%    </td>
+%    <td>
+%        <p class="table">
+%            initial state (dimension: [nx, 1])
+%        </p>
+%    </td>
+%    </tr>
+%    <tr bgcolor="#F2F2F2">
+%    <td>
+%        <p class="table">
+%            vert
+%        </p>
+%    </td>
+%    <td>
+%        <p class="table">
+%            vertices of the initial parallelotope.
+%            (dimension: [nu,2^nx])
+%        </p>
+%    </td>
+%    </tr>
+%    <tr bgcolor="#F2F2F2">
+%    <td>
+%        <p class="table">
+%            h
+%        </p>
+%    </td>
+%    <td>
+%        <p class="table">
+%            length of one timestep of the corner trajectories
+%            during which the control input is constant
+%        </p>
+%    </td>
+%    </tr>
+%    <tr bgcolor="#F2F2F2">
+%    <td>
+%        <p class="table">
+%            Q
+%        </p>
+%    </td>
+%    <td>
+%        <p class="table">
+%            weighting matrix for the final state of the optimal
+%            control problem
+%            (dimension: [nx,nx])
+%        </p>
+%    </td>
+%    </tr>
+%    <tr bgcolor="#F2F2F2">
+%    <td>
+%        <p class="table">
+%            R
+%        </p>
+%    </td>
+%    <td>
+%        <p class="table">
+%            weighting matrix for the input term of the optimal
+%            control problem
+%            (dimension: [nu,nu])
+%        </p>
+%    </td>
+%    </tr>
+%    <tr bgcolor="#F2F2F2">
+%    <td>
+%        <p class="table">
+%            steps
+%        </p>
+%    </td>
+%    <td>
+%        <p class="table">
+%            number of intermediate timesteps of the corner
+%            trajectories during one timestep of the center
+%            trajectory
+%        </p>
+%    </td>
+%    </tr>
+%    <tr bgcolor="#F2F2F2">
+%    <td>
+%        <p class="table">
+%            u0
+%        </p>
+%    </td>
+%    <td>
+%        <p class="table">
+%            input value for computing the initial point for
+%            fmincon by integrating with Runge-Kutta
+%            (scalar value)
+%        </p>
+%    </td>
+%    </tr>
+%    <tr bgcolor="#F2F2F2">
+%    <td>
+%        <p class="table">
+%            maxFunEvals
+%        </p>
+%    </td>
+%    <td>
+%        <p class="table">
+%            Maximum number of function evaluations for fmincon
+%        </p>
+%    </td>
+%    </tr>
+%    <tr bgcolor="#F2F2F2">
+%    <td>
+%        <p class="table">
+%            lenHorizon
+%        </p>
+%    </td>
+%    <td>
+%        <p class="table">
+%            length of the optimization horizon in center
+%            trajectory time steps
+%        </p>
+%    </td>
+%    </tr>
+%    <tr bgcolor="#F2F2F2">
+%    <td>
+%        <p class="table">
+%            Opts
+%        </p>
+%    </td>
+%    <td>
+%        <p class="table">
+%            structure containing user defined options for the
+%            algorithm
+%        </p>
+%    </td>
+%    </tr>
+% </tbody>
+% </table>
+% </html>
+%
+%% Output Arguments
+%
+%
+% <html>
+% <table cellspacing="0" cellpadding="4" width="" border="1" frame="box" rules="none" class="">
+% <tbody valign="top">
+%    <tr bgcolor="#F2F2F2">
+%    <td>
+%        <p class="table">
+%            u
+%        </p>
+%    </td>
+%    <td>
+%        <p class="table">
+%            optimal control input
+%            (dimension: [nu,steps*lenHorizon])
+%        </p>
+%    </td>
+%    </tr>
+%    <tr bgcolor="#F2F2F2">
+%    <td>
+%        <p class="table">
+%            x
+%        </p>
+%    </td>
+%    <td>
+%        <p class="table">
+%            resulting state trajectories
+%            (dimension: [nx,steps*lenHorizon])
+%        </p>
+%    </td>
+%    </tr>
+% </tbody>
+% </table>
+% </html>
+%
+%% See Also
+% <convexInterpolationControlhelp.html |convexInterpolationControl|>, <optimalControlFminconhelp.html |optimalControlFmincon|>
+%
+%% References
+% * *[1] Schuermann et al. (2017)*, Convex interpolation control with
+% formal guarantees for disturbed and constrained nonlinear
+% systems
+%
+
+%%
+% <html>
+%   <hr>
+%   <p class="copy">&copy; 2018-2020 I6 Technische Universit&auml;t M&uuml;nchen
+%        <tt class="minicdot">&#149;</tt>
+%        <a href="https://tumcps.github.io/AROC/">Website</a>
+%        <tt class="minicdot">&#149;</tt>
+%        <a href="file:txts/LICENSE.txt">License</a>
+%   </p>
+% <div>
+% <table>
+%  <tr>
+%   <td style="background-color:#ffffff; border:0; width:25%; vertical-align:middle; text-align:center">
+%             <img src="img/logoAroc.png" alt="logoAroc" height="40px">
+%      </td>
+%   <td style="background-color:#ffffff; border:0; width:25%; vertical-align:middle; text-align:center">
+%      <img src="img/logoCora.png" alt="logoCora" height="40px"></td>
+%   <td style="background-color:#ffffff; border:0; width:25%; vertical-align:middle; text-align:center">
+%      <img src="img/logoChair.png" alt="logoChair" height="40px"></td>
+%   <td style="background-color:#ffffff; border:0; width:25%; vertical-align:middle; text-align:center">
+%      <img src="img/logoTum.png" alt="logoTum" height="40px"></td>
+%  </tr>
+% </table>
+% </div>
+% </html>
+
+##### SOURCE END #####
+--></body></html>

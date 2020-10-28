@@ -1,0 +1,121 @@
+<deployment-project plugin="plugin.toolbox" plugin-version="1.0">
+  <configuration build-checksum="1380060763" file="C:\Users\Kochdumper\Documents\Repositories\AROCpublic\data\AROC.prj" location="C:\Users\Kochdumper\Documents\Repositories\AROCpublic\data" name="AROC" target="target.toolbox" target-name="Package Toolbox">
+    <param.appname>AROC</param.appname>
+    <param.authnamewatermark>Niklas Kochdumper</param.authnamewatermark>
+    <param.email>niklas.kochdumper@tum.de</param.email>
+    <param.company>Technical University of Munich</param.company>
+    <param.summary>A toolbox for automated reachset optimal controller synthesis</param.summary>
+    <param.description>The Automated Reachset Optimal Control (AROC) toolbox automatically constructs formally verified controllers for solving reach-avoid problems using reachability analysis. The toolbox considers general nonlinear systems with disturbances and input constraints.</param.description>
+    <param.screenshot>C:\Users\Kochdumper\Documents\Repositories\aroc\manual\logo\arocLogoMatlabToolbox.png</param.screenshot>
+    <param.version>1.0</param.version>
+    <param.output>${PROJECT_ROOT}\AROC.mltbx</param.output>
+    <param.products.name />
+    <param.products.id />
+    <param.products.version />
+    <param.platforms />
+    <param.guid>e702a5ab-0c14-40ee-8b2f-9aa361810771</param.guid>
+    <param.exclude.filters />
+    <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
+    <param.examples />
+    <param.demosxml />
+    <param.apps />
+    <param.registered.apps />
+    <param.docs>C:\Users\Kochdumper\Downloads\Kochdumper-aroc-286fb1ee00af\Kochdumper-aroc-286fb1ee00af\documentation\info.xml</param.docs>
+    <param.getting.started.guide />
+    <param.matlabpath.excludes />
+    <param.javaclasspath.excludes />
+    <param.exported.on.package>false</param.exported.on.package>
+    <param.required.addons>
+      <requiredaddons>
+        <requiredAddOn earliest="earliest" fromRepository="true" id="c8a54371-258e-4e3e-b4f4-b7bf5fc30c78" include="false" latest="latest">psssMOR Toolbox</requiredAddOn>
+      </requiredaddons>
+    </param.required.addons>
+    <param.matlab.project.id />
+    <param.matlab.project.name />
+    <param.release.start />
+    <param.release.end />
+    <param.release.current.only>false</param.release.current.only>
+    <param.compatiblity.windows>true</param.compatiblity.windows>
+    <param.compatiblity.macos>true</param.compatiblity.macos>
+    <param.compatiblity.linux>true</param.compatiblity.linux>
+    <param.compatiblity.matlabonline>true</param.compatiblity.matlabonline>
+    <param.installation.map />
+    <param.additional.sw.names />
+    <param.additional.sw.licenses />
+    <param.additional.sw.win.url />
+    <param.additional.sw.mac.url />
+    <param.additional.sw.linux.url />
+    <unset>
+      <param.version />
+      <param.output />
+      <param.products.name />
+      <param.products.id />
+      <param.products.version />
+      <param.platforms />
+      <param.exclude.filters />
+      <param.exclude.pcodedmfiles />
+      <param.examples />
+      <param.demosxml />
+      <param.apps />
+      <param.registered.apps />
+      <param.getting.started.guide />
+      <param.matlabpath.excludes />
+      <param.javaclasspath.excludes />
+      <param.exported.on.package />
+      <param.matlab.project.id />
+      <param.matlab.project.name />
+      <param.release.start />
+      <param.release.end />
+      <param.release.current.only />
+      <param.compatiblity.windows />
+      <param.compatiblity.macos />
+      <param.compatiblity.linux />
+      <param.compatiblity.matlabonline />
+      <param.installation.map />
+      <param.additional.sw.names />
+      <param.additional.sw.licenses />
+      <param.additional.sw.win.url />
+      <param.additional.sw.mac.url />
+      <param.additional.sw.linux.url />
+    </unset>
+    <fileset.rootdir>
+      <file>C:\Users\Kochdumper\Downloads\Kochdumper-aroc-286fb1ee00af\Kochdumper-aroc-286fb1ee00af</file>
+    </fileset.rootdir>
+    <fileset.rootfiles>
+      <file>C:\Users\Kochdumper\Downloads\Kochdumper-aroc-286fb1ee00af\Kochdumper-aroc-286fb1ee00af\algorithms</file>
+      <file>C:\Users\Kochdumper\Downloads\Kochdumper-aroc-286fb1ee00af\Kochdumper-aroc-286fb1ee00af\auxiliary</file>
+      <file>C:\Users\Kochdumper\Downloads\Kochdumper-aroc-286fb1ee00af\Kochdumper-aroc-286fb1ee00af\benchmarks</file>
+      <file>C:\Users\Kochdumper\Downloads\Kochdumper-aroc-286fb1ee00af\Kochdumper-aroc-286fb1ee00af\classes</file>
+      <file>C:\Users\Kochdumper\Downloads\Kochdumper-aroc-286fb1ee00af\Kochdumper-aroc-286fb1ee00af\documentation</file>
+      <file>C:\Users\Kochdumper\Downloads\Kochdumper-aroc-286fb1ee00af\Kochdumper-aroc-286fb1ee00af\examples</file>
+      <file>C:\Users\Kochdumper\Downloads\Kochdumper-aroc-286fb1ee00af\Kochdumper-aroc-286fb1ee00af\LICENSE</file>
+      <file>C:\Users\Kochdumper\Downloads\Kochdumper-aroc-286fb1ee00af\Kochdumper-aroc-286fb1ee00af\unitTests</file>
+    </fileset.rootfiles>
+    <fileset.depfun.included />
+    <fileset.depfun.excluded />
+    <fileset.package />
+    <build-deliverables>
+      <file location="${PROJECT_ROOT}" name="AROC.mltbx" optional="false">C:\Users\Kochdumper\Documents\Repositories\AROCpublic\data\AROC.mltbx</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>C:\Program Files\MATLAB\R2020a</root>
+      <toolboxes />
+    </matlab>
+    <platform>
+      <unix>false</unix>
+      <mac>false</mac>
+      <windows>true</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>10.0</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>win64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>

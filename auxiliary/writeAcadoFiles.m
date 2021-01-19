@@ -551,8 +551,10 @@ function compileAcadoFile(path,index)
     % compile the ACADO-files (call twice because otherwise the MEX-files
     % are not generated)
     command = sprintf('acado%i',index);
-    evalin('base',command)
-    evalin('base',command)
+    % careful: Any variables defined in both this function and "command".m
+    % will be overwritten with the values from "command".m
+    evalin('caller',command)
+    evalin('caller',command)
     
     % change back to the original path
     cd(pathTemp);

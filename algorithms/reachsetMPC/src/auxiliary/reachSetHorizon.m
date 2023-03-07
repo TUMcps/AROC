@@ -70,61 +70,92 @@ function [param,res] = reachSetHorizon(sys,R0,param,Opts)
 %------------------------------------------------------------------
 
     % initialize variables
-    N = size(param.uc,2);
+    N = length(param.uc);
     res = 0;
     tStart = Opts.tStart;
     
-    param.Rcont = [];
+    param.Rcont = cell(N,1);
     param.R = cell(N,1);
     param.K = cell(N,1);
 
     % loop over all center trajectory time steps
     for i = 1:N
         
-        % compute feedback matrix for tracking controller
-        K = lqrTrack(param.xc(:,i),param.xc(:,i+1),param.uc(:,i),Opts);
-                               
-        % compute reachable set
-        ReachOpts = Opts.ReachOpts;
-        ReachParams = Opts.ReachParams;
+        param.K{i} = cell(Opts.Ninter,1);
+        param.Rcont{i} = [];
         
-        ReachParams.paramInt = [reshape(K,[],1);param.uc(:,i)];
-        ReachParams.R0 = cartProd(R0,zonotope(param.xc(:,i)));
-        ReachParams.tFinal = tStart + Opts.dT;
+        % loop over all intermediate time steps
+        for j = 1:Opts.Ninter
         
-        if tStart ~= 0
-            ReachParams.tStart = tStart;         
-        end
-        tStart = ReachParams.tFinal;
+            xc = param.xc{i}; uc = param.uc{i};
+            
+            % compute feedback matrix for tracking controller
+            K = lqrTrack(xc(:,j),xc(:,j+1),uc(:,j),Opts);
 
-        Rtemp = reachNonlinear(sys,ReachParams,ReachOpts);
-        
-        % store variables
-        param.K{i} = K;
-        param.Rcont = add(param.Rcont,Rtemp);
-        param.R{i} = project(Rtemp.timePoint.set{end},1:Opts.nx);
-        
-        % update initial set
-        R0 = param.R{i};
-        
-        % check if input constraints are satisfied
-        resInp = checkInputConstraints(Rtemp.timeInterval.set,K, ...
-                                       param.uc(:,i),Opts);
-        
-        if ~resInp
-           break; 
+            % compute reachable set
+            ReachOpts = Opts.ReachOpts;
+            ReachParams = Opts.ReachParams;
+
+            ReachParams.paramInt = [reshape(K,[],1);uc(:,j)];
+            ReachParams.R0 = cartProd(R0,zonotope(xc(:,j)));
+            ReachParams.tFinal = tStart + Opts.dT/Opts.Ninter;
+
+            if tStart ~= 0
+                ReachParams.tStart = tStart;         
+            end
+            tStart = ReachParams.tFinal;
+
+            Rtemp = reachNonlinear(sys,ReachParams,ReachOpts);
+
+            % store variables
+            param.K{i}{j} = K;
+            param.Rcont{i} = add(param.Rcont{i},Rtemp);
+            Rfin = project(Rtemp.timePoint.set{end},1:Opts.nx);
+
+            % update initial set
+            R0 = Rfin;
+
+            % check if input constraints are satisfied
+            resInp = checkInputConstraints(Rtemp.timeInterval.set,K, ...
+                                           uc(:,j),Opts);
+
+            % check if state constraints are satisfied
+            resState = 1;
+
+            if ~isempty(Opts.X)
+                for k = 1:length(Rtemp.timeInterval.set)
+                    I = interval(Opts.X.P.A * ...
+                            project(Rtemp.timeInterval.set{k},1:Opts.nx));
+                    if ~all(supremum(I) <= Opts.X.P.b)
+                        resState = 0;
+                        break;
+                    end
+                end
+            end
+
+            if ~resInp || ~resState
+               return; 
+            end
         end
+        
+        param.R{i} = R0;
         
         % check if the current set is inside the terminal region
-        distance = distPhi(Opts.termReg.A,Opts.termReg.b,R0);
+        if isempty(Opts.V)
+            Rtemp = R0 + (-Opts.xf);
+        else
+            Rtemp = R0 + Opts.V + (-Opts.xf);
+        end
+        
+        distance = distPhi(Opts.termReg.A,Opts.termReg.b,Rtemp);
 
-        if distance == 0
+        if distance == 0 
            res = 1;
            param.K = param.K(1:i);
            param.Rcont = param.Rcont(1:i);
            param.R = param.R(1:i);
            break; 
-        end     
+        end  
     end
     
     % compute distance costs for the reachable sets

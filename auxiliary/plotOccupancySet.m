@@ -41,6 +41,6 @@ function han = plotOccupancySet(O,dim,color)
 
     hold on
     for i = 1:length(O)
-        han = plot(O{i}.set,dim,color,'Filled',true,'EdgeColor','none');
+        han = plot(O{i}.set,dim,'FaceColor',color,'EdgeColor','none');
     end
 end

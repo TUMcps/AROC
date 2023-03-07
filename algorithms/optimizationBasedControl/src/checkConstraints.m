@@ -68,6 +68,11 @@ function c = checkConstraints(R,K,u_ref,Opts)
             U_ = u_ref + K * zonotope(Rtemp.Z(1:Opts.nx,:) ...
                                       - Rtemp.Z(Opts.nx+1:end,:));
         end
+        
+        % consider set of measurement errors
+        if ~isempty(Opts.V)
+           U_ = U_ + K * Opts.V; 
+        end
 
         % check input constraints
         temp = supremum(interval(Opts.inputCon.A*U_ + (-Opts.inputCon.b)));

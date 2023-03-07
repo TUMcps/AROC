@@ -58,6 +58,10 @@ function Jset = costSetDistance(R,Opts)
     % compute costs for the reachable sets
     Jset = 0;
     for i = 1:length(R)
-        Jset = Jset + distPhi(A,b,R{i});
+        if isempty(Opts.V)
+            Jset = Jset + distPhi(A,b,R{i}+(-Opts.xf));
+        else
+            Jset = Jset + distPhi(A,b,R{i}+Opts.V+(-Opts.xf));
+        end
     end
 end

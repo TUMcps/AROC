@@ -1,9 +1,10 @@
-function [res,t,x,u] = simulate(obj,res,x0,w)
+function [res,t,x,u] = simulate(obj,x0,w,varargin)
 % SIMULATE - simulate a trajectory of a nonlinear system controlled with 
 %            the controller based on optimal control in generator space
 %
 % Syntax:
-%       [res,t,x,u] = SIMULATE(obj,res,x0,w)
+%       [res,t,x,u] = SIMULATE(obj,x0,w)
+%       [res,t,x,u] = SIMULATE(obj,x0,w,v)
 %
 % Description:
 %       Simulate a trajectory of a nonlinear closed-loop system controlled
@@ -15,13 +16,14 @@ function [res,t,x,u] = simulate(obj,res,x0,w)
 %
 %       -obj:   object of class objGenSpaceContr storing the control law
 %               computed in the offline-phase
-%       -res:   existing results object to which the simulation results
-%               should be added
 %       -x0:    initial point for the simulation
 %       -w:     matrix storing the values for the disturbances over time
-%               (dimension: [nw,N*Ninter])
+%               (dimension: [nw,multiple of N*Ninter])
+%       -v:     matrix storing the values for the measurement errors over
+%               time (dimension: [nx,N]) 
 %
 % Output Arguments:
+%
 %       -res:   results object storing the simulation data
 %       -t:     vector storing the time points for the simulated states
 %       -x:     matrix storing the simulated trajectory 
@@ -61,8 +63,18 @@ function [res,t,x,u] = simulate(obj,res,x0,w)
     if size(w,2) > 1
         Nw = size(w,2)/(obj.N * obj.Ninter);
         if Nw < 1 || floor(Nw) ~= Nw
-           error('Number of disturbance vectors has to be a multiple of ''Nc*Ninter''!'); 
+           error('Number of disturbance vectors has to be a multiple of ''N*Ninter''!'); 
         end
+    end
+    
+    % check if the number of specified measurement errors is correct
+   	if nargin > 3
+       v = varargin{1};
+       if ~all(size(v) == [obj.nx,obj.N])
+           error('Wrong dimension for the measurement errors "v"!'); 
+       end
+    else
+       v = zeros(obj.nx,obj.N);
     end
 
     % time step size
@@ -85,7 +97,7 @@ function [res,t,x,u] = simulate(obj,res,x0,w)
         % compute factors beta for the current point
         cx = center(obj.parallelo{i});
         Gx = generators(obj.parallelo{i});
-        beta = Gx\(x_ - cx);
+        beta = Gx\(x_ + v(:,i) - cx);
 
         % loop over all intermediate time steps
         for j = 1:obj.Ninter
@@ -119,19 +131,8 @@ function [res,t,x,u] = simulate(obj,res,x0,w)
     end
 
     % store simulation in results object
-    if isempty(res)
-        sim{1}.t = t; sim{1}.x = x; sim{1}.u = u; sim{1}.flag = flag;
-        res = results([],[],[],sim);
-    else
-        sim = res.simulation;
-
-        if isempty(sim)
-           sim{1}.t = t; sim{1}.x = x; sim{1}.u = u; sim{1}.flag = flag;
-        else
-           sim{end+1}.t = t; sim{end}.x = x; 
-           sim{end}.u = u; sim{end}.flag = flag;
-        end
-
-        res = results(res.reachSet,res.reachSetTimePoint,res.refTraj,sim);
-    end
+    sim{1}.t = t;
+    sim{1}.x = x;
+    sim{1}.u = u;
+    res = results([],[],[],sim);
 end

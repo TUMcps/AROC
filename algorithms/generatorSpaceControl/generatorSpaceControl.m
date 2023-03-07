@@ -24,7 +24,10 @@ function [objContr,res] = generatorSpaceControl(benchmark,Param,varargin)
 %                           reached
 %           -.U:            set of admissible control inputs (class:
 %                           interval)
-%           -.W:            set of uncertain disturbances (class: interval)
+%           -.W:            set of uncertain disturbances (class: interval 
+%                           or zonotope)
+%           -.V:            set of measurement errors (class: interval or
+%                           zonotope)
 %           -.X:            set of state constraints (class: mptPolytope)
 %
 %       -Opts:              a structure containing the algorithm settings
@@ -136,7 +139,11 @@ alpha = cell(Opts.N,1);
 
 % parallelotope enclosure of the time point reachable set
 P = cell(Opts.N+1,1);
-P{1} = zonotope(Opts.R0);
+if isempty(Opts.V)
+    P{1} = zonotope(Opts.R0);
+else
+    P{1} = reduce(zonotope(Opts.R0)+Opts.V,'pca',1); 
+end
 
 % time point reachable set
 R = cell(Opts.N+1,1);
@@ -155,7 +162,8 @@ dyn = Opts.funHandle;
     
 Opts.xc = xCenter;
 Opts.uc = uCenter;
-
+refTraj.xc = xCenter;
+refTraj.uc = uCenter;
 
 %% Algorithm
 
@@ -177,7 +185,11 @@ for i = 1:Opts.N
     reachSet = add(reachSet,Rtemp);
     
     % compute parallelotope enclosure of the reachable set
-    P{i+1} = reduce(zonotope(R{i+1}),'pca',1);    
+    if isempty(Opts.V)
+        P{i+1} = reduce(zonotope(R{i+1}),'pca',1);  
+    else
+        P{i+1} = reduce(zonotope(R{i+1})+Opts.V,'pca',1); 
+    end
 end
 
 
@@ -192,7 +204,7 @@ if isfield(Param,'X')
 end
 
 % create results object
-res = results(reachSet,R,xCenter);
+res = results(reachSet,R,refTraj);
 
 % compute the occupancy set
 occSet = [];
@@ -224,6 +236,10 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
     Opts.dt = Opts.tFinal/(Opts.N*Opts.Ninter);
     Opts.ReachOpts.timeStep = Opts.dt / Opts.reachSteps;
     
+    if ~isempty(Opts.V)
+       Opts.ReachOpts.intermediateTerms = 4; 
+    end
+    
     Opts.CentOpts.Nc = Opts.N*Opts.Ninter;   % number ref. traj. time steps
     Opts.CentOpts.hc = Opts.dt;              % size center traj. time steps
     
@@ -241,12 +257,21 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
     Opts.linDyn.B = matlabFunction(B,'Vars',{x,u});
     
     % create nonlinearSys object for the closed-loop dynamics
-    nExtended = 2*Opts.nx + Opts.nu;
     name = ['AROCgenSpace',benchmark,Opts.ReachOpts.alg, ...
             num2str(Opts.ReachOpts.tensorOrder)];
     
-    funHan = @(x,w) dynamicsClosedLoopLinear(x,w,Opts.nx, ...
+    if isempty(Opts.V)
+        nExt = 2*Opts.nx + Opts.nu;
+        funHan = @(x,w) dynamicsClosedLoopLinear(x,w,Opts.nx, ...
                                                Opts.nu,Opts.funHandle);
                                            
-    sys = nonlinearSys(name,@(x,w) funHan(x,w),nExtended,Opts.nw);
+        sys = nonlinearSys(name,@(x,w) funHan(x,w),nExt,Opts.nw);                                   
+    else
+        nExt = 3*Opts.nx;
+        nParam = Opts.nu*(Opts.nx+1);
+        funHan = @(x,w,p) dynamicsClosedLoopLinearMeasErr(x,w,p,Opts.nx, ...
+                                               Opts.nu,Opts.funHandle);
+        sys = nonlinParamSys(name,@(x,w,p) funHan(x,w,p),nExt,Opts.nw, ...
+                             nParam); 
+    end                                     
 end

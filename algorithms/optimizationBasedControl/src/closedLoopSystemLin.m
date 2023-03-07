@@ -1,9 +1,9 @@
-function sys = closedLoopSystemLin(A,B,D,c,K,u_ref)
+function sys = closedLoopSystemLin(A,B,D,c,K,u_ref,V)
 % CLOSEDLOOPSYSTEMLIN - constructs a linear system for the closed-loop
 %                        dynamics
 %
 % Syntax:
-%       dx = CLOSEDLOOPSYSTEMLIN(A,B,D,c,K,u_ref)
+%       dx = CLOSEDLOOPSYSTEMLIN(A,B,D,c,K,u_ref,V)
 %
 % Description:
 %       This function contructs a linear system object for the closed-loop
@@ -18,6 +18,7 @@ function sys = closedLoopSystemLin(A,B,D,c,K,u_ref)
 %       -c:     constant offset vector of the open-loop system
 %       -K:     feedback matrix for the control law u = u_ref + K(x-x_ref)
 %       -u_ref: reference input for the control law u = u_ref + K(x-x_ref)
+%       -V:     set of measurement errors
 %
 % Output Arguments:
 %       -sys:   linear system object for the closed-loop dynamics 
@@ -44,13 +45,25 @@ function sys = closedLoopSystemLin(A,B,D,c,K,u_ref)
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------ 
 
-    % construct system matrices
-    A_ = [A + B*K,-B*K;
-          zeros(size(A)),A];
-    B_ = [D;zeros(size(D))];
-    C_ = [c + B*u_ref;c + B*u_ref];
+    % system with or without measurement errors
+    if isempty(V)
+
+        % construct system matrices
+        A_ = [A + B*K,-B*K;
+              zeros(size(A)),A];
+        B_ = [D;zeros(size(D))];
+        C_ = [c + B*u_ref;c + B*u_ref];
+
+    else
+        
+        % construct system matrices
+        A_ = [A + B*K,-B*K;
+              zeros(size(A)),A];
+        B1 = [D B*K];
+        B_ = [B1;zeros(size(B1))];
+        C_ = [c + B*u_ref;c + B*u_ref];         
+    end
     
     % construct linear system object
     sys = linearSys('closedLoopSys',A_,B_,C_);
-    
 end

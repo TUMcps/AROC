@@ -69,12 +69,6 @@ function han = plotReachTimePoint(obj,varargin)
     
     if nargin > 3
        NVpairs = varargin(3:end); 
-       filled = getNameValuePair(NVpairs,'Filled',false);
-       if filled
-           color = getNameValuePair(NVpairs,'FaceColor',color);
-       else
-           color = getNameValuePair(NVpairs,'Color',color);
-       end
     end
 
     % plot the time point reachable sets
@@ -84,10 +78,8 @@ function han = plotReachTimePoint(obj,varargin)
     for i = 1:length(reachSet)
         if isempty(NVpairs)
             han = plot(reachSet{i},dim,'Color',color);
-        elseif ~filled
-            han = plot(reachSet{i},dim,'Color',color,NVpairs{:});
         else
-            han = plot(reachSet{i},dim,'FaceColor',color,NVpairs{:});
+            han = plot(reachSet{i},dim,'Color',color,NVpairs{:});
         end
     end
 end

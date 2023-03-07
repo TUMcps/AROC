@@ -55,7 +55,7 @@ function Opts = initOpts(name,benchmark,Opts,Param)
         Opts = rmfield(Opts,'nu');
         Opts = rmfield(Opts,'nw');
     else
-        [count,out] = numberOfInputs(funHan,3);
+        [count,out] = inputArgsLength(funHan,3);
 
         nx = out;
         nu = count(2);
@@ -65,14 +65,14 @@ function Opts = initOpts(name,benchmark,Opts,Param)
     % check if the model is linear or nonlinear
     isLin = 0;
     
-    if strcmp(name,'optimizationBasedControl')
+    if any(ismember({'optimizationBasedControl','combinedControl'},name))
         [isLin,A,B,D,c] = isLinearModel(funHan,nx,nu,nw);
     end
     
-    % check if the specified paramters are valid
-    checkParam(Param,name,nx,nu,nw);
+    % check if the specified parameters are valid
+    Param = checkParam(Param,name,nx,nu,nw);
     Opts = checkOpts(Opts,name,Param,nx,nu,isLin);
-
+    
     % copy benchmark parameter to options
     Opts = params2options(Param,Opts);
     Opts.funHandle = funHan;
@@ -80,6 +80,9 @@ function Opts = initOpts(name,benchmark,Opts,Param)
     Opts.nu = nu;
     Opts.nw = nw;
     Opts.U = zonotope(Opts.U);
+    if isfield(Opts,'V')
+       Opts.V = zonotope(Opts.V);
+    end
     
     if isfield(Opts.cora,'alg') && strcmp(Opts.cora.alg,'poly')
         Opts.R0 = polyZonotope(Opts.R0);
@@ -115,23 +118,84 @@ function Opts = initOpts(name,benchmark,Opts,Param)
         end
     end
     
-    CentOpts.x0 = center(Opts.R0);        
+    CentOpts.x0 = center(Opts.R0); 
     CentOpts.uMax = supremum(Param.U);
     CentOpts.uMin = infimum(Param.U);
     
-    % generate ACADO files
+    % generate ACADO or Fmincon files
+    [path,~,~] = fileparts(which(name));
+    
     if isempty(which('BEGIN_ACADO'))
+        
         CentOpts.useAcado = 0;
-    else
-        CentOpts.useAcado = 1;
+        
         if isfield(Opts,'extHorizon')
             CentOpts.extHorizon = Opts.extHorizon;
+            CentOpts.extHorizon.horizon = 1;
+        end
+        
+        if strcmp(name,'generatorSpaceControl') || ...
+           strcmp(name,'safetyNetControl') || strcmp(name,'polynomialControl')
+            CentOpts.Ninter = Opts.N * Opts.Ninter;
+        else
+            CentOpts.Ninter = Opts.N; 
+        end
+        
+        w = warning();
+        warning('off','all');
+
+        rmpath(genpath(fullfile(path,'fmincon')));
+        
+        writeFminconFiles(path,benchmark,CentOpts);
+        
+        if strcmp(name,'convexInterpolationControl')
+            CentOpts.Ninter = Opts.Ninter;
+            CentOpts.extHorizon = Opts.extHorizon;
+            writeFminconFiles(path,benchmark,CentOpts);
+        end
+
+        if strcmp(name,'safetyNetControl')
+            if iscell(Opts.controller)
+                for i = 1:length(Opts.controller)
+                    if strcmp(Opts.controller{i},'MPC')
+                        for j = 1:Opts.contrOpts{i}.horizon
+                            CentOpts.Ninter = j * Opts.contrOpts{i}.Ninter;
+                            writeFminconFiles(path,benchmark,CentOpts);
+                        end
+                    end
+                end
+            elseif strcmp(Opts.controller,'MPC')
+                for j = 1:Opts.contrOpts.horizon
+                    CentOpts.Ninter = j * Opts.contrOpts.Ninter;
+                    writeFminconFiles(path,benchmark,CentOpts);
+                end
+            end
+        end
+
+        if strcmp(name,'polynomialControl') && Opts.refUpdate
+            for j = 1:Opts.N
+                CentOpts.Ninter = j*Opts.Ninter;
+                writeFminconFiles(path,benchmark,CentOpts);
+            end
+        end
+        
+        CentOpts = rmfield(CentOpts,'Ninter');
+        
+        warning(w);
+        
+    else
+        
+        CentOpts.useAcado = 1;
+        
+        if isfield(Opts,'extHorizon') && ...
+                strcmp(name,'convexInterpolationControl')
+            CentOpts.extHorizon = Opts.extHorizon;
+            CentOpts.Nc = Opts.N;
         end
 
         w = warning();
         warning('off','all');
 
-        [path,~,~] = fileparts(which(name));
         rmpath(genpath(fullfile(path,'acado')));
 
         acadoConvertDynamics(path,CentOpts,benchmark);

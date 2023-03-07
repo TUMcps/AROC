@@ -85,8 +85,8 @@ end
 
 % Auxiliary Functions -----------------------------------------------------
 
-function alpha = computeAlpha_(R0,A,B,c,xf,iter,Opts)
-% compute the control law without using an extendet optimization horizon
+function alpha = computeAlpha_(R0,A_d,B_d,c_d,xf,iter,Opts)
+% compute the control law without using an extended optimization horizon
 % (see Eq. (12) and (13) in [1])
 
     % compute reachable set for the time-discrete system 
@@ -94,7 +94,7 @@ function alpha = computeAlpha_(R0,A,B,c,xf,iter,Opts)
     R = R0;
     
     for i = 1:Opts.Ninter
-       R = A{i}*R + B{i}*Opts.U + c{i}; 
+       R = A_d{i}*R + B_d{i}*Opts.U + c_d{i}; 
     end
     
     % extract center, state generators Gx, and input generator Gu
@@ -110,9 +110,9 @@ function alpha = computeAlpha_(R0,A,B,c,xf,iter,Opts)
     
     % constraint |alpha_c| + sum_i |alpha_gi| < 1
     Constraints = abs(alpha_c) + sum(abs(alpha_g),2) <= 1;
-    if ~Opts.refInput
+    if Opts.refInput
         uc_iter = Opts.uc(:,(iter-1)*Opts.Ninter+1:iter*Opts.Ninter);
-        ac_iter = inv(generators(Opts.U))*(uc_iter - center(Opts.U));
+        ac_iter = generators(Opts.U)\(uc_iter - center(Opts.U));
         Constraints = [Constraints, alpha_c == ac_iter(:)];
     end
     
@@ -158,7 +158,7 @@ function alpha = computeAlphaExtHorizon(R0,A,B,c,xf,iter,Opts)
         len = min(len_,Opts.extHorizon.horizon);
     end
     
-    % get the weights for the decay function of the extendet horizon
+    % get the weights for the decay function of the extended horizon
     w = decayFunctions(len,Opts);
 
     % compute reachable set for the time-discrete system 
@@ -191,9 +191,9 @@ function alpha = computeAlphaExtHorizon(R0,A,B,c,xf,iter,Opts)
     
     % constraint |alpha_c| + sum_i |alpha_gi| < 1
     Constraints = abs(alpha_c) + sum(abs(alpha_g),2) <= 1;
-    if ~Opts.refInput
+    if Opts.refInput
         uc_iter = Opts.uc(:,(iter-1)*Opts.Ninter+1:(iter+len-1)*Opts.Ninter);
-        ac_iter = inv(generators(Opts.U))*(uc_iter - center(Opts.U));
+        ac_iter = generators(Opts.U)\(uc_iter - center(Opts.U));
         Constraints = [Constraints, alpha_c == ac_iter(:)];
     end
     

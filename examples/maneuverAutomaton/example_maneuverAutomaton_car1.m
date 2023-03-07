@@ -1,5 +1,5 @@
 % This example demonstrate how a Maneuver Automaton can be constructed and
-% applied to solve an online control task.
+% applied to solve an online control task for an autonomous car.
 
 
 % Generate Motion Primitives ----------------------------------------------
@@ -11,9 +11,13 @@ Post = @postprocessing_car;
 Params = param_car();
 
 % define algorithm options
-Opts = settings_genSpaceContr_car();
-Opts = rmfield(Opts,'refTraj');
-Opts.extHorizon.horizon = 5;
+Opts = [];
+
+Opts.N = 5;                         % number of time steps
+Opts.Ninter = 5;                    % number of intermediate time steps
+Opts.extHorizon.active = 1;         % use extended optimization horizon
+Opts.extHorizon.horizon = 5;        % time steps for ext. horizon
+Opts.extHorizon.decay = 'fall';     % weight function for ext. horizon   
 
 % define control inputs and initial states for motion primitives
 list_x0 = {[23;0;0;0]; [16.93;0;0;0]; [12.33;0;0;0]};
@@ -91,16 +95,20 @@ disp([newline,'Computation time (motion planning): ',num2str(tComp),'s']);
 % Visualization -----------------------------------------------------------
 
 % show the planned trajectory with an animation
-animateCommonRoad(MA,ind,dynObs,x0,goalSet{1},lanelets);
+resSim = simulateRandom(MA,ind,x0,1);
+animate(resSim,'car',[],dynObs,goalSet{1}.set,[],lanelets);
 
-% visualize the planned trajectory for different time intervals
+% visualize the planned trajectory for different times
 figure
-timeInt = {[0,1],[1,2],[2,3],[3,4]};
+times = {0,1,2,3};
 
-for i = 1:length(timeInt)
-   subplot(length(timeInt),1,i);
-   time = timeInt{i};
-   visualizeCommonRoad(MA,ind,dynObs,x0,lanelets,interval(time(1),time(2)));
-   title(['$t \in [',num2str(time(1)),',',num2str(time(2)),']s$'], ...
-         'interpreter','latex');
+for i = 1:length(times)
+   subplot(length(times),1,i); hold on; box on;
+   for j = 1:length(lanelets)
+        plot(lanelets{j},[1,2],'FaceColor',[.6 .6 .6],'EdgeColor','k');
+   end
+   plotPlannedTrajectory(MA,ind,x0,[],[0 0.7 0],'EdgeColor','k');
+   plotPlannedTrajectory(MA,ind,x0,interval(times{i}),'b');
+   plotObstacles([],dynObs,interval(times{i}));
+   xlim([0,70]);
 end

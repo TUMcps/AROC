@@ -84,7 +84,7 @@ methods
     end
     
     function res = checkFinalInInitSet(obj,R0)
-    % checks if the final reachable set if contained inside the shifted
+    % checks if the final reachable set is contained inside the shifted
     % initial set
     
         % get initial and final reachable set
@@ -94,15 +94,13 @@ methods
         R0 = R0 + (-center(R0)) + center(Rfin);
         
         % check set containment
-        res = in(R0,Rfin);
+        res = contains(R0,Rfin);
     end
     
     function res = checkFinalSimPoints(obj)
     % checks if the final points of the simulated trajectories are located 
     % inside the final reachable set   
-        
-        res = 1;
-    
+
         % get final points of simulations
         points = getFinalSimPoints(obj);
         
@@ -113,14 +111,19 @@ methods
         if isa(R,'polyZonotope')
            res = containsPointSet(R,points,3,2);
         else
-           % loop over all points
-           for i = 1:size(points,2)
-              if ~in(R,points(:,i))
-                  res = 0;
-                  return;
-              end
-           end
+            res = containsFast(R,points);
         end 
+    end
+    
+    function res = checkFinalSimPointsInSet(obj,set)
+    % checks if the final points of the simulated trajectories are located 
+    % inside the specified set   
+    
+        % get final points of simulations
+        points = getFinalSimPoints(obj);
+        
+        % check if the points are contained
+        res = containsFast(set,points);
     end
     
     function res = checkSimInputs(obj,U)
@@ -167,7 +170,8 @@ methods
         
         % check set containment
         fac = 1 + 1e-4;
-        res = in(enlarge(Rfin_,fac),Rfin) & in(enlarge(Rfin,fac),Rfin_);
+        res = contains(enlarge(Rfin_,fac),Rfin) & ...
+                                contains(enlarge(Rfin,fac),Rfin_);
     end
     
     function res = checkInitialSet(obj,Rinit)
@@ -181,8 +185,28 @@ methods
         
         % check set containment
         fac = 1 + 1e-4;
-        res = in(enlarge(Rinit_,fac),Rinit) & in(enlarge(Rinit,fac),Rinit_);
+        res = contains(enlarge(Rinit_,fac),Rinit) & ....
+                                    contains(enlarge(Rinit,fac),Rinit_);
     end
     
+    function res = add(obj,res)
+    % combine two results objects
+
+        % select object that contains the reachable sets 
+        if ~isempty(res.reachSet) || ~isempty(res.reachSetTimePoint) || ...
+           ~isempty(res.refTraj)
+            tmp = obj; obj = res; res = tmp;
+        end
+
+        % result objects cannot be combined if both contain reach sets
+        if ~isempty(res.reachSet) || ~isempty(res.reachSetTimePoint) || ...
+           ~isempty(res.refTraj)
+            error('Objects of class "results" cannot be combined!');
+        end
+
+        % combine simulation results
+        obj.simulation = [obj.simulation,res.simulation];
+        res = obj;
+    end
 end
 end

@@ -72,7 +72,7 @@ function [c,ceq] = conFun(x,Opts)
             % construct linear system
             sys = closedLoopSystemLin(Opts.linModel.A,Opts.linModel.B, ...
                                       Opts.linModel.D,Opts.linModel.c, ...
-                                      K,u_ref);
+                                      K,u_ref,Opts.V);
                                   
             % compute the reachable set
             R = reach(sys,params,options);

@@ -11,8 +11,13 @@ Post = @postprocessing_car;
 Params = param_car();
 
 % define algorithm options
-Opts = settings_genSpaceContr_car();
-Opts = rmfield(Opts,'refTraj');
+Opts = [];
+
+Opts.N = 5;                         % number of time steps
+Opts.Ninter = 5;                    % number of intermediate time steps
+Opts.extHorizon.active = 1;         % use extended optimization horizon
+Opts.extHorizon.horizon = 3;        % time steps for ext. horizon
+Opts.extHorizon.decay = 'fall';     % weight function for ext. horizon  
 
 % define control inputs and initial states for motion primitives
 list_x0 = {[15.8773;0;0;0];[14.8773;0;0;0];[14.8773;0;0;0]};
@@ -81,7 +86,7 @@ x0 = [x0.velocity; x0.orientation; x0.x; x0.y];
 
 % plan a verified trajectory with the maneuver automaton
 clock = tic;
-ind = motionPlanner(MA,x0,goalSet{1},statObs,dynObs,'Astar');
+ind = motionPlanner(MA,x0,goalSet{1},statObs,dynObs,'Astar',@costFun);
 tComp = toc(clock);
 
 disp([newline,'Computation time (motion planning): ',num2str(tComp),'s']);
@@ -90,18 +95,43 @@ disp([newline,'Computation time (motion planning): ',num2str(tComp),'s']);
 % Visualization -----------------------------------------------------------
 
 % show the planned trajectory with an animation
-animateCommonRoad(MA,ind,dynObs,x0,goalSet{1},lanelets);
+resSim = simulateRandom(MA,ind,x0,1);
+animate(resSim,'car',[],dynObs,goalSet{1}.set,[],lanelets);
 
-% visualize the planned trajectory for different time intervals
+% visualize the planned trajectory for different times
 figure
-timeInt = {[0,1],[2,3],[4,5],[6,7]};
+times = {0,2,4,6};
 
-for i = 1:length(timeInt)
-   subplot(length(timeInt),1,i);
-   time = timeInt{i};
-   visualizeCommonRoad(MA,ind,dynObs,x0,lanelets,interval(time(1),time(2)));
-   xlim([-150,50]);
-   ylim([-10,20]);
-   title(['$t \in [',num2str(time(1)),',',num2str(time(2)),']s$'], ...
-         'interpreter','latex');
+for i = 1:length(times)
+   subplot(length(times),1,i); hold on; box on;
+   for j = 1:length(lanelets)
+        plot(lanelets{j},[1,2],'FaceColor',[.6 .6 .6],'EdgeColor','k');
+   end
+   plotPlannedTrajectory(MA,ind,x0,[],[0 0.7 0],'EdgeColor','k');
+   plotPlannedTrajectory(MA,ind,x0,interval(times{i}),'b');
+   plotObstacles([],dynObs,interval(times{i}-0.05,times{i}+0.05));
+   xlim([-150,50]); ylim([-10,20]);
+end
+
+
+% Auxiliary Functions -----------------------------------------------------
+
+function cost = costFun(obj,node,goalSet)
+% compute the costs for A* star search for the current node
+
+    % compute final state and final time at the end of the motion primitive
+    index = node.ind(end);
+    occSet = updateOccupancy(obj,node.parent.xf,index,node.parent.time);
+    xCurr = center(occSet{end}.set);
+    time = node.parent.time + obj.primitives{index}.tFinal;
+    
+    % compute estimated remaining time for reaching the goal set
+    c = center(goalSet.set);
+    dist = sqrt(sum(c-xCurr).^2);
+    v = node.parent.xf(1);
+    h = dist/v;
+    g = time;
+    
+    % compute costs for the node
+    cost = h + g;
 end

@@ -66,25 +66,28 @@ function [res,L_,J_] = checkConstraint(x,u,L,J,Opts)
 %------------------------------------------------------------------
 
     res = 1;    
-    N = size(x,2);
+    N = length(x);
+    Ninter = size(u{1},2);
     
     % distance of the points from the terminal region
     A = Opts.termReg.A;
     b = Opts.termReg.b;
     
     b = 1/(1+Opts.alpha) * b;
-    dist = zeros(N,1);
+    dist = zeros(N+1,1);
     
     for i = 1:N
-        dist(i) = max(0,max((A*x(:,i)-b)./b));
+        dist(i) = max(0,max((A*(x{i}(:,1)-Opts.xf)-b)./b));
     end
-    
+    dist(end) = max(0,max((A*(x{end}(:,end)-Opts.xf)-b)./b));
     J_ = sum(dist);
     
     % value objective function
-    L_ = x(:,end)'*Opts.Q*x(:,end);
-    for i = 1:N-1
-        L_ = L_ + u(:,i)'*Opts.R*u(:,i)*Opts.dT;
+    L_ = x{end}(:,end)'*Opts.Q*x{end}(:,end);
+    for i = 1:N
+        for j = 1:Ninter
+            L_ = L_ + u{i}(:,j)'*Opts.R*u{i}(:,j)*Opts.dT/Ninter;
+        end
     end
     
     % contraction constraint

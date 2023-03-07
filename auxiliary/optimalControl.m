@@ -75,6 +75,7 @@ function [u,x] = optimalControl(system,xf,x0,h,Q,R,steps,lenHorizon,Opts)
     R_ = num2cell(R');
     u_max_ = num2cell(Opts.uMax);
     u_min_ = num2cell(Opts.uMin);
+    
 
     evalc(sprintf('out = acado%i_RUN(x0_{:},x_f_{:},Q_{:},R_{:},steps,steps*h,u_max_{:},u_min_{:});',lenHorizon));
     
@@ -93,16 +94,18 @@ function [u,x] = optimalControl(system,xf,x0,h,Q,R,steps,lenHorizon,Opts)
        index1 = index1 + steps;
        index2 = index2 + nu;
     end
+    
+    if nargout > 1
+        % to obtain states from corner trajectory, we simulate the corner
+        % trajectory using the optimized corner inputs with Runge-Kutta 45
+        % integrator. 
+        delta_t = t_CONTROLS(1,2) - t_CONTROLS(1,1);
+        x = zeros(nx,size(u,2)+1);
+        x(:,1) = x0;
 
-    % to obtain states from corner trajectory, we simulate the corner
-    % trajectory using the optimized corner inputs with Runge-Kutta 45
-    % integrator. 
-    delta_t = t_CONTROLS(1,2) - t_CONTROLS(1,1);
-    x = zeros(nx,size(u,2)+1);
-    x(:,1) = x0;
-
-    % integration stepwise since piece-wise constant control inputs
-    for k=1:size(u,2)
-        [~,x_temp] = ode45(@(t,x)system(x,u(1:nu,k),zeros(Opts.nw,1)),[0 delta_t],x(:,k)');
-        x(:,k+1) = x_temp(end,:)';
+        % integration stepwise since piece-wise constant control inputs
+        for k=1:size(u,2)
+            [~,x_temp] = ode45(@(t,x)system(x,u(1:nu,k),zeros(Opts.nw,1)),[0 delta_t],x(:,k)');
+            x(:,k+1) = x_temp(end,:)';
+        end
     end

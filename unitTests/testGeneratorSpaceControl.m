@@ -1,17 +1,19 @@
 %% Test Generator Space Control
 
 % get benchmark parameter
-Param = param_car_turnRight();
+Param = param_car();
 
 % define algorithm options
-Opts = settings_genSpaceContr_car();
-Opts = rmfield(Opts,'extHorizon');
+Opts = [];
+Opts.N = 10;                        % number of time steps
+Opts.Ninter = 5;                    % number of intermediate time steps
 
 % offline phase computations
 [obj,result] = generatorSpaceControl('car',Param,Opts);
 
 % simulation 
-[result,~,~] = simulateRandom(obj,result,10,0.5,0.6,2);
+[tmp,~,~] = simulateRandom(obj);
+result = add(result,tmp);
 
 % check if the input constraints are satisfied
 res = checkSimInputs(result,Param.U);
@@ -30,20 +32,19 @@ assert(res == 1);
 %% Test Extendet Optimization Horizon
 
 % get benchmark parameter
-Param = param_car_turnRight();
+Param = param_car();
 
-% define algorithm options
-Opts = settings_genSpaceContr_car();
-
-Opts.extHorizon.active = 1;
-Opts.extHorizon.horizon = 3;
-Opts.extHorizon.decay = 'fall';
+% adapt algorithm options
+Opts.extHorizon.active = 1;         % use extended optimization horizon
+Opts.extHorizon.horizon = 3;        % time steps for ext. horizon
+Opts.extHorizon.decay = 'fall';     % weight function for ext. horizon  
 
 % offline phase computations
 [obj,result] = generatorSpaceControl('car',Param,Opts);
 
 % simulation 
-[result,~,~] = simulateRandom(obj,result,10,0.5,0.6,2);
+[tmp,~,~] = simulateRandom(obj);
+result = add(result,tmp);
 
 % check if the input constraints are satisfied
 res = checkSimInputs(result,Param.U);

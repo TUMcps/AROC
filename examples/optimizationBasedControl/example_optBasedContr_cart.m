@@ -1,13 +1,15 @@
 % This script demonstrates the control algorithm that is based on the
-% optimization over reachable sets for cart benchmark
+% optimization over reachable sets for the cart benchmark
 
 % benchmark parameter
 Param = param_cart(); 
 
 % algorithm settings
-Opts.N = 10;
-Opts.refTraj.Q = diag([5,5]);
-Opts.refTraj.R = 1e-3;
+Opts = [];
+
+Opts.N = 10;                    % number of time steps
+Opts.refTraj.Q = diag([5,5]);   % state weighting matrix (reference traj.)
+Opts.refTraj.R = 1e-3;          % input weighthig matrix (reference traj.)
 
 % controller synthesis
 [objContr,res] = optimizationBasedControl('cart',Param,Opts);
@@ -15,7 +17,6 @@ Opts.refTraj.R = 1e-3;
 % visualization
 figure; hold on; box on
 plotReach(res,[1,2],[.7 .7 .7]);
-plot(res.reachSetTimePoint{end},[1,2],'b');
-plot(Param.R0,[1,2],'w','Filled',true);
-xlabel('x');
-ylabel('v');
+plotReachTimePoint(res,[1,2],'b');
+plot(Param.R0,[1,2],'FaceColor','w','EdgeColor','k');
+xlabel('x'); ylabel('v');

@@ -1,9 +1,10 @@
-function [res,t,x] = simulateRandom(obj,res,Npoints,fracVert,fracDistVert,distChanges)
+function [res,t,x] = simulateRandom(obj,varargin)
 % SIMULATERANDOM - simulate random trajectories of a nonlinear system 
 %                  controlled with the Convex Interpolation Controller
 %
 % Syntax:
-%       [res,t,x,u] = SIMULATERANDOM(obj,res,Npoints,fracVert,fracDistVert,distChanges)
+%       [res,t,x,u] = SIMULATERANDOM(obj)
+%       [res,t,x,u] = SIMULATERANDOM(obj,Npoints,fracVert,fracDistVert,distChanges)
 %
 % Description:
 %       Simulate a trajectories of a nonlinear closed-loop system 
@@ -14,8 +15,6 @@ function [res,t,x] = simulateRandom(obj,res,Npoints,fracVert,fracDistVert,distCh
 %
 %       -obj:           object of class objConvInterContr storing the 
 %                       control law computed in the offline-phase
-%       -res:           existing results object to which the simulation
-%                       results should be added
 %       -Npoints:       number of initial points for which trajectories are
 %                       simulated
 %       -fracVert:      fraction of random initial points corresponding to 
@@ -26,6 +25,7 @@ function [res,t,x] = simulateRandom(obj,res,Npoints,fracVert,fracDistVert,distCh
 %                       one time step of the algorithm (integer > 0)
 %
 % Output Arguments:
+%
 %       -res:   results object storing the simulation data
 %       -t:     cell-array storing the vectors with the time points for all 
 %               simulated trajectories
@@ -55,20 +55,17 @@ function [res,t,x] = simulateRandom(obj,res,Npoints,fracVert,fracDistVert,distCh
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------    
 
-    % determine initial points
-    X0 = zeros(obj.nx,Npoints);
-    obj.R0 = zonotope(obj.R0);
+    % parse user inputs
+    [Npoints,fracVert,fracDistVert,distChanges] = ...
+                                        defaultSimulateRandom(varargin{:});
 
-    for i = 1:Npoints
-       if i < Npoints*fracVert
-          X0(:,i) = randPointExtreme(obj.R0);
-       else
-          X0(:,i) = randPoint(obj.R0);
-       end
-    end
+    % determine initial points
+    m = ceil(fracVert*Npoints);
+    X0 = [randPoint(obj.R0,m,'extreme'),randPoint(obj.R0,Npoints-m)];
 
     % construct disturbance vectors
     W = cell(Npoints,1);
+    V = cell(Npoints,1);
     Nw = obj.N*distChanges;
     Nextr = floor(Nw*fracDistVert);
     Wzono = zonotope(obj.W);
@@ -91,24 +88,28 @@ function [res,t,x] = simulateRandom(obj,res,Npoints,fracVert,fracDistVert,distCh
         end
         
         % draw random points from the set of disturbances
-        W{i} = zeros(obj.nw,Nw);
+        W{i} = zeros(dim(obj.W),distChanges);
+        W{i}(:,indExt) = randPoint(Wzono,length(indExt),'extreme');
+        W{i}(:,ind) = randPoint(Wzono,length(ind));
         
-        for j = 1:length(indExt)
-            W{i}(:,indExt(j)) = randPointExtreme(Wzono);
-        end
+        % draw random points from the set of measurement errors
+        V{i} = zeros(obj.nx,Nw);
         
-        for j = 1:length(ind)
-            W{i}(:,ind(j)) = randPoint(Wzono);
+        if ~isempty(obj.V)
+            V{i} = randPoint(obj.V,Nw);
         end
     end
  
     % simulate trajectories
-    x = cell(Npoints,1);
-    u = cell(Npoints,1);
-    t = cell(Npoints,1);
+    x = cell(Npoints,1); u = cell(Npoints,1); t = cell(Npoints,1);
+    sim = {};
     
     for i = 1:Npoints
-       [res,t{i},x{i},u{i}] = simulate(obj,res,X0(:,i),W{i});
+       [~,t{i},x{i},u{i}] = simulate(obj,X0(:,i),W{i},V{i});
+       sim{end+1}.t = t{i};
+       sim{end}.x = x{i};
+       sim{end}.u = u{i};
     end
-
+    
+    res = results([],[],[],sim);
 end

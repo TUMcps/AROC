@@ -90,19 +90,17 @@ function [zonoBig,reachSet,controlLawParam] = computeLinearController(dynamic,zo
         G = generators(zono);
 
         % compute input-zonotope to state zonotope assignment
-        inputAssign=Gr\(G);
+        inputAssign = Gr\(G);
         
     else      
         % compute input-zonotpe to state zonotope assignment
-        inputAssign.G = Gr\(zono.G);
-        if isempty(zono.Grest)
-            inputAssign.Grest = Gr\zeros(Opts.nx,1);
-            zono = polyZonotope(zono.c,zono.G,zeros(Opts.nx,1),zono.expMat);
-        else
-            inputAssign.Grest = Gr\(zono.Grest);
-        end
+        inputAssign.G = Gr\[zono.G,zono.Grest];
     end
     
+    % compute measurement error set as required for reachability analysis
+    if ~isempty(Opts.V)
+        Opts.V = zonotope(Gr\Opts.V.Z);
+    end
     
     %% Reachability Analysis
     

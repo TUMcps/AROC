@@ -70,6 +70,11 @@ function [Rfinal,reachSet] = reachExactController(dynamic,R0,param,Opts)
         % set new input values by changing the center of the disturbance
         % zonotope
         params.paramInt = param(:,l);
+        
+        % add set of measurement errors
+        if ~isempty(Opts.V)
+           R0 = cartProd(R0,Opts.V); 
+        end
             
         % update initial set and time for reachability analysis
         params.R0 = R0;
@@ -85,7 +90,7 @@ function [Rfinal,reachSet] = reachExactController(dynamic,R0,param,Opts)
 
         % obtain reachable set for time intervalls and final time point
         Rfinal = Rtemp.timePoint.set{end};
-        R0 = Rfinal;
+        R0 = project(Rfinal,1:2*Opts.nx);
         reachSet = add(reachSet,Rtemp);
         tStart = params.tFinal;
     end

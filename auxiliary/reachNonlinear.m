@@ -44,9 +44,27 @@ function R = reachNonlinear(obj,params,options)
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------
 
-    % option preprocessing
+    % parse options
     options = params2options(params,options);
-    options = checkOptionsReach(obj,options);
+    
+    options.uTrans = center(options.U);
+    options.U = options.U + (-options.uTrans);
+    
+    if ~isfield(options,'reductionTechnique')
+       options.reductionTechnique = 'girard'; 
+    end
+    if ~isfield(options,'maxError')
+       options.maxError = inf * ones(obj.dim,1); 
+    end
+    if ~isfield(options,'reductionInterval')
+       options.reductionInterval = inf; 
+    end
+    if ~isfield(options,'tStart')
+       options.tStart = 0; 
+    end
+    if ~isfield(options,'linAlg')
+       options.linAlg = 'standard'; 
+    end
 
     % obtain factors for initial state and input solution time step
     r = options.timeStep;

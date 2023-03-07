@@ -1,9 +1,10 @@
-function [res,t,x,u] = simulate(obj,res,x0,w)
+function [res,t,x,u] = simulate(obj,x0,w,varargin)
 % SIMULATE - simulate a trajectory of a nonlinear system controlled with 
 %            the Convex Interpolation Controller
 %
 % Syntax:
-%       [res,t,x,u] = SIMULATE(obj,res,x0,w)
+%       [res,t,x,u] = SIMULATE(obj,x0,w)
+%       [res,t,x,u] = SIMULATE(obj,x0,w,v)
 %
 % Description:
 %       Simulate a trajectory of a nonlinear closed-loop system controlled
@@ -14,13 +15,14 @@ function [res,t,x,u] = simulate(obj,res,x0,w)
 %
 %       -obj:   object of class objConvInterContr storing the control law
 %               computed in the offline-phase
-%       -res:   existing results object to which the simulation results
-%               should be added
 %       -x0:    initial point for the simulation
 %       -w:     matrix storing the values for the disturbances over time
-%               (dimension: [nw,timeSteps])
+%               (dimension: [nw,time steps])
+%       -v:     matrix storing the values for the measurement errors over
+%               time (dimension: [nx, N])
 %
 % Output Arguments:
+%
 %       -res:   results object storing the simulation data
 %       -t:     vector storing the time points for the simulated states
 %       -x:     matrix storing the simulated trajectory 
@@ -54,22 +56,32 @@ function [res,t,x,u] = simulate(obj,res,x0,w)
     Nw = 1;
     
     if size(w,2) > 1
-        Nw = size(w,2)/(obj.Nc * obj.Ninter);
+        Nw = size(w,2)/(obj.N * obj.Ninter);
         if Nw < 1 || floor(Nw) ~= Nw
            error('Number of disturbance vectors has to be a multiple of ''Nc*Ninter''!'); 
         end
     end
+    
+    % check if the number of specified measurement errors is correct
+   	if nargin > 3
+       v = varargin{1};
+       if ~all(size(v) == [obj.nx,obj.N])
+           error('Wrong dimension for the measurement errors "v"!'); 
+       end
+    else
+       v = zeros(obj.nx,obj.N);
+    end
 
     % compute time step 
-    timeStep = (obj.tFinal/obj.Nc)/(obj.Ninter);
+    timeStep = (obj.tFinal/obj.N)/(obj.Ninter);
     
     % simulate each part with constant input
     x_ = x0;
-    xu = x0;
+    xu = x0 + v(:,1);
     x = []; u = []; t = [];
     counter = 1;
     
-    for i = 1:obj.Nc
+    for i = 1:obj.N
         for j = 1:obj.Ninter
             
             % compute control input
@@ -103,28 +115,15 @@ function [res,t,x,u] = simulate(obj,res,x0,w)
             end
         end
         
-        xu = x_;
+        % update measured state
+        if i < obj.N
+            xu = x_ + v(:,i+1);
+        end
     end
 
     % store simulation in results object
-    if isempty(res)
-        simulation{1}.t = t;
-        simulation{1}.x = x;
-        simulation{1}.u = u;
-        res = results([],[],[],simulation);
-    else
-        simulation = res.simulation;
-
-        if isempty(simulation)
-           simulation{1}.t = t;
-           simulation{1}.x = x;
-           simulation{1}.u = u;
-        else
-           simulation{end+1}.t = t;
-           simulation{end}.x = x; 
-           simulation{end}.u = u;
-        end
-
-        res = results(res.reachSet,res.reachSetTimePoint,res.refTraj,simulation);
-    end
+    sim{1}.t = t;
+    sim{1}.x = x;
+    sim{1}.u = u;
+    res = results([],[],[],sim);
 end

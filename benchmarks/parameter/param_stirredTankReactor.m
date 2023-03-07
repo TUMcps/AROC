@@ -14,7 +14,7 @@ function Param = param_stirredTankReactor()
 %
 %       -Param:             a structure containing following options
 %
-%           -.R0:           initial set (class: interval)
+%           -.x0:           initial state
 %           -.xf:           goal state
 %           -.U:            set of admissible control inputs (class:
 %                           interval)
@@ -43,6 +43,9 @@ function Param = param_stirredTankReactor()
     
     % final state
     Param.xf = [0;0];
+
+    % initial state
+    Param.x0 = [-0.15;-45];
     
     % set of admissible control inputs
     Param.U = interval(-20,70);

@@ -69,7 +69,7 @@ classdef objConvInterContr < objController
     
 properties (SetAccess = protected, GetAccess = public)
     controller = [];        % applied controller
-    Nc = [];                % number of center trajectory time steps
+    N = [];                % number of center trajectory time steps
     Ninter = [];            % number of intermediate time steps    
     controlLawParam = [];   % control law parameter
     parallelo = [];         % parallelotope enclosure of reachable set
@@ -85,7 +85,7 @@ methods
         
         % store control law parameters                       
         obj.controller = contrLaw.controller;
-        obj.Nc = contrLaw.Nc;
+        obj.N = contrLaw.Nc;
         obj.Ninter = contrLaw.Ninter;
         obj.controlLawParam = contrLaw.Param;
         obj.parallelo = contrLaw.P;

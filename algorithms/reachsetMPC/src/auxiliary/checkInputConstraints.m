@@ -64,7 +64,11 @@ function res = checkInputConstraints(R,k,u,Opts)
         Rdiff = zonotope(Z(1:Opts.nx,:)-Z(Opts.nx+1:end,:));
 
         % calculate minimal and maximal control input on the set
-        Ru = interval(k' * Rdiff);
+        if isempty(Opts.V)
+            Ru = interval(k' * Rdiff);
+        else
+            Ru = interval(k' * (Rdiff + Opts.V)); 
+        end
         maxTemp = supremum(Ru);
         minTemp = infimum(Ru);
 

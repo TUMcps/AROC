@@ -87,7 +87,7 @@ function [res,reachSet,R,K] = computeFinalReachSet(xOpt,Opts)
             % construct linear system
             sys = closedLoopSystemLin(Opts.linModel.A,Opts.linModel.B, ...
                                       Opts.linModel.D,Opts.linModel.c, ...
-                                      K{i},u_ref);
+                                      K{i},u_ref,Opts.V);
         else
             
             % get feedback matrix

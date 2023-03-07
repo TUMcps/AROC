@@ -19,6 +19,7 @@ function dx = closedLoopSystemNonlin(x,w,p,f,nx,nu,nw)
 %       -nw:    number of disturbances
 %
 % Output Arguments:
+%
 %       -dx:    time derivative for the closed-loop dynamics
 %
 % See Also:

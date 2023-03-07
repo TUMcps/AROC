@@ -48,38 +48,64 @@ function han = plotSimulation(obj,varargin)
     dim = [1,2];
     color = 'b';
     NVpairs = [];
-
+    plot_t = false;
+    type = 'x';
+    
     % parse input arguments
     if nargin > 1 && ~isempty(varargin{1})
        dim = varargin{1};
-       if (any(size(dim) ~= [2,1]) && any(size(dim) ~= [1,2])) || ...
+       if numel(dim)==1 % plot dimension as y axis
+           plot_t = true;
+       elseif (any(size(dim) ~= [2,1]) && any(size(dim) ~= [1,2])) || ...
            any(mod(dim,1) ~= 0)
           error('Wrong value for input argument "dim"! Has to be a 2D vector of integers!') 
        end
     end
     
     if nargin > 2 && ~isempty(varargin{2})
-       color = varargin{2};
-       if ~ischar(color) && (any(size(color) ~= [3,1]) && ...
-          any(size(color) ~= [1,3]))
-           error('Wrong value for input argument "color"! Has to be a string or a 3D vector of RGB values!') 
-       end
+        color = varargin{2};
+        if ~ischar(color) && (any(size(color) ~= [3,1]) && ...
+            any(size(color) ~= [1,3]))
+            error('Wrong value for input argument "color"! Has to be a string or a 3D vector of RGB values!') 
+        end
     end
     
     if nargin > 3
-       NVpairs = varargin(3:end); 
-       color = getNameValuePair(NVpairs,'Color',color);
+        NVpairs = varargin(3:end); 
+        color = getNameValuePair(NVpairs,'Color',color);
+        [NVpairs,type] = readNameValuePair(NVpairs,'type');
+        
+        
     end
 
     % plot simulation results
     hold on
     
     for i = 1:length(obj.simulation)
-       x = obj.simulation{i}.x;
-       if isempty(NVpairs)
-           han = plot(x(:,dim(1),:),x(:,dim(2)),'Color',color); 
-       else
-           han = plot(x(:,dim(1),:),x(:,dim(2)),'Color',color,NVpairs{:}); 
-       end
+        if strcmp(type,'x')
+            if plot_t
+                x = obj.simulation{i}.t;
+                y = obj.simulation{i}.x(:,dim);
+            else
+                x = obj.simulation{i}.x(:,dim(1));
+                y = obj.simulation{i}.x(:,dim(2));
+            end
+        elseif strcmp(type,'u')
+            if plot_t
+                x = obj.simulation{i}.t;
+                y = obj.simulation{i}.u(:,dim);
+            else
+                x = obj.simulation{i}.u(:,dim(1));
+                y = obj.simulation{i}.u(:,dim(2));
+            end
+        else
+            error('Wrong argument "type"!');
+        end
+
+        if isempty(NVpairs)
+            han = plot(x,y,'Color',color); 
+        else
+            han = plot(x,y,'Color',color,NVpairs{:}); 
+        end
     end
 end

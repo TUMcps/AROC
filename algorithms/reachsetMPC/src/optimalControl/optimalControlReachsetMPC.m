@@ -96,10 +96,10 @@ function [param,res] = optimalControlReachsetMPC(x0,J,L,Opts)
 end
 
 
-
 % Auxiliary Functions -----------------------------------------------------
 
 function [u,x] = optimalControlAcado(sys,x0,J,Opts)
+% solver optimal control problem using ACADO
 
     % passing optimization variables to ACADO Toolbox, every scalar has to
     % be passed individually
@@ -114,8 +114,15 @@ function [u,x] = optimalControlAcado(sys,x0,J,Opts)
     
     alphaPoly = 1/(1+Opts.alpha);
 
-    evalc(['out = acadoReachsetMPC_RUN(x0_{:},x_f_{:},Q_{:},R_{:},1,', ...
-          'Opts.dT,u_max_{:},u_min_{:},A_{:},b_{:},alphaPoly,J,Opts.alpha);']);
+    if ~isempty(Opts.X)
+        C = num2cell(Opts.X_.P.A);
+        d = num2cell(Opts.X_.P.b);
+    else
+        C = num2cell([]); d = num2cell([]);
+    end
+
+    evalc(['out = acadoReachsetMPC_RUN(x0_{:},x_f_{:},Q_{:},R_{:},Opts.Ninter,', ...
+          'Opts.dT,u_max_{:},u_min_{:},A_{:},b_{:},alphaPoly,J,Opts.alpha,C{:},d{:});']);
 
     % saving optimal inputs for center trajectory which were computed in
     % optimal control problem using ACADO
@@ -123,125 +130,114 @@ function [u,x] = optimalControlAcado(sys,x0,J,Opts)
     uTemp = out.CONTROLS(:,2:end)';
     
     % restructure u to the correct format
-    u = zeros(Opts.nu,Opts.N);
+    u = cell(Opts.N,1);
     index = 1;
+    
     for i = 1:Opts.N
-       u(:,i) = uTemp(index:index+Opts.nu-1,1:end-1);
-       index = index + Opts.nu;
+        u{i} = uTemp(index:index+Opts.nu-1,1:end-1);
+        index = index + Opts.nu;
     end
 
     % to obtain states from center trajectory, we simulate the corner
     % trajectory using the optimized corner inputs with Runge-Kutta 45
     % integrator. This is done because the state determined by ACADO can
     % by inaccurate sometimes. 
-    delta_t = t_CONTROLS(1,2)-t_CONTROLS(1,1);
-    x = zeros(Opts.nx,size(u,2)+1);
-    x(:,1) = x0;
+    dt = t_CONTROLS(1,2)-t_CONTROLS(1,1);
+    x = cell(Opts.N,1);
 
     % integration stepwise since piece-wise constant control inputs
     funHan = @(x,u)sys(x,u,zeros(Opts.nw,1));
     
-    for k = 1:size(u,2)
-        [~,x_temp]=ode45(@(t,x)funHan(x,u(1:Opts.nu,k)),[0 delta_t],x(:,k)');
-        x(:,k+1)=x_temp(end,:)';
-    end    
+    for i = 1:Opts.N
+        
+        x{i} = zeros(Opts.nx,Opts.Ninter+1);
+        x{i}(:,1) = x0;
+        
+        for k = 1:Opts.Ninter
+            [~,x_temp] = ode45(@(t,x)funHan(x,u{i}(1:Opts.nu,k)),...
+                               [0 dt],x{i}(:,k)');
+            x{i}(:,k+1) = x_temp(end,:)';
+        end    
+        
+        x0 = x_temp(end,:)';
+    end
 end
 
 function [u,x] = optimalControlFmincon(sys,x0,J,Opts)
-    
-    % enlarged input cost matrix for easier computation
-    R = Opts.dT * kron(eye(Opts.N),Opts.R);
+% Solve optimal control problem using fmincon
 
-    % initialization of initial solution for optimal control problem by
-    % integrating the states for very small control inputs
-    u0 = diag(center(Opts.U))*ones(Opts.nu,Opts.N);
-    xc0 = zeros(Opts.nx,Opts.N);
-    xc0 = [x0,xc0];
-    for k = 1:Opts.N
-        [~,x_temp] = ode45(@(t,x)sys(x,u0(:,k),zeros(Opts.nw,1)),[0 Opts.dT],xc0(:,k)');
-        xc0(:,k+1) = x_temp(end,:)';
-    end
-    
-    % combine state and input trajectory as initial solution for optimal
-    % control problem
-    xc0 = reshape(xc0(:,2:end),[Opts.nx*Opts.N,1]);
-    u0 = reshape(u0,[Opts.nu*Opts.N,1]);
-    xc0 = [xc0;u0];
-
-    % lower and upper bounds for states and inputs
-    u_lb = repmat(Opts.uMin_,[Opts.N,1]);
-    u_ub = repmat(Opts.uMax_,[Opts.N,1]);
-    x_lb = -inf*ones(Opts.nx*Opts.N,1);    % no state constraints
-    x_ub = inf*ones(Opts.nx*Opts.N,1);
-
-    % solve optimal control problem using a multiple shooting algorithm and
-    % fmincon for optimization
-    system_ = @(x,u) sys(x,u,zeros(Opts.nw,1));
+    % solve optimal control problem
+    inter = 4;
+    N = Opts.N * Opts.Ninter;
     alphaPoly = 1/(1+Opts.alpha);
     
-    options=optimoptions('fmincon','MaxIterations',Opts.maxIter,'Algorithm',...
-                         'sqp','Display','off');  
-                     
-    x = fmincon(@(xc)costFunFminconReachsetMPC(xc,Opts.nx,Opts.N,Opts.xf,Opts.Q,R), ...
-                xc0,[],[],[],[],[x_lb;u_lb],[x_ub;u_ub], ...
-                @(xc)conFunFminconReachsetMPC(xc,Opts.nx,Opts.nu,Opts.N,...
-                     Opts.dT,x0,system_,Opts.termReg.A,Opts.termReg.b,Opts.alpha,J,alphaPoly),options); 
-
-     % extracting the optimal input trajectory
-    u = x(Opts.nx*Opts.N+1:end);
-    u = reshape(u,[Opts.nu,Opts.N]);
+    if ~isempty(Opts.X)
+        text = sprintf(['cost = @(x) fminconReachsetMPC_cost(x,x0,', ...
+                        'Opts.xf,Opts.Q,Opts.R,Opts.dT/Opts.Ninter,', ...
+                        'Opts.termReg.A,Opts.termReg.b,Opts.alpha,', ...
+                        'alphaPoly,J,Opts.uMin_,Opts.uMax_,', ...
+                        'Opts.X_.P.A,Opts.X_.P.b);']);
+        eval(text);
     
-    % to obtain states from corner trajectory, we simulate the 
-    % trajectory using the optimized center inputs with Runge-Kutta 45
-    % integrator.
+        text = sprintf(['con = @(x) fminconReachsetMPC_con(x,x0,', ...
+                        'Opts.xf,Opts.Q,Opts.R,Opts.dT/Opts.Ninter,', ...
+                        'Opts.termReg.A,Opts.termReg.b,Opts.alpha,', ...
+                        'alphaPoly,J,Opts.uMin_,Opts.uMax_,', ...
+                        'Opts.X_.P.A,Opts.X_.P.b);']);
+        eval(text);
+    else
+        text = sprintf(['cost = @(x) fminconReachsetMPC_cost(x,x0,', ...
+                        'Opts.xf,Opts.Q,Opts.R,Opts.dT/Opts.Ninter,', ...
+                        'Opts.termReg.A,Opts.termReg.b,Opts.alpha,', ...
+                        'alphaPoly,J,Opts.uMin_,Opts.uMax_);']);
+        eval(text);
+    
+        text = sprintf(['con = @(x) fminconReachsetMPC_con(x,x0,', ...
+                        'Opts.xf,Opts.Q,Opts.R,Opts.dT/Opts.Ninter,', ...
+                        'Opts.termReg.A,Opts.termReg.b,Opts.alpha,', ...
+                        'alphaPoly,J,Opts.uMin_,Opts.uMax_);']);
+        eval(text);
+    end
+    
+    options = optimoptions('fmincon','Algorithm', ...
+                            'interior-point','Display','off', ...
+                            'MaxFunctionEvaluations',1e4); 
+                        
+    nOpt = Opts.nx*(N*inter+1) + Opts.nu*N + Opts.N;
+    xInit = zeros(nOpt,1);
+    
+    lb = -inf*ones(nOpt,1);
+    ub = inf*ones(nOpt,1);
+    
+    cnt = Opts.nx*(N*inter+1);
+    lb(cnt+1:cnt+Opts.nu*N) = repmat(Opts.uMin,[N,1]);
+    ub(cnt+1:cnt+Opts.nu*N) = repmat(Opts.uMax,[N,1]);
+    
+    lb(cnt+Opts.nu*N+1:end) = zeros(nOpt - (cnt + Opts.nu*N), 1);
+    
+    sol = fmincon(cost,xInit,[],[],[],[],lb,ub,con,options);
+
+    x_ = sol(1:Opts.nx*(N*inter+1));
+    x_ = reshape(x_,[Opts.nx,N*inter+1]);
+    u = sol(numel(x_)+1:numel(x_)+Opts.nu*N);
+    u = reshape(u,[Opts.nu,N]);
+    
+    % simulate trajectory to obtain more accurate result
     x = zeros(Opts.nx,Opts.N+1);
     x(:,1) = x0;
-    for k = 1:Opts.N 
-        [~,x_temp] = ode45(@(t,x)sys(x,u(:,k),zeros(Opts.nw,1)),[0 Opts.dT],x(:,k)');
+    for k = 1:N 
+        [~,x_temp] = ode45(@(t,x)sys(x,u(:,k),zeros(Opts.nw,1)), ...
+                                        [0 Opts.dT/Opts.Ninter],x(:,k)');
         x(:,k+1) = x_temp(end,:)';
     end
-end
-
-function [c,ceq] = conFunFminconReachsetMPC(y,nx,nu,N,dt,x0,dynamics,A,b,alpha,J,alphaPoly)
-% constraint function for the FMINCON optimization
-
-    % extract states and inputs
-    x = y(1:nx*N);
-    u = y(nx*N+1:end);
-    x = reshape(x,[nx,N]);
-    u = reshape(u,[nu,N]);
-    x = [x0,x];
-    xconstr = zeros(nx,N);
-
-    % constraint due to system dynamics
-    for k=1:N
-        [~,x_temp]=ode45(@(t,x)dynamics(x,u(:,k)),[0 dt],x(:,k)');
-        xconstr(:,k) = x_temp(end,:)';
+    
+    % bring to correct format
+    cnt = 1; u_ = cell(Opts.N,1); x_ = cell(Opts.N,1);
+    for i = 1:Opts.N
+       u_{i} = u(:,cnt:cnt + Opts.Ninter-1);
+       x_{i} = x(:,cnt:cnt + Opts.Ninter);
+       cnt = cnt + Opts.Ninter;
     end
     
-    ceq = y(1:nx*N)-reshape(xconstr,[N*nx,1]); 
-
-    % contraction constraint
-    b = alphaPoly * b;
-    dist = zeros(N,1);
-    
-    for i = 1:N
-        temp = (A*xconstr(:,i) - b)./b;
-        dist(i) = max(0,min(temp > 0));
-    end
-
-    c = sum(dist) - J + alpha;
-end
-
-function cost = costFunFminconReachsetMPC(y,nx,N,xf,Q,R)
-% cost function for the FMINCON optimization
-
-    % obtaining states and inputs
-    x=y(nx*(N-1)+1:nx*N);
-    u=y(nx*N+1:end);
-
-    % cost function based on sum of used inputs and difference of final state
-    % to desired final state
-    cost=u'*R*u + (x-xf)'*Q*(x-xf);
-    
+    u = u_; x = x_;
 end

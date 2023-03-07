@@ -23,7 +23,10 @@ classdef objController
 %                           reached
 %           -.U:            set of admissible control inputs (class:
 %                           interval)
-%           -.W:            set of uncertain disturbances (class: interval)
+%           -.W:            set of uncertain disturbances (class: interval 
+%                           or zonotope)
+%           -.V:            set of measurement errors (class: interval or
+%                           zonotope)
 %
 %       -occSet:  cell-array storing the occupancy set  
 %
@@ -60,6 +63,7 @@ properties (SetAccess = protected, GetAccess = public)
     tFinal = [];        % final time
     U = [];             % set of admissble control inpus
     W = [];             % set of disturbances
+    V = [];             % set of measurement errors
     occupancySet = [];  % cell-array storing the occupancy set      
     nx = [];            % number of states
     nu = [];            % number of inputs
@@ -80,6 +84,9 @@ methods
         obj.tFinal = Param.tFinal;
         obj.U = Param.U;
         obj.W = Param.W;
+        if isfield(Param,'V')
+           obj.V = Param.V; 
+        end
         
         % store occupancy set if provided
         if nargin > 3

@@ -1,8 +1,8 @@
-function [Rfin,Rcont] = compReachSet(sys,k,uc,xc,p,Opts)
+function [Rfin,Rcont] = compReachSet(sys,K,uc,xc,p,Opts)
 % COMPREACHSET - reachable set computation for the closed-loop system
 %
 % Syntax:
-%       [R,Rcont] = COMPREACHSET(sys,k,uc,xc,p,Opts)
+%       [R,Rcont] = COMPREACHSET(sys,K,uc,xc,p,Opts)
 %
 % Description:
 %       This function computes the reachable set for the closed loop system 
@@ -12,7 +12,7 @@ function [Rfin,Rcont] = compReachSet(sys,k,uc,xc,p,Opts)
 %
 %       -sys:   object containing the dynamics of the closed-loop system 
 %               (class: nonlinParamSys)
-%       -k:     feedback matrix for the tracking controller 
+%       -K:     feedback matrix for the tracking controller 
 %               (dimension: [nu,nx])
 %       -uc:    reference control input (dimension: [nu,1])
 %       -xc:    reference point of center trajectory (dimension: [nx,1])
@@ -56,19 +56,42 @@ function [Rfin,Rcont] = compReachSet(sys,k,uc,xc,p,Opts)
     options = Opts.ReachOpts;
     params = Opts.ReachParams;
     
-    params.paramInt = [reshape(k,[],1);uc];
-    params.R0 = zonotope([p;xc]);
-    params.tFinal = Opts.tStart + Opts.tComp;
-    
-    if Opts.tStart ~= 0
-        params.tStart = Opts.tStart;
+    if isempty(Opts.V)
+       params.R0 = zonotope([p;xc(:,1)]);
+    else
+       params.R0 = cartProd(Opts.V,zonotope(zeros(Opts.nx,1)))+[p;xc(:,1)]; 
+    end
+    if strcmp(options.alg,'poly')
+        params.R0 = polyZonotope(params.R0);
     end
     
-    options.timeStep = Opts.tComp/Opts.reachSteps;
+    tFin = Opts.tStart + Opts.tComp;
+    params.tStart = Opts.tStart;
+    
+    Rcont = []; cnt = 1;
 
-    % reachability analysis
-    Rcont = reachNonlinear(sys,params,options);
+    % loop over all intermediate time steps until allocated time is reached
+    while true
+        
+        % update reachability settings
+        params.paramInt = [reshape(K{cnt},[],1);uc(:,cnt)];
+        params.tFinal = min(tFin,params.tStart + Opts.dT/Opts.Ninter);
+        options.timeStep = (params.tFinal-params.tStart)/Opts.reachSteps;
+        cnt = cnt + 1;
+        
+        % reachability analysis 
+        Rtemp = reachNonlinear(sys,params,options);
+        
+        % update initial set and store reachable set
+        Rcont = add(Rcont,Rtemp);
+        params.R0 = Rtemp.timePoint.set{end};
+        params.tStart = params.tStart + Opts.dT/Opts.Ninter;
+        
+        if abs(tFin - params.tFinal) <= eps
+            break;
+        end
+    end
     
     % final reachable set
-    Rfin = project(Rcont.timePoint.set{end},1:Opts.nx);
+    Rfin = project(Rtemp.timePoint.set{end},1:Opts.nx);
 end

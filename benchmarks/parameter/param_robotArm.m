@@ -19,7 +19,10 @@ function Param = param_robotArm()
 %                           reached
 %           -.U:            set of admissible control inputs (class:
 %                           interval)
-%           -.W:            set of uncertain disturbances (class: interval)
+%           -.W:            set of uncertain disturbances (class: interval 
+%                           or zonotope)
+%           -.V:            set of measurement errors (class: interval or
+%                           zonotope)
 %           -.X:            set of state constraints (class: mptPolytope)
 %
 % See Also:
@@ -51,6 +54,13 @@ function Param = param_robotArm()
     % goal state and final time
     Param.xf = [-0.2241;0.4482;0;0];
     Param.tFinal = 1;
+
+    % set of admissible states
+    tmp = mptPolytope(interval([0;-pi], [pi;pi]));
+    A = zeros(4,4);
+    A(:, [1 2]) = tmp.P.A;
+
+    Param.X = mptPolytope(A, tmp.P.b);
     
     % set of admissible control inputs
     width = [3;1];

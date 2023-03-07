@@ -23,7 +23,10 @@ function [objContr,res] = optimizationBasedControl(benchmark,Param,varargin)
 %                           reached
 %           -.U:            set of admissible control inputs (class:
 %                           interval)
-%           -.W:            set of uncertain disturbances (class: interval)
+%           -.W:            set of uncertain disturbances (class: interval 
+%                           or zonotope)
+%           -.V:            set of measurement errors (class: interval or
+%                           zonotope)
 %           -.X:            set of state constraints (class: mptPolytope)
 %
 %       -Opts:              a structure containing the algorithm settings
@@ -217,14 +220,20 @@ function Opts = initialization(benchmark,Param,Opts)
     if ~Opts.isLin || ~strcmp(Opts.ReachOpts.linAlg,'adap')
         Opts.ReachOpts.timeStep = (Opts.tFinal/ Opts.N)/ Opts.reachSteps; 
     end
+    if ~Opts.isLin
+        Opts.ReachOpts.intermediateTerms = 4; 
+    end
     
     Opts.CentOpts.Nc = Opts.N;               % number ref. traj. time steps
     Opts.CentOpts.hc = Opts.tFinal/Opts.N;   % size center traj. time step
 
     % store matrices for inequality constraints for input and state con
     if isfield(Param,'X')
-       Opts.stateCon.A = get(Param.X,'A');
-       Opts.stateCon.b = get(Param.X,'b');
+       if ~isa(Param.X,'mptPolytope')
+           Param.X = mptPolytope(Param.X);
+       end
+       Opts.stateCon.A = Param.X.P.A;
+       Opts.stateCon.b = Param.X.P.b;
     else
        Opts.stateCon = []; 
     end
@@ -232,17 +241,30 @@ function Opts = initialization(benchmark,Param,Opts)
     Opts.inputCon.A = [eye(Opts.nu);-eye(Opts.nu)];
     Opts.inputCon.b = [Opts.uMax;-Opts.uMin];
     
-    % store model parameters
+    % extend the disturbance set by the set of measurement errors
+    if ~isempty(Opts.V)
+        Opts.ReachParams.U = cartProd(Opts.ReachParams.U,Opts.V);
+    end
+    
+    % create nonlinear parameter system object for the closed loop
     if ~Opts.isLin
-        % create nonlinear parameter system object for the closed loop
+        
         name = ['AROCoptBased',benchmark,Opts.ReachOpts.alg, ...
                 num2str(Opts.ReachOpts.tensorOrder)];
             
-        funHan = @(x,u,p) closedLoopSystemNonlin(x,u,p,...
+        if isempty(Opts.V)
+            funHan = @(x,u,p) closedLoopSystemNonlin(x,u,p,...
                                   Opts.funHandle,Opts.nx,Opts.nu,Opts.nw);
         
-        Opts.sys = nonlinParamSys(name,@(x,u,p) funHan(x,u,p),2*Opts.nx, ...
-                                  Opts.nw,(Opts.nx+1)*Opts.nu);
+            Opts.sys = nonlinParamSys(name,@(x,u,p) funHan(x,u,p), ...
+                                  2*Opts.nx,Opts.nw,(Opts.nx+1)*Opts.nu);
+        else
+            funHan = @(x,u,p) closedLoopSystemNonlinMeasErr(x,u,p,...
+                                  Opts.funHandle,Opts.nx,Opts.nu,Opts.nw);
+        
+            Opts.sys = nonlinParamSys(name,@(x,u,p) funHan(x,u,p), ...
+                            2*Opts.nx,Opts.nw+Opts.nx,(Opts.nx+1)*Opts.nu);
+        end
     end
 end
 

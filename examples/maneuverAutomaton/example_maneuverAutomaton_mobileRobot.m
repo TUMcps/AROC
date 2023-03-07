@@ -11,7 +11,18 @@ Post = @postprocessing_mobileRobot;
 Params = param_mobileRobot();
 
 % define algorithm options
-Opts = settings_convInterContr_mobileRobot();
+Opts = [];
+
+Opts.N = 10;                          % number of time steps
+Opts.Ninter = 2;                      % number of intermediate time steps
+Opts.reachSteps = 5;                  % number of reachability steps
+Opts.refTraj.Q = diag([1 1 1 5 5]);   % state weighting matrix (ref. traj.)
+Opts.refTraj.R = diag([0.02 0.02]);   % input weighting matrix (ref. traj.)
+Opts.parallel = 1;                    % use parallel computing
+Opts.approx.method = 'optimized';     % method for approximating contr. law
+Opts.extHorizon.active = true;        % use extended optimization horizon
+Opts.extHorizon.horizon = 3;          % time steps for extended horizon
+Opts.extHorizon.decay = 'fall+End';   % weight function for ext. horizon 
 
 % define control inputs and initial states for motion primitives
 list_x0 = {[0;0;0;1;1],[0;0;0;0;0],[0;0;0;1;1],[0;0;0;1;1]};
@@ -84,6 +95,7 @@ for i = 1:length(statObs)
 end
 
 % goal set
+goalSet = [];
 goalSet.time = interval(0,1000);
 goalSet.set = polygon([8.7 8.7 9.7 9.7],[0 1 1 0]);
 
@@ -103,20 +115,14 @@ disp([newline,'Computation time (motion planning): ',num2str(tComp),'s']);
 
 % Visualization -----------------------------------------------------------
 
-% plot static obstacles
-figure; hold on;
-for i = 1:length(statObs)
-    plot(statObs{i},[1,2],'b','Filled',true,'EdgeColor','none');    
-end
+% show the planned trajectory with an animation
+speedUp = 10;
 
-% plot goal set
-plot(goalSet.set,[1,2],'r','Filled',true,'EdgeColor','none');
+resSim = simulateRandom(MA,ind,x0,1);
+animate(resSim,'mobileRobot',statObs,[],goalSet.set,speedUp);
 
 % plot planned trajectory
-x = x0;
-
-for i = 1:length(ind)
-    occSet = updateOccupancy(MA,x,ind(i),0);
-    x = MA.updateState(x,ind(i)); 
-    plotOccupancySet(occSet,[1,2],'g');
-end
+figure; hold on; box on;
+plot(goalSet.set,[1,2],'FaceColor',[134 227 134]/255);
+plotPlannedTrajectory(MA,ind,x0,[],[],'EdgeColor','k');
+plotObstacles(statObs);

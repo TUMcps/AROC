@@ -19,7 +19,10 @@ function Param = param_platoon()
 %                           reached
 %           -.U:            set of admissible control inputs (class:
 %                           interval)
-%           -.W:            set of uncertain disturbances (class: interval)
+%           -.W:            set of uncertain disturbances (class: interval 
+%                           or zonotope)
+%           -.V:            set of measurement errors (class: interval or
+%                           zonotope)
 %           -.X:            set of state constraints (class: mptPolytope)
 %
 % See Also:

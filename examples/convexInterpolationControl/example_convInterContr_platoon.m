@@ -5,7 +5,14 @@
 Param = param_platoon();
 
 % load algorithm settings
-Opts = settings_convInterContr_platoon();
+Opts = [];
+
+Opts.N = 25;                            % number of time steps
+Opts.Ninter = 1;                        % number of intermediate steps
+Opts.reachSteps = 5;                    % number of rechability steps 
+Opts.Q = diag([20,1,27,1,28,1,28,1]);   % state weighting matrix       
+Opts.R = zeros(4);                      % input weighting matrix 
+Opts.parallel = 1;                      % use parallel computing
 
 % controller synthesis
 clock = tic;
@@ -15,7 +22,10 @@ tComp = toc(clock);
 disp([newline,'Computation time: ',num2str(tComp),'s']);
 
 % simulation 
-[res,~,~] = simulateRandom(objContr,res,10,0.5,0.6,2);
+[resSim,~,~] = simulateRandom(objContr);
+
+% animation 
+animate(resSim,'platoon');
 
 % compute shifted final reachable set
 Rshift = res.reachSetTimePoint{end};
@@ -25,8 +35,8 @@ Rshift = zonotope([center(Param.R0),generators(Rshift)]);
 figure; hold on; box on
 plotReach(res,[1,2],[.7 .7 .7]);
 plotReachTimePoint(res,[1,2],'b');
-plot(Param.R0,[1,2],'w','Filled',true);
-plotSimulation(res,[1,2],'k');
+plot(Param.R0,[1,2],'FaceColor','w','EdgeColor','k');
+plotSimulation(resSim,[1,2],'k');
 xlabel('$x_1 [m]$','Interpreter','latex');
 ylabel('$x_2 [\frac{m}{s}]$','Interpreter','latex');
 

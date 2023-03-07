@@ -19,7 +19,10 @@ function Param = param_car()
 %                           reached
 %           -.U:            set of admissible control inputs (class:
 %                           interval)
-%           -.W:            set of uncertain disturbances (class: interval)
+%           -.W:            set of uncertain disturbances (class: interval 
+%                           or zonotope)
+%           -.V:            set of measurement errors (class: interval or
+%                           zonotope)
 %           -.X:            set of state constraints (class: mptPolytope)
 %
 % See Also:
@@ -58,5 +61,8 @@ function Param = param_car()
     
     % final time
     Param.tFinal = 1;
+
+    % final state
+    Param.xf = [20;-0.2;19.87;-1.99];
 
 end

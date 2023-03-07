@@ -45,5 +45,5 @@ function f = doubleIntegrator(x,u,w)
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------ 
 
-    f(1,1) = x(2);
-    f(2,1) = u(1) + w(1);
+    f(1,1) = x(2) + w(1);
+    f(2,1) = u(1) + w(2);

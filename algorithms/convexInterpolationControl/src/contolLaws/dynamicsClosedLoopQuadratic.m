@@ -1,9 +1,9 @@
-function f = dynamicsClosedLoopQuadratic(x,u,p,nx,dynamics)
+function f = dynamicsClosedLoopQuadratic(x,w,p,nx,dynamics)
 % DYNAMICSCLOSEDLOOPQUADRATIC - system dynamics for the closed-loop system
 %                               controlled with the quadratic control law
 %
 % Syntax:
-%       f = DYNAMICSCLOSEDLOOPQUADRATIC(t,x,u,p,nx,dynamics)
+%       f = DYNAMICSCLOSEDLOOPQUADRATIC(t,x,w,p,nx,dynamics)
 %
 % Description:
 %       This function implements the closed loop system dynamics for the 
@@ -20,7 +20,7 @@ function f = dynamicsClosedLoopQuadratic(x,u,p,nx,dynamics)
 % Input Arguments:
 %
 %       -x:         system states x (dimension: [nx,1])
-%       -u:         disturbances = input to the closed loop controlled 
+%       -w:         disturbances = input to the closed loop controlled 
 %                   system (dimension: [nx,1])
 %       -p:         parameter vector. Contains the parameter of the optimal
 %                   control law (dimension: [nu*(2*nx+1),1])
@@ -80,11 +80,11 @@ function f = dynamicsClosedLoopQuadratic(x,u,p,nx,dynamics)
 
     % Control law
     for i = 1:nu
-       U(i) = x(nx+1:end)'*A{i}*x(nx+1:end) + b{i}'*x(nx+1:end) + o{i}; 
+       u(i) = x(nx+1:end)'*A{i}*x(nx+1:end) + b{i}'*x(nx+1:end) + o{i}; 
     end
 
 
     % extended system dynamic 
-    f(1:nx,1) = dynamics(x(1:nx),U,u);
+    f(1:nx,1) = dynamics(x(1:nx),u,w);
 
     f(nx+1:length(x),1) = zeros(length(x)-nx,1);

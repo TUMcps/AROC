@@ -42,146 +42,21 @@ function R = postprocessing_mobileRobot(R)
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------ 
 
-%     V = [-0.2275,-0.14,0.14,0.2275,0.2275,0.14,-0.14,-0.2275; ...
-%          0.08,0.1905,0.1905,0.08,-0.08,-0.1905,-0.1905,-0.08];
-
-
-
-
-    % car length and width in [m]
+    % robot length and width in [m]
     l = 0.455;
     w = 0.381;
     
-    car = zonotope(interval([-l/2;-w/2],[l/2;w/2]));
+    robot = zonotope(interval([-l/2;-w/2],[l/2;w/2]));
     
-    % define transformation function
-    syms x1 x2 phi z1 z2
-    x = [x1;x2;phi;z1;z2];
-    
-    f = [x1 + cos(phi)*z1 - sin(phi)*z2; x2 + cos(phi)*z2 + sin(phi)*z1];
-    
-    % compute derivatives
-    [fun,Afun,Qfun,Tfun] = computeDerivatives(f,x);    
-    
-    % loop over all reachable sets
-    for i = 1:length(R)
-    
-        % reduce the zonotope order
-        set = reduce(R{i}.set,'girard',3);
-        
-        % define initial set
-        set = project(set,[1 2 3]);
-    
-        X = cartProd(set,car);
-        
-        % evaluate derivatives at linearization point
-        p = center(X);
+     % define function to compute occupancy set
+    f = @(x,p) [x(1) + cos(x(3))*p(1) - sin(x(3))*p(2);
+                x(2) + cos(x(3))*p(2) + sin(x(3))*p(1)];
 
-        [f,A,Q,T] = evalDerivatives(X,p,fun,Afun,Qfun,Tfun);
+    % compute occupancy set
+    dt = 0.5;
+    order = 3;
+    tol = 0.01;
 
-        % compute Largrange remainder
-        rem = lagrangeRemainder(X,p,T);
+    R = postprocessingPolygon(f,robot,R,dt,order,tol);
 
-        % compute over-approximating zonotope
-        res = f + A * (X + (-p)) + 0.5*quadMap((X + (-p)),Q) + rem;
-
-        % convert to polygon object
-        if ~isa(res,'zonotope')
-           res = zonotope(res); 
-        end
-        V = vertices(res);
-
-        w = warning();
-        warning('off');
-
-        R{i}.set = polygon(V(1,:)',V(2,:)');
-
-        warning(w);
-    end
-    
-    % unite occopancy sets to speed-up collision checking
-    set = R{1}.set;
-    tStart = infimum(R{1}.time);
-    tFinal = supremum(R{end}.time);
-    
-    for i = 2:length(R)
-       set = set | R{i}.set;
-    end
-    
-    R_{1}.set = set;
-    R_{1}.time = interval(tStart,tFinal);
-    R_{2}.set = R{end}.set;
-    R_{2}.time = R{end}.time;
-    R = R_;
-    
-end
-
-function [fun,Afun,Qfun,Tfun] = computeDerivatives(f,x)
-% compute the symbolic derivatives of the function
-
-    % function handle for the nonlinear function
-    fun =  matlabFunction(f,'Vars',{x});
-    
-    A = jacobian(f,x);
-    Afun =  matlabFunction(A,'Vars',{x});
-    
-    Qfun = cell(length(f),1);
-    for i = 1:length(f)
-       temp = hessian(f(i),x); 
-       Qfun{i} =  matlabFunction(temp,'Vars',{x});
-    end
-    
-    Tfun = cell(size(A));
-    for i = 1:size(A,1)
-        for j = 1:size(A,2)
-            temp = hessian(A(i,j),x);
-            Tfun{i,j} = matlabFunction(temp,'Vars',{x});
-        end
-    end
-end
-
-
-% Auxiliary Functions -----------------------------------------------------
-
-function [f,A,Q,T] = evalDerivatives(X,p,fun,Afun,Qfun,Tfun)
-% evaluate the derivatives at the linearization point
-
-    % interval encluore of the set
-    int = interval(X);
-    
-    f = fun(p);
-    A = Afun(p);
-    
-    Q = cell(length(f),1);
-    for i = 1:length(f)
-       funHan = Qfun{i};
-       Q{i} = funHan(p);
-    end
-    
-    T = cell(size(A));
-    for i = 1:size(A,1)
-        for j = 1:size(A,2)
-            funHan = Tfun{i,j};
-            T{i,j} = funHan(int);
-        end
-    end
-end
-
-function rem = lagrangeRemainder(X,p,T)
-% comptute the lagrange remainder of the Taylor series
-
-    % interval enclousre of the shifted initial set
-    int = interval(X) - p;
-
-    % Lagrange remainder term
-    rem = interval(zeros(size(T,1),1));
-    
-    for i = 1:size(T,1)
-        for j = 1:size(T,2)
-            rem(i) = rem(i) + int(j) * transpose(int) * T{i,j} * int;
-        end
-    end
-    
-    % convert to zonotope
-    rem = zonotope(1/6*rem);
 end

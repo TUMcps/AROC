@@ -118,6 +118,11 @@ function [zonoBig,reachSet,controlLawParam] = computeExactController(dynamic,zon
         R0 = polyZonotope(cExt,GExt,GrestExt,zono.expMat);      
     end
     
+    % compute measurement error set as required for reachability analysis
+    if ~isempty(Opts.V)
+        Opts.V = zonotope(0.5*(Gr\Opts.V.Z));
+    end
+    
     
     %% Store data needed for control law implementation
     
@@ -133,7 +138,6 @@ function [zonoBig,reachSet,controlLawParam] = computeExactController(dynamic,zon
            index = index + nu;
         end
     end
-    
     
     
     %% Reachable set computation

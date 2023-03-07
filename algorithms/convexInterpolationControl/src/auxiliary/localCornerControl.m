@@ -32,6 +32,7 @@ function [uTotal, xt] = localCornerControl(system,xf,vert,h,Q,R,steps,lenHorizon
 %       -lenHorizon:    length of the optimization horizon in center
 %                       trajectory time steps
 %       -Opts:          a structure containing following options
+%
 %           -.parallel:         boolean value that determines if parallel
 %                               computing should be used or not (0 or 1)
 %           -.useAcado:         use ACADO toolbox for solving the optimal 
@@ -79,19 +80,16 @@ function [uTotal, xt] = localCornerControl(system,xf,vert,h,Q,R,steps,lenHorizon
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------
 
+    % initialize variables
+    nx = Opts.nx;               % number of state dimensions
+    nu = Opts.nu;               % number of input dimensions
+    hc = h;                     % time step size
+    n_v = size(vert,2);         % number of extreme points
 
-    % Initialize variables
+    uTotal=zeros(nu,n_v,lenHorizon*steps);    
+    xt=zeros(nx,n_v,lenHorizon*steps+1);      
 
-    nx = Opts.nx;       % number of state dimensions
-    nu = Opts.nu;       % number of input dimensions
-    hc = h;             % time step size
-    n_v = size(vert,2); % number of extreme points
-
-    uTotal=zeros(nu,n_v,lenHorizon*steps);    % vector to save the optimized inputs
-    xt=zeros(nx,n_v,lenHorizon*steps+1);       % vector to save the predicted states
-
-    % Solve optimal control problem for each extreme point
-
+    % solve optimal control problem for each extreme point
     if Opts.useAcado
         if Opts.parallel
             parfor i=1:1:n_v 
@@ -108,13 +106,13 @@ function [uTotal, xt] = localCornerControl(system,xf,vert,h,Q,R,steps,lenHorizon
         if Opts.parallel
             parfor i=1:1:n_v              
                 [uTotal(:,i,:),xt(:,i,:)] = optimalControlFmincon(system, ...
-                       xf,vert(:,i),hc,Q,R,steps,0,70000,lenHorizon,Opts);                
+                                xf,vert(:,i),hc,Q,R,steps,lenHorizon,Opts);                
             end
         else
             for i=1:1:n_v                  
                 [uTotal(:,i,:),xt(:,i,:)] = optimalControlFmincon(system, ...
-                       xf,vert(:,i),hc,Q,R,steps,0,70000,lenHorizon,Opts);
+                                xf,vert(:,i),hc,Q,R,steps,lenHorizon,Opts);
             end
         end
     end
-    
+end

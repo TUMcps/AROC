@@ -3,14 +3,19 @@
 % benchmark
 
 % load benchmark parameter
-Param = param_car_turnRight();
+Param = param_car();
 
 
 %% EXACT CONTROLLER
 
 % define algorithm options
-Opts = settings_convInterContr_car();
-Opts.controller = 'exact';
+Opts = [];
+
+Opts.Q = diag([2,5,1,1]);             % state weighting matrix
+Opts.R = diag([0;0]);                 % input weighting matrix
+Opts.refTraj.Q = 10*eye(4);           % state weighting matrix (ref. traj.)
+Opts.refTraj.R = 1/10*eye(2);         % input weighting matrix (ref. traj.)
+Opts.controller = 'exact';            % controller
 
 % controller synthesis
 clock = tic;
@@ -21,32 +26,29 @@ disp([newline,'Computation time (exact controller): ', ...
       num2str(tComp),'s', newline]);
 
 % simulation 
-[resExact,~,~] = simulateRandom(objContrExact,resExact,10,0.5,0.6,2);
+[resSim,~,~] = simulateRandom(objContrExact);
 
 % visualization
 figure; hold on; box on
 plotReach(resExact,[1,2],[.7 .7 .7]);
 plotReachTimePoint(resExact,[1,2],'b');
-plot(Param.R0,[1,2],'w','Filled',true);
-plotSimulation(resExact,[1,2],'k');
-xlabel('v');
-ylabel('\phi');
+plot(Param.R0,[1,2],'FaceColor','w','EdgeColor','k');
+plotSimulation(resSim,[1,2],'k');
+xlabel('v'); ylabel('\phi');
 title('Exact Controller');
 
 figure; hold on; box on
 plotReach(resExact,[3,4],[.7 .7 .7]);
 plotReachTimePoint(resExact,[3,4],'b');
-plot(Param.R0,[3,4],'w','Filled',true);
-plotSimulation(resExact,[3,4],'k');
-xlabel('x');
-ylabel('y');
+plot(Param.R0,[3,4],'FaceColor','w','EdgeColor','k');
+plotSimulation(resSim,[3,4],'k');
+xlabel('x'); ylabel('y');
 title('Exact Controller');
 
 
 %% LINEAR CONTROLLER
 
-% define algorithm options
-Opts = settings_convInterContr_car();
+% adapt algorithm options
 Opts.controller = 'linear';
 
 % controller synthesis
@@ -58,23 +60,21 @@ disp([newline,'Computation time (linear controller): ', ...
       num2str(tComp),'s']);
 
 % simulation 
-[resLin,~,~] = simulateRandom(objContrLin,resLin,10,0.5,0.6,2);
+[resSim,~,~] = simulateRandom(objContrLin);
 
 % visualization
 figure; hold on; box on
 plotReach(resLin,[1,2],[.7 .7 .7]);
 plotReachTimePoint(resLin,[1,2],'r');
-plot(Param.R0,[1,2],'w','Filled',true);
-plotSimulation(resLin,[1,2],'k');
-xlabel('v');
-ylabel('\phi');
+plot(Param.R0,[1,2],'FaceColor','w','EdgeColor','k');
+plotSimulation(resSim,[1,2],'k');
+xlabel('v'); ylabel('\phi');
 title('Linear Controller');
 
 figure; hold on; box on
 plotReach(resLin,[3,4],[.7 .7 .7]);
 plotReachTimePoint(resLin,[3,4],'r');
-plot(Param.R0,[3,4],'w','Filled',true);
-plotSimulation(resLin,[3,4],'k');
-xlabel('x');
-ylabel('y');
+plot(Param.R0,[3,4],'FaceColor','w','EdgeColor','k');
+plotSimulation(resSim,[3,4],'k');
+xlabel('x'); ylabel('y');
 title('Linear Controller');

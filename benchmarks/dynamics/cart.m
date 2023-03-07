@@ -45,11 +45,13 @@ function f = cart(x,u,w)
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------ 
 
-    % Parameter
+    % parameters
     m = 1;              % mass
     k = 1;              % gain of the stiffnes term
     d = 1;              % gain of the damping term
     
-    % Dynamic equations
+    % dynamics
     f(1,1) = x(2) + w(1);
     f(2,1) = 1/m * (-d * x(2)^2 - k * x(1)^3 + u) + w(2);
+
+end

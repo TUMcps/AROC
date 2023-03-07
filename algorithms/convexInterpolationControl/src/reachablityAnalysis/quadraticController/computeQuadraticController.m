@@ -87,7 +87,7 @@ function [zonoBig,reachSet,controlLawParam] = computeQuadraticController(dynamic
     % states, which represent the transformation according to the linear
     % formula    
     
-     if isa(zono,'zonotope')                             % linear zonotope 
+    if isa(zono,'zonotope')                             % linear zonotope 
         % compute linear part of the control law
         c_ = cr;
         G_ = Gr * (Gr\G);
@@ -97,7 +97,7 @@ function [zonoBig,reachSet,controlLawParam] = computeQuadraticController(dynamic
         GExtended = [G;G_];
         R0 = zonotope([cExtended,GExtended]);
         
-    else                                                % polynomial zonotope
+   else                                                % polynomial zonotope
         % compute linear part of the control law
         if isempty(Grest)
            Grest = zeros(nx,1); 
@@ -113,6 +113,11 @@ function [zonoBig,reachSet,controlLawParam] = computeQuadraticController(dynamic
         GrestExt = [Grest;Grest_];
 
         R0 = polyZonotope(cExt,GExt,GrestExt,zono.expMat); 
+    end
+    
+    % compute measurement error set as required for reachability analysis
+    if ~isempty(Opts.V)
+        Opts.V = zonotope(Gr\Opts.V.Z);
     end
     
     

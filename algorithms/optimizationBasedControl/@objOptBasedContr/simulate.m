@@ -1,9 +1,10 @@
-function [res,t,x,u] = simulate(obj,res,x0,w)
+function [res,t,x,u] = simulate(obj,x0,w,varargin)
 % SIMULATE - simulate a trajectory of a nonlinear system controlled with 
 %            the Convex Interpolation Controller
 %
 % Syntax:
-%       [res,t,x,u] = SIMULATE(obj,res,x0,w)
+%       [res,t,x,u] = SIMULATE(obj,x0,w)
+%       [res,t,x,u] = SIMULATE(obj,x0,w,v)
 %
 % Description:
 %       Simulate a trajectory of a nonlinear closed-loop system controlled
@@ -14,19 +15,20 @@ function [res,t,x,u] = simulate(obj,res,x0,w)
 %
 %       -obj:   object of class objConvInterContr storing the control law
 %               computed in the offline-phase
-%       -res:   existing results object to which the simulation results
-%               should be added
 %       -x0:    initial point for the simulation
 %       -w:     matrix storing the values for the disturbances over time
-%               (dimension: [nw,timeSteps])
+%               (dimension: [nw,time steps])
+%       -v:     matrix storing the values for the measurement error over 
+%               time (dimension: [nx,time steps])
 %
 % Output Arguments:
+%
 %       -res:   results object storing the simulation data
 %       -t:     vector storing the time points for the simulated states
 %       -x:     matrix storing the simulated trajectory 
 %               (dimension: [|t|,nx])
 %       -u:     matrix storing the applied control input
-%               (dimension:[|t],nu])
+%               (dimension: [|t],nu])
 %
 % See Also:
 %       optimizationBasedControl, simulateRandom
@@ -54,7 +56,6 @@ function [res,t,x,u] = simulate(obj,res,x0,w)
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------    
 
-
     % check if the number of specified disturbance vectors is correct
     Nw = 1;
     
@@ -63,6 +64,15 @@ function [res,t,x,u] = simulate(obj,res,x0,w)
         if Nw < 1 || floor(Nw) ~= Nw
            error('Number of disturbance vectors has to be a multiple of ''N''!'); 
         end
+    end
+    
+    % check if the number of specified measurement errors is correct
+    if nargin > 3
+        v = varargin{1};
+        if ~all(size(v) == [obj.nx,size(w,2)])
+           error('Number of measurement errors has to be identical to the number of disturbance vectors!');  
+        end
+        w = [w; v];
     end
 
     % compute time step 
@@ -86,13 +96,24 @@ function [res,t,x,u] = simulate(obj,res,x0,w)
             % construct closed loop dynamics
             if obj.isLin
                 dyn = obj.dynamics;
-                sys = closedLoopSystemLin(dyn.A,dyn.B,dyn.D,dyn.c,K,u_ref);
+                if nargin > 3
+                    sys = closedLoopSystemLin(dyn.A,dyn.B,dyn.D, ...
+                                                        dyn.c,K,u_ref,1);
+                else
+                    sys = closedLoopSystemLin(dyn.A,dyn.B,dyn.D, ...
+                                                        dyn.c,K,u_ref,[]);
+                end
                 closedLoopEqn = @(t,x) sys.A*x + sys.B*w(:,counter) + sys.c;
             else
                 p = [u_ref;reshape(K,[obj.nx*obj.nu,1])];
                 
-                closedLoopEqn = @(t,x) closedLoopSystemNonlin(x, ...
-                    w(:,counter),p,obj.dynamics,obj.nx,obj.nu,obj.nw);
+                if isempty(obj.V)
+                    closedLoopEqn = @(t,x) closedLoopSystemNonlin(x, ...
+                        w(:,counter),p,obj.dynamics,obj.nx,obj.nu,obj.nw);
+                else
+                    closedLoopEqn = @(t,x) closedLoopSystemNonlinMeasErr(x, ...
+                        w(:,counter),p,obj.dynamics,obj.nx,obj.nu,obj.nw);
+                end
             end
             
             % simulate the system
@@ -117,24 +138,8 @@ function [res,t,x,u] = simulate(obj,res,x0,w)
     end
     
     % store simulation in results object
-    if isempty(res)
-        simulation{1}.t = t;
-        simulation{1}.x = x;
-        simulation{1}.u = u;
-        res = results([],[],[],simulation);
-    else
-        simulation = res.simulation;
-
-        if isempty(simulation)
-           simulation{1}.t = t;
-           simulation{1}.x = x;
-           simulation{1}.u = u;
-        else
-           simulation{end+1}.t = t;
-           simulation{end}.x = x; 
-           simulation{end}.u = u;
-        end
-
-        res = results(res.reachSet,res.reachSetTimePoint,res.refTraj,simulation);
-    end
+    sim{1}.t = t;
+    sim{1}.x = x;
+    sim{1}.u = u;
+    res = results([],[],[],sim);
 end

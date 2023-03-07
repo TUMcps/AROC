@@ -1,17 +1,23 @@
 %% Test Linear Control Law
 
 % get benchmark parameter
-Param = param_car_turnRight();
+Param = param_car();
 
 % define algorithm options
-Opts = settings_convInterContr_car();
-Opts.controller = 'linear';
+Opts = [];
+
+Opts.Q = diag([2,5,1,1]);             % state weighting matrix
+Opts.R = diag([0;0]);                 % input weighting matrix
+Opts.refTraj.Q = 10*eye(4);           % state weighting matrix (ref. traj.)
+Opts.refTraj.R = 1/10*eye(2);         % input weighting matrix (ref. traj.)
+Opts.controller = 'linear';           % controller
 
 % offline phase computations
 [obj,result] = convexInterpolationControl('car',Param,Opts);
 
 % simulation 
-[result,~,~] = simulateRandom(obj,result,10,0.5,0.6,2);
+[tmp,~,~] = simulateRandom(obj);
+result = add(result,tmp);
 
 % check if the input constraints are satisfied
 res = checkSimInputs(result,Param.U);
@@ -30,10 +36,9 @@ assert(res == 1);
 %% Test Exact Control Law
 
 % get benchmark parameter
-Param = param_car_turnRight();
+Param = param_car();
 
-% define algorithm options
-Opts = settings_convInterContr_car();
+% adapt algorithm options
 Opts.controller = 'exact';
 Opts.polyZono.N = 5;
 
@@ -41,7 +46,8 @@ Opts.polyZono.N = 5;
 [obj,result] = convexInterpolationControl('car',Param,Opts);
 
 % simulation 
-[result,~,~] = simulateRandom(obj,result,10,0.5,0.6,2);
+[tmp,~,~] = simulateRandom(obj);
+result = add(result,tmp);
 
 % check if the input constraints are satisfied
 res = checkSimInputs(result,Param.U);
@@ -60,20 +66,25 @@ assert(res == 1);
 %% Test Extendet Optimization Horizon
 
 % load benchmark parameter
-Param = param_doubleIntegrator();
+Param = param_cart();
 
 % define algorithm options
-Opts = settings_convInterContr_doubleIntegrator();
-Opts.controller = 'linear';
-Opts.extHorizon.active = 1;
-Opts.extHorizon.horizon = 4;
-Opts.extHorizon.decay = 'uniform';
+Opts = [];
+
+Opts.Q = diag([1,1]);                 % state weighting matrix
+Opts.R = 0;                           % input weighting matrix
+Opts.refTraj.Q = eye(2)./(0.2^2);     % state weighting matrix (ref. traj.)        
+Opts.refTraj.R = 1/(14^2);            % input weighting matrix (ref. traj.) 
+Opts.extHorizon.active = 1;           % use extended optimization horizon
+Opts.extHorizon.horizon = 4;          % time steps for ext. horizon
+Opts.extHorizon.decay = 'riseLinear'; % weight function for ext. horizon 
 
 % offline phase computations
-[obj,result] = convexInterpolationControl('doubleIntegrator',Param,Opts);
+[obj,result] = convexInterpolationControl('cart',Param,Opts);
 
 % simulation 
-[result,~,~] = simulateRandom(obj,result,10,0.5,0.6,2);
+[tmp,~,~] = simulateRandom(obj);
+result = add(result,tmp);
 
 % check if the input constraints are satisfied
 res = checkSimInputs(result,Param.U);

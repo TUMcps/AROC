@@ -63,7 +63,6 @@ function acadoConvertDynamics(path,Opts,benchmark)
     x = sym('X',[Opts.nx,1]);
     u = sym('U',[Opts.nu,1]);
     w = sym(zeros(Opts.nw,1));
-    t = sym(0);
     
     f = funHandle(x,u,w);
     

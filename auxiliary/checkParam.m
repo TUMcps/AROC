@@ -1,8 +1,8 @@
-function checkParam(Param,name,nx,nu,nw)
+function Param = checkParam(Param,name,nx,nu,nw)
 % CHECKPARAM - check if the specified parameters take correct values
 %
 % Syntax:
-%       CHECKPARAM(Param,name,nx,nu,nw)
+%       Param = CHECKPARAM(Param,name,nx,nu,nw)
 %
 % Description:
 %       Checks if all required parameters are specified and that all
@@ -16,6 +16,10 @@ function checkParam(Param,name,nx,nu,nw)
 %       -nx:        number of system states
 %       -nu:        number of inputs
 %       -nw:        number of disturbances
+%
+% Output Arguments:
+%  
+%       -Param:     a structure containing the benchmark parameters
 %
 % See Also:
 %       generatorSpaceControl, convexInterpolationControl
@@ -31,29 +35,32 @@ function checkParam(Param,name,nx,nu,nw)
 % More Toolbox Info by searching <a href="matlab:docsearch aroc">AROC</a> in the Matlab Documentation
 %
 %------------------------------------------------------------------
-% Authors:      Niklas Kochdumper
+% Authors:      Niklas Kochdumper, Felix Gruber
 % Website:      <a href="http://aroc.in.tum.de">aroc.in.tum.de</a>
 % Work Adress:  Technische Universitaet Muenchen
-% Copyright (c) 2019 Chair of Robotics, Artificial Intelligence and
+% Copyright (c) 2020 Chair of Robotics, Artificial Intelligence and
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------
 
-    % divide into "Model Predictive Control" and "Motion Primitive Control"
-    mpcControllers = {'reachsetMPC'};
+    % divide into "Model Predictive Control", "Motion Primitive Control"
+    % and "Terminal Region"
+    mpcControllers = {'reachsetMPC', 'linSysMPC'};
     motPrimContr = {'generatorSpaceControl','convexInterpolationControl', ...
-                    'safetyNetControl','optimizationBasedControl'};
+                    'safetyNetControl','optimizationBasedControl',...
+                    'combinedControl', 'polynomialControl'};
+    terminalRegion = {'subpaving','zonoLinSys'};
 
     % different checks depending on the type of control algorithm
     if ismember(name,motPrimContr)
 
         % initial set
-        checkInitialSet(Param,nx);
+        checkSet('R0', Param, nx, {'interval'});
         
         % input constraints
-        checkInputSet(Param,nu);
+        checkSet('U', Param, nu, {'interval'});
         
         % set of disturbances
-        checkDisturbanceSet(Param,nw);
+        checkSet('W', Param, nw, {'zonotope', 'interval'});
         
         % goal state
         checkGoalState(Param,nx);
@@ -62,35 +69,61 @@ function checkParam(Param,name,nx,nu,nw)
         checkFinalTime(Param);
         
         % state constraints
-        if isfield(Param,'X')
-            checkStateConstraints(Param,nx); 
-        end
+        Param = checkStateConstraints(Param,nx); 
+        
+        % measurement errors
+        Param = checkMeasurementErrors(Param,nx);
         
         % define valid fields
-        validFields = {'R0','U','W','tFinal','xf','X'};
+        validFields = {'R0','U','W','tFinal','xf','X','V'};
         
 
     elseif ismember(name,mpcControllers)
         
         % initial set
-        checkInitialSet(Param,nx);
+        checkInitialState(Param,nx);
         
         % input constraints
-        checkInputSet(Param,nu);
+        checkSet('U', Param, nu, {'interval'});
         
         % set of disturbances
-        checkDisturbanceSet(Param,nw);
-        
+        checkSet('W', Param, nw, {'zonotope', 'interval'}); 
+                
         % goal state
         checkGoalState(Param,nx);
+            
+        % state constraints
+        Param = checkStateConstraints(Param,nx);   
+        
+        % measurement errors
+        Param = checkMeasurementErrors(Param,nx);
+        
+        % define valid fields
+        validFields = {'x0','U','W','xf','X','V'};
+        
+        
+    elseif ismember(name,terminalRegion)
+        
+        % input constraints
+        if ismember(name, {'zonoLinSys'})
+            checkSet('U', Param, nu, {'mptPolytope', 'interval'})
+        else
+            checkSet('U', Param, nu, {'interval'});
+        end
+        
+        % set of disturbances
+        checkSet('W', Param, nw, {'zonotope', 'interval'}); 
         
         % state constraints
         if isfield(Param,'X')
-            error('State constraints are not yet implemented for this algorithm!');
+            checkStateConstraints(Param,nx); 
         end
         
+        % measurement errors
+        Param = checkMeasurementErrors(Param,nx);
+        
         % define valid fields
-        validFields = {'R0','U','W','xf'};
+        validFields = {'U','W','V','X'};
         
     else
         error('Wrong value for input argument "name"!');
@@ -114,49 +147,65 @@ end
 
 % Auxiliary Functions -----------------------------------------------------
 
-function checkInitialSet(Param,nx)
-% check if initial set is provided and takes a valid value
+function checkSet(nameOfSet, Param, n, validSetRepresentations)
+% check if the set is provided and takes a valid value
 
-    if ~isfield(Param,'R0')
-        error('Initial set "Param.R0" is missing!');
-    elseif ~isa(Param.R0,'interval')
-        error('Wrong value for "Param.R0"! Has to be object of class "interval"!');
-    elseif ~all(size(Param.R0) == [nx,1])
-        error('Wrong dimension for "Param.R0"! Has to match number of system states!');
+    % check existence + dimensions
+    if ~ isfield(Param, nameOfSet)
+        error(['The set "Param.', nameOfSet, '" is missing!']);
+    elseif ~ all(size(Param.(nameOfSet)) == [n,1])
+        error(['Wrong dimension for "Param.', nameOfSet, '"!']);
+    end
+    
+    checkSetRepresentation(nameOfSet, Param, validSetRepresentations);
+end
+
+function checkSetRepresentation(nameOfSet, Param, validSetRepresentations)
+% check if the set representation is valid
+
+    % init
+    setRepresentationIsValid = false;
+    
+    % iterate over all valid set representations
+    for i = 1:length(validSetRepresentations)
+        if isa(Param.(nameOfSet), validSetRepresentations{i})
+            setRepresentationIsValid = true;
+            break;
+        end
+    end
+    
+    % throw error if set representation is invalid
+    if ~ setRepresentationIsValid
+        message = ['Wrong value for "Param.', nameOfSet, '"! Has to be object of class "', validSetRepresentations{1}, '"'];
+        for i = 2:length(validSetRepresentations)
+            message = [message, ' or "', validSetRepresentations{i}, '"'];
+        end
+        message = [message, '!'];
+        error(message);
     end
 end
 
-function checkInputSet(Param,nu)
-% check if input set is provided and takes a valid value
-
-    if ~isfield(Param,'U')
-        error('Input set "Param.U" is missing!');
-    elseif ~isa(Param.U,'interval')
-        error('Wrong value for "Param.U"! Has to be object of class "interval"!');
-    elseif ~all(size(Param.U) == [nu,1])
-        error('Wrong dimension for "Param.U"! Has to match number of system inputs!');
-    end
-end
-
-function checkDisturbanceSet(Param,nw)
-% check if disturbance set is provided and takes a valid value
-
-    if ~isfield(Param,'W')
-        error('Disurbance set "Param.W" is missing!');
-    elseif ~isa(Param.W,'interval')
-        error('Wrong value for "Param.W"! Has to be object of class "interval"!');
-    elseif ~all(size(Param.W) == [nw,1])
-        error('Wrong dimension for "Param.W"! Has to match number of disturbances!');
-    end
-end
-
-function checkStateConstraints(Param,nx)
+function Param = checkStateConstraints(Param,nx)
 % check if set of state constraints takes a valid value
 
-    if ~isa(Param.X,'mptPolytope')
-        error('Wrong value for "Param.X"! Has to be object of class "mptPolytope"!');
+    if ~isfield(Param,'X')
+        Param.X = [];
     elseif dim(Param.X) ~= nx
         error('Wrong dimension for "Param.X"! Has to match number of system states!');
+    else
+        checkSetRepresentation('X', Param, {'mptPolytope', 'interval'});
+    end
+end
+
+function Param = checkMeasurementErrors(Param,nx)
+% check if set of measurement errors takes a valid value
+
+    if ~isfield(Param,'V')
+        Param.V = [];
+    elseif dim(Param.V) ~= nx
+        error('Wrong dimension for "Param.V"! Has to match number of states!');
+    else
+        checkSetRepresentation('V', Param, {'zonotope', 'interval'});
     end
 end
 
@@ -179,5 +228,15 @@ function checkFinalTime(Param)
         error('Final time "Param.tFinal" is missing!');
     elseif ~isnumeric(Param.tFinal) || ~isscalar(Param.tFinal) || Param.tFinal <= 0
         error('Wrong value for "Param.tFinal"! Has to be a scalar greater than 0!');
+    end
+end
+
+function checkInitialState(Param,nx)
+% check if initial state is provided and takes a valid value
+
+    if ~isfield(Param,'x0')
+        error('Initial state "Param.x0" is missing!');
+    elseif ~isnumeric(Param.x0) || ~all(size(Param.x0) == [nx,1])
+        error('Wrong value for "Param.x0"! Has to be a vector whos length matches the number of states!');
     end
 end

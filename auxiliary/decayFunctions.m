@@ -46,7 +46,10 @@ function decay = decayFunctions(index,Opts)
 % Copyright (c) 2019 Chair of Robotics, Artificial Intelligence and
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------
-
+    if index==1
+        decay = 1;
+        return;
+    end
 
     % select weight function
     

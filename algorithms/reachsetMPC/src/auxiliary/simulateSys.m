@@ -1,25 +1,24 @@
-function [x,t,u] = simulateSys(sys,k,uc,xc,p,tFinal,Opts)
+function [x,t,u] = simulateSys(sys,K,uc,xc,p,Opts)
 % SIMULATESYS - simulation of the real system behaviour
 %
 % Syntax:
-%       [x,t,u] = simulateSys(sys,k,uc,xc,p,tFinal,Opts)
+%       [x,t,u] = simulateSys(sys,K,uc,xc,p,Opts)
 %
 % Description:
 %       This function simulates the behaviour of the real system. The value
-%       for the disturbances are chosen at random
+%       for the disturbances are chosen at random.
 %
 % Input Arguments:  
 %
 %       -sys:       object containing the dynamics of the closed-loop 
 %                   system (class: nonlinParamSys)
-%       -k:         feedback matrix for the tracking controller 
+%       -K:         feedback matrix for the tracking controller 
 %                   (dimension: [nu,nx])
 %       -uc:        reference control input (dimension: [nu,1])
 %       -xc:        reference point of center trajectory 
 %                   (dimension: [nx,1])
 %       -p:         initial point for the reachable set computation 
 %                   (dimension: [nx,1])
-%       -tFinal:    time horizon for the simulation
 %       -Opts:      a structure containing following options
 %
 %           -.nw:   number of system disturbances
@@ -54,36 +53,51 @@ function [x,t,u] = simulateSys(sys,k,uc,xc,p,tFinal,Opts)
 
     % initialization
     N = 20;
+    x = []; t = []; u = [];
     options.Events = [];
-    x = []; t = [];
     
-    params.x0 = [p;xc];
-    params.p = [reshape(k,[],1);uc];
+    params.x0 = [p;xc(:,1)];
     params.tStart = 0;
-    params.tFinal = tFinal/N;
     
-    % loop over all time steps
-    for i = 1:N
+    % get index of the current intermediate time step
+    ind = floor(Opts.tComp / (Opts.dT/Opts.Ninter)) + 1;
+   
+    % loop over all remaining intermediate time steps
+    for i = ind:Opts.Ninter    
         
-        % update disturbances
-        params.u = randPointExtreme(Opts.W);
-       
-        % simulate the system
-        [tTemp,xTemp] = simulate(sys,params,options);
+        % update reference input and feedback matrix
+        params.p = [reshape(K{i},[],1);uc(:,i)];
+        params.tFinal = min(Opts.dT/Opts.Ninter, ...
+                            i*(Opts.dT/Opts.Ninter) - Opts.tComp)/N;
         
-        % store the simulated trajectory
-        x = [x;xTemp];
-        if isempty(t)
-           t = tTemp;
-        else
-            t = [t;tTemp+t(end)];
+        % loop over all disturbance changes
+        for j = 1:N
+        
+            % update disturbances
+            if isempty(Opts.V)
+                params.u = randPoint(Opts.W,1,'extreme');
+            else
+                params.u = randPoint(cartProd(Opts.W,Opts.V),1,'extreme');
+            end
+
+            % simulate the system
+            [tTemp,xTemp] = simulate(sys,params,options);
+
+            % store the simulated trajectory
+            x = [x;xTemp];
+            if isempty(t)
+               t = tTemp;
+            else
+                t = [t;tTemp+t(end)];
+            end
+
+            % update initial state
+            params.x0 = x(end,:)';
+            
+            % compute control input
+            uTemp = (uc(:,i)+K{i}'*(xTemp(:,1:Opts.nx)- ...
+                                    xTemp(:,Opts.nx+1:end))')';
+            u = [u;uTemp];
         end
-        
-        % update initial state
-        params.x0 = x(end,:)';
     end
-
-    % compute control input
-    u = (uc + k'*(x(:,1:Opts.nx)-x(:,Opts.nx+1:end))')';
-
 end

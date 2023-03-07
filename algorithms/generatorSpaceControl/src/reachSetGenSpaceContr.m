@@ -28,13 +28,8 @@ function [reachSet,R] = reachSetGenSpaceContr(sys,R,P,alpha,Opts)
 %
 % Output Arguments:
 %
-%       - A:    cell-array storing the system matrices of the linearized
-%               time discrete system x(k+1) = A x(k) + B u(k) + c
-%       - B:    cell-array storing the input matrices of the linearized
-%               time discrete system x(k+1) = A x(k) + B u(k) + c
-%       - c:    cell-array storing the constant offset of the linearized
-%               time discrete system x(k+1) = A x(k) + B u(k) + c
-%       - xf:   cell-array storing the goal states for each time step
+%       - reachSet: object of class reachSet storing the reachable set
+%       - R:        final reachable set 
 %                   
 % See Also:
 %       generatorSpaceControl
@@ -78,7 +73,12 @@ function [reachSet,R] = reachSetGenSpaceContr(sys,R,P,alpha,Opts)
         E = R.expMat;
     end
     
-    inputAssign = Gp\(G);
+    inputAssign = Gp\G;
+    
+    % compute measurement error set
+    if ~isempty(Opts.V)
+        Opts.V = zonotope(Gp\Opts.V.Z);
+    end
     
     % loop over all intermediate time steps
     for i = 1:Opts.Ninter
@@ -88,9 +88,14 @@ function [reachSet,R] = reachSetGenSpaceContr(sys,R,P,alpha,Opts)
         alpha_u = temp(:,1);
         alpha_g = temp(:,2:end);
         
-        % compute extendet initial set
-        c_ = [c; cu+Gu*alpha_u; zeros(size(inputAssign,1),1)];
-        G_ = [G; Gu*alpha_g*inputAssign; inputAssign];        
+        % compute extended initial set
+        if isempty(Opts.V)
+            c_ = [c; cu+Gu*alpha_u; zeros(size(inputAssign,1),1)];
+            G_ = [G; Gu*alpha_g*inputAssign; inputAssign]; 
+        else
+            c_ = [c; zeros(Opts.nx,1)];
+            G_ = [G; inputAssign];
+        end
 
         if isa(R,'zonotope')
             R0 = zonotope([c_,G_]); 
@@ -98,14 +103,17 @@ function [reachSet,R] = reachSetGenSpaceContr(sys,R,P,alpha,Opts)
             R0 = polyZonotope(c_,G_(:,1:size(E,2)),G_(:,size(E,2)+1:end),E); 
         end
         
+        % add set of measurement errors
+        if ~isempty(Opts.V)
+           R0 = cartProd(R0,Opts.V);
+           p = [cu+Gu*alpha_u; reshape(Gu*alpha_g,[Opts.nu*Opts.nx,1])];
+           params.paramInt = p;
+        end
+        
         % update time and initial set
         params.R0 = R0;
-        if tStart ~= 0
-            params.tStart = tStart;
-            params.tFinal = params.tStart + Opts.dt;
-        else
-            params.tFinal = Opts.dt;
-        end
+        params.tStart = tStart;
+        params.tFinal = params.tStart + Opts.dt;
         
         % compute reachable set
         Rtemp = reach(sys,params,options); 
@@ -113,7 +121,7 @@ function [reachSet,R] = reachSetGenSpaceContr(sys,R,P,alpha,Opts)
         reachSet = add(reachSet,Rtemp);
         tStart = params.tFinal;
         
-        % get updated paraemters for the initial set
+        % get updated parameters for the initial set
         Rfin = Rtemp.timePoint.set{end};
         
         if isa(R,'zonotope')
@@ -127,7 +135,11 @@ function [reachSet,R] = reachSetGenSpaceContr(sys,R,P,alpha,Opts)
         c = c_(1:Opts.nx);
         G = G_(1:Opts.nx,:);
         
-        inputAssign = G_(Opts.nx + Opts.nu + 1:end,:);  
+        if isempty(Opts.V)
+            inputAssign = G_(Opts.nx+Opts.nu+1:Opts.nx+Opts.nu+Opts.nx,:); 
+        else
+            inputAssign = G_(Opts.nx+1:2*Opts.nx,:); 
+        end
     end
     
     % construct final reachable set

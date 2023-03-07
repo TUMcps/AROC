@@ -38,7 +38,7 @@ function checkStateConstraints(R,X)
     % loop over all reachable sets
     for i = 1:size(R,1)
        for j = 1:length(R(i).timeInterval.set)
-          if ~in(X,R(i).timeInterval.set{j})
+          if ~contains(X,R(i).timeInterval.set{j})
              error('The state constraints are violated!'); 
           end
        end

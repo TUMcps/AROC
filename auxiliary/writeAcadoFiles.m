@@ -11,8 +11,7 @@ function writeAcadoFiles(path,benchmark,Opts)
 %
 % Input Arguments:
 %
-%       -path:      path of the root directory for the Convex Interpolation
-%                   Control Algorithm
+%       -path:      path to the root directory of the control algorithm
 %       -benchmark: name of the selected benchmark
 %       -Opts:              a structure containing following options
 %
@@ -104,7 +103,7 @@ function writeAcadoFiles(path,benchmark,Opts)
        end
     end   
 
-    % Gerneate path for files
+    % Generate path for files
     pathNew = fullfile(path,'acado',benchmark,Opts.extHorizon.decay);
     
     % Check if the folder exists and create it if not

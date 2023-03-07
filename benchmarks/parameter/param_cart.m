@@ -19,7 +19,10 @@ function Param = param_cart()
 %                           reached
 %           -.U:            set of admissible control inputs (class:
 %                           interval)
-%           -.W:            set of uncertain disturbances (class: interval)
+%           -.W:            set of uncertain disturbances (class: interval 
+%                           or zonotope)
+%           -.V:            set of measurement errors (class: interval or
+%                           zonotope)
 %           -.X:            set of state constraints (class: mptPolytope)
 %
 % See Also:
@@ -45,12 +48,16 @@ function Param = param_cart()
     
     % initial set of states
     x0 = [0;0];
-    width = [0.2; 0.2];
+    width = [0.1; 0.1];
     Param.R0 = interval(x0-width,x0+width);
     
     % goal state and final time
     Param.xf = [2;0];
     Param.tFinal = 1;
+
+    % set of admissible states
+    width = [6; 6];
+    Param.X = interval(-width, width);
     
     % set of admissible control inputs
     width = 14;

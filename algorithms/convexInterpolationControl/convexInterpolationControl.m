@@ -23,7 +23,10 @@ function [objContr,res] = convexInterpolationControl(benchmark,Param,varargin)
 %                           reached
 %           -.U:            set of admissible control inputs (class:
 %                           interval)
-%           -.W:            set of uncertain disturbances (class: interval)
+%           -.W:            set of uncertain disturbances (class: interval 
+%                           or zonotope)
+%           -.V:            set of measurement errors (class: interval or
+%                           zonotope)
 %           -.X:            set of state constraints (class: mptPolytope)
 %
 %       -Opts:              a structure containing the algorithm settings
@@ -162,7 +165,11 @@ controlLawParam = cell(Opts.N,1);       % control law parameter
 reachSet = [];                          % object storing the reachable set
 
 parallelo = cell(Opts.N+1,1);           % parallelotope enclosures
-parallelo{1} = zonotope(Opts.R0);       % initial zonotope / parallelotope
+if isempty(Opts.V)
+    parallelo{1} = zonotope(Opts.R0);     
+else
+    parallelo{1} = reduce(zonotope(Opts.R0)+Opts.V,'pca',1); 
+end
 
 zono = cell(Opts.N+1,1);                % time point reachable set
 zono{1} = Opts.R0;                      % initial set 
@@ -256,7 +263,11 @@ for tc = 1:Opts.N
 
         % compute the parallelotope over-approximation of linear zonotope
         % (see Line 4 of Alg. 1 in [1])
-        parallelo{tc+1} = reduce(zonoTemp,'pca',1);
+        if isempty(Opts.V)
+            parallelo{tc+1} = reduce(zonoTemp,'pca',1);
+        else
+            parallelo{tc+1} = reduce(zonoTemp + Opts.V,'pca',1);
+        end
     end
 end
 
@@ -316,24 +327,59 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
        Opts.ReachOpts.lagrangeRem.simplify = 'collect'; 
     end
     
+    if ~strcmp(Opts.controller,'linear') || ~isempty(Opts.V)
+       Opts.ReachOpts.intermediateTerms = 4; 
+    end
+    
     % initialize dynamic files
     name = ['AROCconvInter',benchmark,Opts.controller, ...
             Opts.ReachOpts.alg,num2str(Opts.ReachOpts.tensorOrder)];
         
     if strcmp(Opts.controller,'linear')
-       nExtended = 2*Opts.nx+Opts.nu;
-       convInterContrLin = @(x,w) dynamicsClosedLoopLinear(x,w,Opts.nx,Opts.nu,Opts.funHandle);
-       sys = nonlinearSys(name,@(x,w) convInterContrLin(x,w),nExtended,Opts.nw);
+        if isempty(Opts.V)
+            nExt = 2*Opts.nx+Opts.nu;
+            funHan = @(x,w) dynamicsClosedLoopLinear(x,w, ...
+                                           Opts.nx,Opts.nu,Opts.funHandle);
+            sys = nonlinearSys(name,@(x,w) funHan(x,w),nExt,Opts.nw);
+        else
+            nExt = 3*Opts.nx;
+            funHan = @(x,w,p) dynamicsClosedLoopLinearMeasErr( ...
+                                     x,w,p,Opts.nx,Opts.nu,Opts.funHandle);
+            sys = nonlinParamSys(name,@(x,w,p) funHan(x,w,p), ...
+                                 nExt,Opts.nw,Opts.nu*(Opts.nx+1));
+        end
     elseif strcmp(Opts.controller,'quadratic')
-       nExtended = 2*Opts.nx;            
-       nParam = Opts.nu*(2*Opts.nx + 1); 
-       convInterContrQuad = @(x,w,p) dynamicsClosedLoopQuadratic(x,w,p,Opts.nx,Opts.funHandle);
-       sys = nonlinParamSys(name,@(x,w,p)convInterContrQuad(x,w,p),nExtended,Opts.nw,nParam);
-    else
-       nExtended = 2*Opts.nx;            
-       nParam = 2^(Opts.nx)*(Opts.nu); 
-       convInterContrExact = @(x,w,p) dynamicsClosedLoopExact(x,w,p,Opts.nx,Opts.funHandle);
-       sys = nonlinParamSys(name,@(x,w,p)convInterContrExact(x,w,p),nExtended,Opts.nw,nParam);
+        if isempty(Opts.V)
+            nExt = 2*Opts.nx;            
+            nParam = Opts.nu*(2*Opts.nx + 1); 
+            funHan = @(x,w,p) dynamicsClosedLoopQuadratic( ...
+                                             x,w,p,Opts.nx,Opts.funHandle);
+            sys = nonlinParamSys(name,@(x,w,p)funHan(x,w,p),nExt, ... 
+                                 Opts.nw,nParam);
+        else
+            nExt = 3*Opts.nx;            
+            nParam = Opts.nu*(2*Opts.nx + 1); 
+            funHan = @(x,w,p) dynamicsClosedLoopQuadraticMeasErr( ...
+                                             x,w,p,Opts.nx,Opts.funHandle);
+            sys = nonlinParamSys(name,@(x,w,p)funHan(x,w,p),nExt, ...
+                                 Opts.nw,nParam);
+        end
+    elseif strcmp(Opts.controller,'exact')
+        if isempty(Opts.V)
+            nExt = 2*Opts.nx;            
+            nParam = 2^(Opts.nx)*(Opts.nu); 
+            funHan = @(x,w,p) dynamicsClosedLoopExact(x,w, ...
+                                                p,Opts.nx,Opts.funHandle);
+            sys = nonlinParamSys(name,@(x,w,p)funHan(x,w,p), ...
+                                 nExt,Opts.nw,nParam);
+        else
+            nExt = 3*Opts.nx;            
+            nParam = 2^(Opts.nx)*(Opts.nu); 
+            funHan = @(x,w,p) dynamicsClosedLoopExactMeasErr( ...
+                                             x,w,p,Opts.nx,Opts.funHandle);
+            sys = nonlinParamSys(name,@(x,w,p)funHan(x,w,p), ...
+                                 nExt,Opts.nw,nParam);
+        end
     end 
 
     % set-up parallel computing

@@ -47,6 +47,8 @@ function han = plotReach(obj,varargin)
     dim = [1,2];
     color = [.6 .6 .6];
     edgeColor = 'none';
+    % use matlab2tikz option 
+    m2t = false;
     NVpairs = [];
 
     % parse input arguments
@@ -70,12 +72,29 @@ function han = plotReach(obj,varargin)
        NVpairs = varargin(3:end); 
        color = getNameValuePair(NVpairs,'FaceColor',color);
        edgeColor = getNameValuePair(NVpairs,'EdgeColor',edgeColor);
+       [NVpairs,m2t] = readNameValuePair(NVpairs,'m2t','islogical');
     end
-
+    
+    if m2t
+        % remove unify if present
+        NVpairs = readNameValuePair(NVpairs,'Unify','islogical');
+        NVpairs = [NVpairs,{'Unify',true}];
+    end
+    
     % plot the reachable set
     if isempty(NVpairs)
         han = plot(obj.reachSet,dim,'FaceColor',color,'EdgeColor',edgeColor);
     else
         han = plot(obj.reachSet,dim,'FaceColor',color,'EdgeColor',edgeColor,NVpairs{:});
+    end
+    % convert to patch if m2t = true (otherwise not convertible)
+    if m2t
+        V = han.Shape.Vertices;
+        ind = any(isnan(V),2);
+        V(ind,:) = [];
+        V_red = reducepoly(V,1e-4);
+        handle = patch('XData',V_red(:,1),'YData',V_red(:,2),'EdgeColor',han.EdgeColor,'FaceColor',han.FaceColor);
+        delete(han)
+        han = handle;
     end
 end

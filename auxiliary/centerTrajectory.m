@@ -75,12 +75,11 @@ function [xCenter,uCenter] = centerTrajectory(sys,Opts)
 
         % generate center trajectory by solving an optimal control problem
         if Opts.useAcado
-            [uCenter,xCenter] = optimalControl(sys,Opts.xf,Opts.x0,Opts.hc, ...
-                Opts.Q,Opts.R,Opts.Nc,1,Opts);
+            [uCenter,xCenter] = optimalControl(sys,Opts.xf,Opts.x0, ...
+                                    Opts.hc,Opts.Q,Opts.R,Opts.Nc,1,Opts);
         else
-            [uCenter,xCenter] = optimalControlFmincon(sys,Opts.xf,Opts.x0,Opts.hc, ...
-                Opts.Q,Opts.R,Opts.Nc, ...
-                0.01,50000,1,Opts);
+            [uCenter,xCenter] = optimalControlFmincon(sys,Opts.xf, ...
+                            Opts.x0,Opts.hc,Opts.Q,Opts.R,Opts.Nc,1,Opts);
         end
     end
 end

@@ -1,8 +1,10 @@
-function ind = motionPlanner(obj,x0,goalSet,statObs,dynObs,search)
+function ind = motionPlanner(obj,x0,goalSet,statObs,dynObs,search,varargin)
 % MOTIONPLANNER - plan a verified trajectoy with a Maneuver Automaton
 %
 % Syntax:
 %       ind = MOTIONPLANNER(obj,x0,goalSet,statObs,dynObs,search)
+%       ind = MOTIONPLANNER(obj,x0,goalSet,statObs,dynObs,search,costFun)
+%       ind = MOTIONPLANNER(obj,x0,goalSet,statObs,dynObs,search,costFun,goalFun)
 %
 % Description:
 %       This function solves a control task by planning a verified
@@ -12,13 +14,15 @@ function ind = motionPlanner(obj,x0,goalSet,statObs,dynObs,search)
 %
 % Input Arguments:
 %
-%       -obj:       Maneuver automaton (class: maneuverAutomaton)
-%       -x0:        initial state
-%       -goalSet:   goal set which should be reached
-%       -statObs:   cell-array storing the static obstacles
-%       -dynObs:    cell-array storing the dynamic obstacles
-%       -search:    search algorithm to be used ('breadth-first', ...
-%                   'depth-first', or 'Astar')
+%       -obj:           Maneuver automaton (class: maneuverAutomaton)
+%       -x0:            initial state
+%       -goalSet:       goal set which should be reached
+%       -statObs:       cell-array storing the static obstacles
+%       -dynObs:        cell-array storing the dynamic obstacles
+%       -search:        search algorithm to be used ('breadth-first', ...
+%                       'depth-first', or 'Astar')
+%       -costFun:       custom cost function for A*-search. 
+%       -goalFun:       custom goal check function 
 %
 % Output Arguments:
 %
@@ -46,6 +50,19 @@ function ind = motionPlanner(obj,x0,goalSet,statObs,dynObs,search)
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------ 
 
+    % parse input arguments
+    if nargin > 6 && ~isempty(varargin{1})
+        costFun = varargin{1};
+    else
+        costFun = @costFunDefault;
+    end
+
+    if nargin > 7 && ~isempty(varargin{2})
+        goalFun = varargin{2};
+    else
+        goalFun = @goalFunDefault;
+    end
+
     % initialize the frontier with all motion primitive that are compatible
     % with the initial state x0
     frontier = initializeFrontier(obj,x0);
@@ -61,7 +78,7 @@ function ind = motionPlanner(obj,x0,goalSet,statObs,dynObs,search)
             node = frontier{end};
             frontier = frontier(1:end-1);
         elseif strcmp(search,'Astar')
-            frontier = sortFrontier(obj,frontier,goalSet);
+            frontier = sortFrontier(obj,frontier,goalSet,costFun);
             node = frontier{end};
             frontier = frontier(1:end-1);
         else
@@ -79,15 +96,9 @@ function ind = motionPlanner(obj,x0,goalSet,statObs,dynObs,search)
         if collisionChecker(occSet,statObs,dynObs)
 
             % check if the goal set is reached 
-            if time >= infimum(goalSet.time)
-                for i = 1:length(occSet)
-                    if in(goalSet.time,occSet{i}.time)
-                        if in(goalSet.set,occSet{i}.set)
-                            ind = node.ind;
-                            return
-                        end
-                    end               
-                end
+            if goalFun(obj,goalSet,occSet,x,time)
+                ind = node.ind;
+                return;
             end
 
             % calculate child nodes and add them to the frontier
@@ -120,7 +131,7 @@ function frontier = initializeFrontier(obj,x0)
         Rinit = obj.primitives{i}.R0;
         Rinit = obj.shiftFun(Rinit,x0);
         
-        if in(Rinit,x0)
+        if contains(Rinit,x0)
             
             % add the motion primitive to the frontier
             frontier{counter,1}.ind = i;
@@ -148,7 +159,7 @@ function newNodes = constructChildNodes(obj,node,x,time)
     end
 end
 
-function frontier = sortFrontier(obj,frontier,goalSet)
+function frontier = sortFrontier(obj,frontier,goalSet,costFun)
 % sort the frontier according to the costs
 
     % compute the costs for all nodes
@@ -156,17 +167,17 @@ function frontier = sortFrontier(obj,frontier,goalSet)
     
     for i = 1:length(frontier)
        if ~isfield(frontier{i},'costs')
-           frontier{i}.costs = computeCosts(obj,frontier{i},goalSet);
+           frontier{i}.costs = costFun(obj,frontier{i},goalSet);
        end
        costs(i) = frontier{i}.costs;
     end
     
     % sort the frontier according to the costs
-    [~,ind] = sort(costs,'ascend');
+    [~,ind] = sort(costs,'descend');
     frontier = frontier(ind);
 end
 
-function cost = computeCosts(obj,node,goalSet)
+function cost = costFunDefault(obj,node,goalSet)
 % compute the costs for A* star search for the current node
 
     % compute final state and final time at the end of the motion primitive
@@ -176,12 +187,28 @@ function cost = computeCosts(obj,node,goalSet)
     time = node.parent.time + obj.primitives{index}.tFinal;
     
     % compute estimated remaining time for reaching the goal set
-    v = 30;
     c = center(goalSet.set);
-    dist = sqrt(sum(c-xCurr).^2);
-    h = dist/v;
+    dist = sqrt(sum((c-xCurr).^2));
+    h = dist;
     g = time;
     
     % compute costs for the node
     cost = h + g;
+end
+
+function res = goalFunDefault(obj,goalSet,occSet,x,time)
+% check if the occupancy set is contained in the goal set
+
+    res = false;
+
+    if time >= infimum(goalSet.time)
+        for i = 1:length(occSet)
+            if contains(goalSet.time,occSet{i}.time)
+                if contains(goalSet.set,occSet{i}.set)
+                    res = true;
+                    return
+                end
+            end               
+        end
+    end
 end

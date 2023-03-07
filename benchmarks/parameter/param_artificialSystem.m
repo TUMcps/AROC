@@ -13,7 +13,7 @@ function Param = param_artificialSystem()
 %
 %       -Param:             a structure containing following options
 %
-%           -.R0:           initial set of states (class: interval)
+%           -.x0:           initial state
 %           -.xf:           goal state
 %           -.tFinal:       final time after which the goal state should be
 %                           reached
@@ -50,9 +50,7 @@ function Param = param_artificialSystem()
     Param.W = interval(-0.1,0.1);
     
     % initial set of states
-    x0 = [0.6;-0.6];
-    width = [0.1; 0.05];
-    Param.R0 = interval(x0-width,x0+width);
+    Param.x0 = [0.6;-0.6];
     
     % goal state
     Param.xf = [0;0];

@@ -48,8 +48,14 @@ function writeAcadoFilesReachsetMPC(path,benchmark,Opts)
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------
 
-    % Extract the number of inequality constraints from the terminal region
-    Opts.M = size(Opts.termReg.A,1);
+    % number of inequality constraints for terminal region and state cons.
+    M = size(Opts.termReg.A,1);
+
+    if ~isempty(Opts.X)
+        L = size(Opts.X.P.A,1);
+    else
+        L = 0;
+    end
 
     % Read in the system dynamics
     filename = [benchmark,'_acado.m'];
@@ -74,7 +80,8 @@ function writeAcadoFilesReachsetMPC(path,benchmark,Opts)
        else
            % check if parameters are identical
            load(dataPathLast);
-           if data.M ~= Opts.M || data.N ~= Opts.N || data.maxIter ~= Opts.maxIter
+           if data.M ~= M || data.N ~= Opts.N || ...
+              data.L ~= L || data.maxIter ~= Opts.maxIter
               generate = 1; 
            end
        end
@@ -100,19 +107,22 @@ function writeAcadoFilesReachsetMPC(path,benchmark,Opts)
     % Generate all files that do not exist yet
     pathFile = strcat(pathNew,filesep,'acadoReachsetMPC.m');
     if ~exist(pathFile,'file') 
-       WriteAcadoMainFiles(pathFile,text,Opts.nu,Opts.nx,Opts.N,Opts.M,Opts.maxIter);
+       WriteAcadoMainFiles(pathFile,text,Opts.nu,Opts.nx,Opts.N, ...
+                                                        M,L,Opts.maxIter);
        compileAcadoFile(pathNew);
     end
     
     % Save dynamics and data from the currently generated files
     if generate
         % save dynamics
-        copyfile(fullfile(path,'acado',filename),fullfile(path,'acado',benchmark,filenameOld));
+        copyfile(fullfile(path,'acado',filename), ...
+                            fullfile(path,'acado',benchmark,filenameOld));
         delete(fullfile(path,'acado',filename));
         
         % save data
-        data.M = Opts.M;
+        data.M = M;
         data.N = Opts.N;
+        data.L = L;
         data.maxIter = Opts.maxIter;
         
         save(dataPathLast,'data');
@@ -125,7 +135,7 @@ end
 
 % Auxiliary Functions -----------------------------------------------------
 
-function WriteAcadoMainFiles(filePath,text,nu,nx,N,M,maxNumIter)
+function WriteAcadoMainFiles(filePath,text,nu,nx,N,M,L,maxNumIter)
 
     %% Open file
     fileName = 'acadoReachsetMPC';
@@ -200,7 +210,6 @@ function WriteAcadoMainFiles(filePath,text,nu,nx,N,M,maxNumIter)
     inputCounter = 1;
 
     % x0
-
     fprintf(fid,'%s\n',strcat('% Input',sprintf(' %i',inputCounter),': x0'));
     inputCounter = inputCounter + 1;
 
@@ -213,7 +222,6 @@ function WriteAcadoMainFiles(filePath,text,nu,nx,N,M,maxNumIter)
     fprintf(fid,'\n\n'); 
     
     % xf
-    
     fprintf(fid,'%s\n',strcat('% Input',sprintf(' %i',inputCounter),': xf'));
     inputCounter = inputCounter + 1;
 
@@ -226,7 +234,6 @@ function WriteAcadoMainFiles(filePath,text,nu,nx,N,M,maxNumIter)
     fprintf(fid,'\n\n'); 
     
     % Matrix Q
-    
     fprintf(fid,'%s\n',strcat('% Input',sprintf(' %i',inputCounter),': Q'));
     inputCounter = inputCounter + 1;
     
@@ -242,7 +249,6 @@ function WriteAcadoMainFiles(filePath,text,nu,nx,N,M,maxNumIter)
     fprintf(fid,'\n\n'); 
     
     % Matrix R
-    
     fprintf(fid,'%s\n',strcat('% Input',sprintf(' %i',inputCounter),': R'));
     inputCounter = inputCounter + 1;
     
@@ -258,21 +264,18 @@ function WriteAcadoMainFiles(filePath,text,nu,nx,N,M,maxNumIter)
     fprintf(fid,'\n\n'); 
     
     % multiple shooting steps
-    
     fprintf(fid,'%s\n',strcat('% Input',sprintf(' %i',inputCounter),': multiple shooting steps'));
     inputCounter = inputCounter + 1;
     
     fprintf(fid,'%s\n\n','Nc = acado.MexInput;');
     
     % optimization termination time T
-    
     fprintf(fid,'%s\n',strcat('% Input',sprintf(' %i',inputCounter),': optimization termination time T'));
     inputCounter = inputCounter + 1;
     
     fprintf(fid,'%s\n\n','t_end = acado.MexInput;');
     
     % u_max
-    
     fprintf(fid,'%s\n',strcat('% Input',sprintf(' %i',inputCounter),': u_max'));
     inputCounter = inputCounter + 1;
 
@@ -285,7 +288,6 @@ function WriteAcadoMainFiles(filePath,text,nu,nx,N,M,maxNumIter)
     fprintf(fid,'\n\n'); 
     
     % u_min
-    
     fprintf(fid,'%s\n',strcat('% Input',sprintf(' %i',inputCounter),': u_min'));
     inputCounter = inputCounter + 1;
 
@@ -298,7 +300,6 @@ function WriteAcadoMainFiles(filePath,text,nu,nx,N,M,maxNumIter)
     fprintf(fid,'\n\n'); 
     
     % Polytope parameter D
-    
     fprintf(fid,'%s\n',strcat('% Input',sprintf(' %i',inputCounter),': polytope parameter D'));
     inputCounter = inputCounter + 1;
     
@@ -314,7 +315,6 @@ function WriteAcadoMainFiles(filePath,text,nu,nx,N,M,maxNumIter)
 
     
     % Polytope parameter e
-    
     fprintf(fid,'%s\n',strcat('% Input',sprintf(' %i',inputCounter),': polytope parameter e'));
     inputCounter = inputCounter + 1;
     
@@ -327,25 +327,51 @@ function WriteAcadoMainFiles(filePath,text,nu,nx,N,M,maxNumIter)
     fprintf(fid,'\n\n');
     
     % scaling factor (polytope)
-    
     fprintf(fid,'%s\n',strcat('% Input',sprintf(' %i',inputCounter),': scaling factor (polytope)'));
     inputCounter = inputCounter + 1;
     fprintf(fid,'%s\n',strcat('alphaPoly = acado.MexInput;'));
     fprintf(fid,'\n\n'); 
     
     % Previous cost function
-    
     fprintf(fid,'%s\n',strcat('% Input',sprintf(' %i',inputCounter),': Previous value of the cost function'));
     inputCounter = inputCounter + 1;
     fprintf(fid,'%s\n',strcat('J = acado.MexInput;'));
     fprintf(fid,'\n\n'); 
     
     % contraction rate
-    
     fprintf(fid,'%s\n',strcat('% Input',sprintf(' %i',inputCounter),': contraction rate'));
+    inputCounter = inputCounter + 1;
     fprintf(fid,'%s\n',strcat('alpha = acado.MexInput;'));
-    fprintf(fid,'\n\n\n'); 
+    fprintf(fid,'\n\n');
+
+    % state constraints
+    if L > 0
+
+        fprintf(fid,'%s\n',strcat('% Input',sprintf(' %i',inputCounter),': state constraints (matrix)'));
+        inputCounter = inputCounter + 1;
+
+        for i = 1:L
+            for j = 1:nx
+                fprintf(fid,'%s\n',sprintf('C%i%i = acado.MexInput;',i,j));
+            end
+        end
     
+        fprintf(fid,'\n%s','C = ');
+        printMatrixNonSquare(fid,L,nx,'C');
+        fprintf(fid,'\n\n');
+
+        fprintf(fid,'%s\n',strcat('% Input',sprintf(' %i',inputCounter),': state constraints (offset)'));
+
+        for i = 1:L
+            fprintf(fid,'%s\n',sprintf('d%i = acado.MexInput;',i));
+        end
+    
+        fprintf(fid,'\n%s','d = ');
+        printVector(fid,L,'d',0);
+        fprintf(fid,'\n\n');
+    end
+
+    fprintf(fid,'\n');
     
     
     %% Differential Equation
@@ -458,7 +484,7 @@ function WriteAcadoMainFiles(filePath,text,nu,nx,N,M,maxNumIter)
     fprintf(fid,'%s\n','% Compute distances of points from hyperplanes');
     
     for i = 1:N
-        fprintf(fid,'%s\n',sprintf('temp%i = (D*x_%i - e)./e;',i,i));
+        fprintf(fid,'%s\n',sprintf('temp%i = (D*(x_%i-xf) - e)./e;',i,i));
     end
     fprintf(fid,'\n\n\n');
     
@@ -546,7 +572,15 @@ function WriteAcadoMainFiles(filePath,text,nu,nx,N,M,maxNumIter)
     
     fprintf(fid,'%s\n','ocp.subjectTo(''AT_START'', sumNew - J <= -alpha );'); 
     
+    % State constraints
+    if L > 0
+        fprintf(fid,'%s\n','% State constraints');
+        for i = 1:N
+            fprintf(fid,'%s\n',strcat('ocp.subjectTo(C*x_',sprintf('%i',i),' <=  d);')); 
+        end
+    end
     
+
     %% Optimization Algorithm 
     
     fprintf(fid,'\n\n%s\n\n','%% Optimization Algorithm ');

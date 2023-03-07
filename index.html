@@ -26,7 +26,7 @@
         <!-- article 1 -->
         <article>
           <h1 style="color:black;">Toolbox Description</h1>
-          <p style="color:black;"> The Automated Reachset Optimal Control (AROC) toolbox automatically constructs formally verified controllers for solving reach-avoid problems using reachability analysis. The toolbox considers general nonlinear systems with disturbances and input constraints. AROC is implemented in MATLAB, and the <a href="https://cora.in.tum.de" style="color:DodgerBlue;">CORA</a> toolbox is used to calculate reachable sets. The following points summarize the main capabilities of the AROC toolbox:</p>
+          <p style="color:black;"> The Automated Reachset Optimal Control (AROC) toolbox automatically constructs formally verified controllers for solving reach-avoid problems using reachability analysis. The toolbox considers general nonlinear systems with disturbances and input constraints. AROC is implemented in MATLAB, and the <a href="https://cora.in.tum.de" style="color:DodgerBlue;" target="_blank">CORA</a> toolbox is used to calculate reachable sets. The following points summarize the main capabilities of the AROC toolbox:</p>
         </article>
         <!-- / articles -->
       </section>
@@ -53,17 +53,46 @@
               </figure>
             </article>
           </li>
-	  <li class="last">
+	  <li>
             <article class="clear">
               <figure><img src="images/MotionPlanning.png" alt="">
                 <figcaption>
                   <h2 style="color:black;">Motion Planning</h2>
-                  <p style="color:black;">AROC contains an implementation of a maneuver automaton, which can be applied for online control using the motion primitives constructed offline. For autonomous driving applications the toolbox provides an interface to <a href="https://commonroad.in.tum.de" style="color:DodgerBlue;">CommonRoad</a>, making it easy to test the algorithms on different traffic scenarios.</p>
+                  <p style="color:black;">AROC contains an implementation of a maneuver automaton, which can be applied for online control using the motion primitives constructed offline. For autonomous road and marine traffic applications the toolbox provides interfaces to <a href="https://commonroad.in.tum.de" style="color:DodgerBlue;" target="_blank">CommonRoad</a> and <a href="https://commonocean.cps.cit.tum.de" style="color:DodgerBlue;" target="_blank">CommonOcean</a>, making it easy to test the algorithms on different traffic scenarios.</p>
+                </figcaption>
+              </figure>
+            </article>
+          </li>
+          <li>
+            <article class="clear">
+              <figure><img src="images/TerminalRegion.png" alt="">
+                <figcaption>
+                  <h2 style="color:black;">Safe Terminal Regions</h2>
+                  <p style="color:black;">Also algorithms for constructing controllers that stabilize a system around a given equilibrium point and aim to maximize the size of the corresponding safe terminal region are part of AROC. The resulting terminal regions are well suited to be used in combination with model predictive control approaches.</p>
+                </figcaption>
+              </figure>
+            </article>
+          </li>	
+          <li class="last">
+            <article class="clear">
+              <figure><img src="images/ConformantSynthesis.png" alt="">
+                <figcaption>
+                  <h2 style="color:black;">Conformant Synthesis</h2>
+                  <p style="color:black;">To guarantee that the synthesized controllers are safe for the real system and not just for a given model we require over-approximative models that enclose all possible behaviors of the real system. The conformant synthesis algorithms in AROC can be used to construct such over-approximative models automatically from measurements of the real system.</p>
                 </figcaption>
               </figure>
             </article>
           </li>	
         </ul>
+      </section>
+      <!-- videos -->
+      <section id="latest" class="last">
+	<p style="color:white;">PLACEHOLDER</p>
+	<h1 style="color:black;">Videos</h1>
+	<p style="color:white;"></p>
+	<a href="https://www.youtube.com/watch?v=SSC18OHlkZU" style="color:DodgerBlue;font-size:120%" target="_blank">&nbsp;&nbsp;&nbsp;&nbsp;Conference Presentation (HSCC 2021)</a>
+	<p style="color:white;"></p>
+        <a href="https://www.youtube.com/watch?v=0E2nTTZiYME" style="color:DodgerBlue;font-size:120%" target="_blank">&nbsp;&nbsp;&nbsp;&nbsp;AROC in Action</a>
       </section>
       <!-- publications -->
       <section id="latest" class="last">
@@ -76,47 +105,11 @@
 		[<a name="Schürmann2017a" style="color:black;">1</a>]
 	    </td>
 	    <td style="color:black;">
-	     	B.&nbsp;Schürmann and M.&nbsp;Althoff.
- 		Optimal control of sets of solutions to formally guarantee constraints of disturbed linear systems.
- 		In <em>Proc. of the 2017 American Control Conference</em>, pages 2522-2529, 2017.
-		[&nbsp;<a href="http://mediatum.ub.tum.de/export/1379675/bibtex" style="color:DodgerBlue;" target="_blank">.bib</a>&nbsp;| 
-		<a href="http://mediatum.ub.tum.de/doc/1379675/1379675.pdf" style="color:DodgerBlue;" target="_blank">.pdf</a>&nbsp;]
-	    </td>
-	  </tr>
-	  <tr valign="top">
-	    <td align="middle" style="color:black;" width="5%">
-		[<a name="Schürmann2017b" style="color:black;">2</a>]
-	    </td>
-	    <td style="color:black;">
-	     	B.&nbsp;Schürmann and M.&nbsp;Althoff.
- 		Convex interpolation control with formal guarantees for disturbed and constrained nonlinear systems.
- 		In <em>Proc. of the 20th International Conference on Hybrid Systems: Computation and Control</em>, pages 121–130, 2017.
-		[&nbsp;<a href="http://mediatum.ub.tum.de/export/1379677/bibtex" style="color:DodgerBlue;" target="_blank">.bib</a>&nbsp;| 
-		<a href="http://mediatum.ub.tum.de/doc/1379677/1379677.pdf" style="color:DodgerBlue;" target="_blank">.pdf</a>&nbsp;]
-	    </td>
-	  </tr>
-	  <tr valign="top">
-	    <td align="middle" style="color:black;">
-		[<a name="Schürmann2017c" style="color:black;">3</a>]
-	    </td>
-	    <td style="color:black;">
-		B.&nbsp;Schürmann and M.&nbsp;Althoff.
- 		Guaranteeing constraints of disturbed nonlinear systems using set-based optimal control in generator space.
- 		In <em>Proc. of the 20th IFAC World Congress</em>, pages 11515-11522, 2017.
-		[&nbsp;<a href="http://mediatum.ub.tum.de/export/1379678/bibtex" style="color:DodgerBlue;" target="_blank">.bib</a>&nbsp;| 
-		<a href="http://mediatum.ub.tum.de/doc/1379678/1379678.pdf" style="color:DodgerBlue;" target="_blank">.pdf</a>&nbsp;]
-	    </td>
-	  </tr>
-	  <tr valign="top">
-	    <td align="middle" style="color:black;">
-		[<a name="Schürmann2018" style="color:black;">3</a>]
-	    </td>
-	    <td style="color:black;">
-		B.&nbsp;Schürmann, N.&nbsp;Kochdumper, and M.&nbsp;Althoff.
- 		Reachset model predictive control for disturbed nonlinear systems.
- 		In <em>Proc. of the 57th International Conference on Decision and Cntrol</em>, pages 3463-3470, 2018.
-		[&nbsp;<a href="http://mediatum.ub.tum.de/export/1454141/bibtex" style="color:DodgerBlue;" target="_blank">.bib</a>&nbsp;| 
-		<a href="http://mediatum.ub.tum.de/doc/1454141/1454141.pdf" style="color:DodgerBlue;" target="_blank">.pdf</a>&nbsp;]
+	     	N.&nbsp;Kochdumper, F.&nbsp;Gruber, B.&nbsp;Schürmann, V.&nbsp;Gaßmann, M.&nbsp;Klischat, and M.&nbsp;Althoff.
+ 		AROC: A Toolbox for Automated Reachset Optimal Controller Synthesis
+ 		In <em>Proc. of the International Conference on Hybrid Systems: Computation and Control</em>, 2021.
+		[&nbsp;<a href="https://mediatum.ub.tum.de/export/1615633/bibtex" style="color:DodgerBlue;" target="_blank">.bib</a>&nbsp;| 
+		<a href="https://mediatum.ub.tum.de/doc/1615633/m6mc7276fyqq0wdaxs1isocwo.ArocToolPaper.pdf" style="color:DodgerBlue;" target="_blank">.pdf</a>&nbsp;]
 	    </td>
 	  </tr>
 	</table>
@@ -127,11 +120,20 @@
       <h2 class="title" style="color:black;">Downloads</h2>
       <nav>
         <ul>
+          <li><a href="https://tumcps.github.io/AROC/data/AROC_2022.zip">AROC Toolbox (.zip | Release 2022)</a></li>
+	  <li><a href="https://tumcps.github.io/AROC/data/AROC_2022.mltbx">AROC Toolbox (.mltbx | Release 2022)</a></li>
+          <li><a href="https://tumcps.github.io/AROC/data/Aroc2022Manual.pdf" target="_blank">AROC Manual (Release 2022)</a></li>
+          <li><a href="https://github.com/TUMcps/AROC" target="_blank">Repository</a></li>
+          <li><a href="https://de.mathworks.com/matlabcentral/fileexchange/81923-aroc" target="_blank">MATLAB Central</a></li>
+        </ul>
+      </nav>
+      <!-- /nav -->
+      <h2 class="title" style="color:black;">Archive</h2>
+      <nav>
+        <ul>
           <li><a href="https://tumcps.github.io/AROC/data/AROC_2020.zip">AROC Toolbox (.zip | Release 2020)</a></li>
 	  <li><a href="https://tumcps.github.io/AROC/data/AROC_2020.mltbx">AROC Toolbox (.mltbx | Release 2020)</a></li>
           <li><a href="https://tumcps.github.io/AROC/data/Aroc2020Manual.pdf" target="_blank">AROC Manual (Release 2020)</a></li>
-          <li><a href="https://github.com/TUMcps/AROC" target="_blank">Repository</a></li>
-          <li><a href="https://de.mathworks.com/matlabcentral/fileexchange/81923-aroc" target="_blank">MATLAB Central</a></li>
         </ul>
       </nav>
       <!-- /nav -->
@@ -139,13 +141,14 @@
       <section class="last">
         <nav>
         <ul>
-          <li><a href="https://www6.in.tum.de/en/people/niklas-kochdumper-msc/" target="_blank">Niklas Kochdumper (M.Sc.)</a></li>
-	  <li><a href="https://www.in.tum.de/i06/people/victor-gassmann-msc/" target="_blank">Victor Gaßmann (M.Sc.)</a></li>
-	  <li><a href="https://www.in.tum.de/i06/people/felix-gruber-msc/" target="_blank">Felix Gruber (M.Sc.)</a></li>
-	  <li><a href="https://www.in.tum.de/i06/people/moritz-klischat-msc/" target="_blank">Moritz Klischat (M.Sc.)</a></li>
-	  <li><a href="https://www.in.tum.de/i06/people/bastian-schuermann-msc/" target="_blank">Bastian Schürmann (M.Sc.)</a></li>
-	  <li><a href="https://www6.in.tum.de/people/prof-dr-ing-matthias-althoff/" target="_blank">Matthias Althoff (Prof. Dr.-Ing.)</a></li>
-	  <li><a href="http://www6.in.tum.de/en/home/" target="_blank">Research Group</a></li>
+          <li><a href="https://scholar.google.de/citations?user=xJQUgWsAAAAJ" target="_blank">Niklas Kochdumper (Dr.)</a></li>
+	  <li><a href="https://www.ce.cit.tum.de/air/people/victor-gassmann-msc/" target="_blank">Victor Gaßmann (M.Sc.)</a></li>
+          <li><a href="https://www.ce.cit.tum.de/air/people/lukas-schaefer/" target="_blank">Lukas Schäfer (M.Sc.)</a></li>
+	  <li><a href="https://www.ce.cit.tum.de/en/air/people/felix-gruber-msc/" target="_blank">Felix Gruber (M.Sc.)</a></li>
+	  <li><a href="https://www.researchgate.net/profile/Moritz-Klischat" target="_blank">Moritz Klischat (M.Sc.)</a></li>
+	  <li><a href="https://www.researchgate.net/scientific-contributions/Bastian-Schuermann-2082953721" target="_blank">Bastian Schürmann (Dr.-Ing.)</a></li>
+	  <li><a href="https://www.ce.cit.tum.de/air/people/prof-dr-ing-matthias-althoff/" target="_blank">Matthias Althoff (Prof. Dr.-Ing.)</a></li>
+	  <li><a href="https://www.ce.cit.tum.de/air/home/" target="_blank">Research Group</a></li>
         </ul>
       </nav>
       </section>
@@ -157,7 +160,7 @@
 <!-- footer -->
 <div class="wrapper row3">
   <footer id="footer" class="clear">
-    <p class="fl_left">Copyright &copy; 2020 - All Rights Reserved - <a href="https://www.tum.de/en/" target="_blank">Technische Universit&auml;t M&uuml;nchen</a></p>
+    <p class="fl_left">Copyright &copy; 2022 - All Rights Reserved - <a href="https://www.tum.de/en/" target="_blank">Technische Universit&auml;t M&uuml;nchen</a></p>
     <p class="fl_right">Website by <a href="https://www6.in.tum.de/people/niklas-kochdumper-msc/" target="_blank">Niklas Kochdumper & <a href="http://www.os-templates.com/" title="Free Website Templates" target="_blank">OS Templates</a></p>
   </footer>
 </div>

@@ -145,7 +145,7 @@ function [A,B,D,nx,nu] = computeLinearSystemMatrices(benchmark,Opts)
     % not supported
     if ~modelIsLinear
         error(['The benchmark "', benchmark, '" is not a linear model!']);
-    elseif any(abs(A*Opts.xEq + B*Opts.uEq + c)) > 1e-10
+    elseif any(abs(A*Opts.xEq + B*Opts.uEq + c) > 1e-10)
         error('Specified Opts.xEq and Opts.uEq is not a equilibrium point!');
     end
 end

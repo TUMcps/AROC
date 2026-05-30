@@ -113,7 +113,7 @@ methods
         
         % set-up variables required for prediction of system state at the
         % end of the allocated computation time
-        obj.Npred = obj.tComp/(Param.tFinal/(obj.N*obj.Ninter))+1;
+        obj.Npred = round(obj.tComp/(Param.tFinal/(obj.N*obj.Ninter))+1);
         
         fun = @(x,w) dynamicsClosedLoopLinear(x,w,obj.nx,obj.nu,dyn);
         name = 'AROCsafetyNetPred';

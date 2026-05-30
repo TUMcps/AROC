@@ -21,6 +21,7 @@ classdef objOptBasedContr < objController
 %       -contrLaw:  a structure containing the control law parameter
 %
 %           -.N:        number of time steps
+%           -.Ninter:   number of intermediate time steps
 %           -.K:        cell-array storing the feedback matrices for all
 %                       time steps
 %           -.u_ref:    reference input for all time steps
@@ -66,6 +67,7 @@ properties (SetAccess = protected, GetAccess = public)
     
     isLin = 1;          % 1 if model is linear, 0 if not
     N = [];             % number of center trajectory time steps
+    Ninter = [];        % number of intermediate time steps
     K = [];             % cell-array storing the feedback matrices
     u_ref = [];         % reference input of the center trajectory
 end
@@ -81,6 +83,7 @@ methods
         obj.K = contrLaw.K;
         obj.u_ref = contrLaw.u_ref;
         obj.N = contrLaw.N;
+        obj.Ninter = contrLaw.Ninter;
         
         % store additional information        
         if isstruct(dyn)

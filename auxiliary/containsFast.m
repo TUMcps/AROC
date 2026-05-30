@@ -11,7 +11,7 @@ function res = containsFast(set,points)
 %
 % Input Arguments:
 %
-%       -set:           CORA contSet object (class interval, mptPolytope,
+%       -set:           CORA contSet object (class interval, polytope,
 %                       or zonotope)
 %       -points:        point clound stored in a matrix (dimension [n,K])
 %
@@ -46,12 +46,18 @@ function res = containsFast(set,points)
         G = generators(set);
         m = size(G,2);
         f = ones(m,1); lb = -f; ub = f;
-        options = optimoptions('linprog','display','off');
         res = true;
 
         for i = 1:size(points,2)
+            problem.f = f;
+            problem.Aineq = [];
+            problem.bineq = [];
+            problem.Aeq = G;
+            problem.beq =  points(:,1)-c;
+            problem.lb = lb;
+            problem.ub = ub;
 
-            [~,~,exitflag] = linprog(f,[],[],G,points(:,1)-c,lb,ub,options);
+            [~,~,exitflag] = CORAlinprog(problem);
 
             if exitflag < 1
                 res = false; return;

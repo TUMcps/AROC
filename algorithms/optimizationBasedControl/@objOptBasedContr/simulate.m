@@ -1,8 +1,9 @@
-function [res,t,x,u] = simulate(obj,x0,w,varargin)
+function [res,t,x,u] = simulate(obj,x0,varargin)
 % SIMULATE - simulate a trajectory of a nonlinear system controlled with 
 %            the Convex Interpolation Controller
 %
 % Syntax:
+%       [res,t,x,u] = SIMULATE(obj,x0)
 %       [res,t,x,u] = SIMULATE(obj,x0,w)
 %       [res,t,x,u] = SIMULATE(obj,x0,w,v)
 %
@@ -57,26 +58,37 @@ function [res,t,x,u] = simulate(obj,x0,w,varargin)
 %------------------------------------------------------------------    
 
     % check if the number of specified disturbance vectors is correct
-    Nw = 1;
-    
-    if size(w,2) > 1
-        Nw = size(w,2)/(obj.N);
-        if Nw < 1 || floor(Nw) ~= Nw
-           error('Number of disturbance vectors has to be a multiple of ''N''!'); 
+    if nargin > 2 && ~isempty(varargin{1})
+        w = varargin{1};
+        if size(w,2) == 1
+           w = repelem(w,1,obj.N*obj.Ninter);
         end
+        Nw = size(w,2)/(obj.N*obj.Ninter);
+        if Nw < 1 || floor(Nw) ~= Nw
+           error('Number of disturbance vectors has to be a multiple of "N*Ninter"!'); 
+        end
+    else
+        w = repelem(center(obj.W),1,obj.N*obj.Ninter);
+        Nw = 1;
     end
     
     % check if the number of specified measurement errors is correct
-    if nargin > 3
-        v = varargin{1};
+    if nargin > 3 && ~isempty(varargin{2})
+        v = varargin{2};
+        if size(v,2) == 1
+           v = repelem(v,1,obj.N);
+        end
         if ~all(size(v) == [obj.nx,size(w,2)])
            error('Number of measurement errors has to be identical to the number of disturbance vectors!');  
         end
-        w = [w; v];
+    else
+        v = zeros(obj.nx,size(w,2));
     end
 
+    w = [w; v];
+
     % compute time step 
-    timeStep = (obj.tFinal/obj.N);
+    timeStep = (obj.tFinal/(obj.N*obj.Ninter));
     
     % simulate each part with constant input
     x_ = [x0;center(obj.R0)];
@@ -85,56 +97,59 @@ function [res,t,x,u] = simulate(obj,x0,w,varargin)
 
     % loop over all center trajectory time steps
     for i = 1:obj.N
+        for j = 1:obj.Ninter
+
+            l = (i-1)*obj.Ninter + j;
         
-        % get control law parameter
-        K = obj.K{i};
-        u_ref = obj.u_ref(:,i);
-        
-        % simulate the system
-        for k = 1:Nw
-            
-            % construct closed loop dynamics
-            if obj.isLin
-                dyn = obj.dynamics;
-                if nargin > 3
-                    sys = closedLoopSystemLin(dyn.A,dyn.B,dyn.D, ...
-                                                        dyn.c,K,u_ref,1);
-                else
-                    sys = closedLoopSystemLin(dyn.A,dyn.B,dyn.D, ...
-                                                        dyn.c,K,u_ref,[]);
-                end
-                closedLoopEqn = @(t,x) sys.A*x + sys.B*w(:,counter) + sys.c;
-            else
-                p = [u_ref;reshape(K,[obj.nx*obj.nu,1])];
-                
-                if isempty(obj.V)
-                    closedLoopEqn = @(t,x) closedLoopSystemNonlin(x, ...
-                        w(:,counter),p,obj.dynamics,obj.nx,obj.nu,obj.nw);
-                else
-                    closedLoopEqn = @(t,x) closedLoopSystemNonlinMeasErr(x, ...
-                        w(:,counter),p,obj.dynamics,obj.nx,obj.nu,obj.nw);
-                end
-            end
+            % get control law parameter
+            K = obj.K{l};
+            u_ref = obj.u_ref(:,l);
             
             % simulate the system
-            [tTemp,xTemp] = ode45(closedLoopEqn,[0 timeStep/Nw],x_);
-
-            % compute the control input (see Eq. (3) in [1])
-            uTemp = u_ref + K*(xTemp(:,1:obj.nx) - ...
-                               xTemp(:,obj.nx+1:2*obj.nx))';
-            
-            % store the results
-            x_ = xTemp(end,:)';
-            x = [x;xTemp(:,1:obj.nx)];
-            u = [u;uTemp'];
-            if ~isempty(t)
-                t = [t;t(end)+tTemp];
-            else
-                t = [t;tTemp];
+            for k = 1:Nw
+                
+                % construct closed loop dynamics
+                if obj.isLin
+                    dyn = obj.dynamics;
+                    if nargin > 3
+                        sys = closedLoopSystemLin(dyn.A,dyn.B,dyn.D, ...
+                                                            dyn.c,K,u_ref,1);
+                    else
+                        sys = closedLoopSystemLin(dyn.A,dyn.B,dyn.D, ...
+                                                            dyn.c,K,u_ref,[]);
+                    end
+                    closedLoopEqn = @(t,x) sys.A*x + sys.B*w(:,counter) + sys.c;
+                else
+                    p = [u_ref;reshape(K,[obj.nx*obj.nu,1])];
+                    
+                    if representsa(obj.V,'emptySet')
+                        closedLoopEqn = @(t,x) closedLoopSystemNonlin(x, ...
+                            w(:,counter),p,obj.dynamics,obj.nx,obj.nu,obj.nw);
+                    else
+                        closedLoopEqn = @(t,x) closedLoopSystemNonlinMeasErr(x, ...
+                            w(:,counter),p,obj.dynamics,obj.nx,obj.nu,obj.nw);
+                    end
+                end
+                
+                % simulate the system
+                [tTemp,xTemp] = ode45(closedLoopEqn,[0 timeStep/Nw],x_);
+    
+                % compute the control input (see Eq. (3) in [1])
+                uTemp = u_ref + K*(xTemp(:,1:obj.nx) - ...
+                                   xTemp(:,obj.nx+1:2*obj.nx))';
+                
+                % store the results
+                x_ = xTemp(end,:)';
+                x = [x;xTemp(:,1:obj.nx)];
+                u = [u;uTemp'];
+                if ~isempty(t)
+                    t = [t;t(end)+tTemp];
+                else
+                    t = [t;tTemp];
+                end
+                counter = counter + 1;
             end
-            counter = counter + 1;
         end
-        
     end
     
     % store simulation in results object

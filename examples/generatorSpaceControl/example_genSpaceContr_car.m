@@ -7,11 +7,11 @@ Param = param_car();
 % define algorithm options
 Opts = [];
 
-Opts.N = 5;                         % number of time steps
-Opts.Ninter = 5;                    % number of intermediate time steps
-Opts.extHorizon.active = 1;         % use extended optimization horizon
-Opts.extHorizon.horizon = 5;        % time steps for ext. horizon
-Opts.extHorizon.decay = 'fall';     % weight function for ext. horizon   
+Opts.N = 5;                                                         % number of time steps
+Opts.Ninter = 5;                                                    % number of intermediate time steps
+Opts.extHorizon.active = 1;                                         % use extended optimization horizon
+Opts.extHorizon.horizon = 5;                                        % time steps for ext. horizon
+Opts.extHorizon.weightingFunction = extendedHorizonWeights.fall;    % weighting function for ext. horizon   
 
 % controller synthesis
 clock = tic;

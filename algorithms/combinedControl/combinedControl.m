@@ -1,8 +1,10 @@
-function [objContr,res] = combinedControl(benchmark,Param,Opts)
+function [objContr,res] = combinedControl(benchmark,Param,varargin)
 % COMBINEDCONTROL - Implementation of the combined controller
 %
 % Syntax:
+%       [objContr,res] = COMBINEDCONTROL(benchmark,Param)
 %       [objContr,res] = COMBINEDCONTROL(benchmark,Param,Opts)
+%       [objContr,res] = COMBINEDCONTROL(benchmark,Param,Opts,Post)
 %
 % Description:
 %       Offline-phase computations for the controller that combines initial 
@@ -23,7 +25,7 @@ function [objContr,res] = combinedControl(benchmark,Param,Opts)
 %           -.W:            set of uncertain disturbances (class: interval)
 %           -.V:            set of measurement errors (class: interval or
 %                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.X:            set of state constraints (class: polytope)
 %
 %       -Opts:              a structure containing the algorithm settings
 %
@@ -85,6 +87,9 @@ function [objContr,res] = combinedControl(benchmark,Param,Opts)
 %                                       during internal computations
 %                                       [{20} / positive integer]
 %
+%       -Post:      function handle to the postprocessing function that is
+%                   used to compute the occupancy set
+%
 % Output Arguments:
 %
 %       -objContr:  resulting controller storing the data computed during
@@ -120,14 +125,20 @@ function [objContr,res] = combinedControl(benchmark,Param,Opts)
 %------------------------------------------------------------------
 
     % Initialization
+    Opts = [];
+    if nargin > 2
+        Opts = varargin{1};    
+    end
+
     [Opts,sys] = initialization(benchmark,Param,Opts);
     
+    % Feedforward Control
     if strcmp(Opts.feedForward,'genSpace')
-        % Feedforward Control (see Sec. IV.A in [1])
+        % linear controller (see Sec. IV.A in [1])
         [objContr_ff,res_ff] = generatorSpaceControl(benchmark, ...
                                         Opts.ffCtrlParam,Opts.ffCtrlOpts);
     elseif strcmp(Opts.feedForward,'poly')
-        % Feedforward Control (see [2])
+        % polynomial controller (see [2])
         [objContr_ff,res_ff] = polynomialControl(benchmark, ...
                                         Opts.ffCtrlParam,Opts.ffCtrlOpts);
     end
@@ -139,22 +150,15 @@ function [objContr,res] = combinedControl(benchmark,Param,Opts)
     [K,RS] = computeFeedbackControl(sys,objContr_ff,Opts);
 
     % Assign output values
-    Rfin = query(RS,'finalSet');
-    if strcmp(Opts.ReachOpts.alg,'poly')
-       Rfin = [{polyZonotope(Opts.R0)};Rfin]; 
-    else
-       Rfin = [{zonotope(Opts.R0)};Rfin]; 
+    occSet = [];
+
+    if nargin > 3
+       post = varargin{2};
+       occSet = compOccupancySet(RS,post);
     end
 
-    ctrlLaw.K = K;
-    ctrlLaw.FeedforwardCtrl = objContr_ff;
-    ctrlLaw.linSys.A = Opts.linDyn.A;
-    ctrlLaw.linSys.B = Opts.linDyn.B;
-    ctrlLaw.refTraj = Opts.refTraj;
-
-    objContr = objCombinedContr(Opts.funHandle,Rfin{end},ctrlLaw,Param);               
-    res = results(RS,Rfin,res_ff.refTraj,[]);
-
+    [res,objContr] = contructResults(RS,K,objContr_ff,res_ff, ...
+                                                        occSet,Param,Opts);
 end
 
 
@@ -210,8 +214,9 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
     
     % store matrices for inequality constraints for input and state con
     if isfield(Param,'X')
-       Opts.stateCon.A = get(Param.X,'A');
-       Opts.stateCon.b = get(Param.X,'b');
+        poly = polytope(Param.X);
+        Opts.stateCon.A = poly.A;
+        Opts.stateCon.b = poly.b;
     else
        Opts.stateCon = []; 
     end
@@ -221,9 +226,9 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
     
     % constraint that final reachable set has to be in shifted init. set
     if Opts.finStateCon
-        poly = mptPolytope(-center(Opts.R0)+Opts.xf + Opts.R0);
-        Opts.finCon.A = poly.P.A;
-        Opts.finCon.b = poly.P.b;
+        poly = polytope(-center(Opts.R0)+Opts.xf + Opts.R0);
+        Opts.finCon.A = poly.A;
+        Opts.finCon.b = poly.b;
     else
         Opts.finCon = [];
     end
@@ -248,7 +253,7 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
 
     if strcmp(Opts.feedForward,'genSpace')
 
-        if isempty(Opts.V)
+        if representsa(Opts.V,'emptySet')
             np = 2*nu*nx+nx+2*nu;
             f_ext = @(x,w,p) extendedDynamics(x,w,p,nx,nu,...
                                Opts.funHandle,Opts.linDyn.A,Opts.linDyn.B);
@@ -269,4 +274,28 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
         sys = nonlinParamSys(name,...
                @(x,w,p)f_ext(x,w,p),3*nx+nu,nw+nx,np,'constParam');
     end  
+end
+
+function [res,objContr] = contructResults(RS,K,obj,res,occSet,Param,Opts)
+% construct controller and results objects
+
+    % get final reachable set
+    Rfin = query(RS,'finalSet');
+    if strcmp(Opts.ReachOpts.alg,'poly')
+       Rfin = [{polyZonotope(Opts.R0)};Rfin]; 
+    else
+       Rfin = [{zonotope(Opts.R0)};Rfin]; 
+    end
+
+    % assemble control law parameter
+    ctrlLaw.K = K;
+    ctrlLaw.FeedforwardCtrl = obj;
+    ctrlLaw.linSys.A = Opts.linDyn.A;
+    ctrlLaw.linSys.B = Opts.linDyn.B;
+    ctrlLaw.refTraj = Opts.refTraj;
+
+    % construct objectss
+    objContr = objCombinedContr(Opts.funHandle,Rfin{end}, ...
+                                                    ctrlLaw,Param,occSet);               
+    res = results(RS,Rfin,res.refTraj,[]);
 end

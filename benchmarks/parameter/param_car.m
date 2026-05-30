@@ -23,7 +23,7 @@ function Param = param_car()
 %                           or zonotope)
 %           -.V:            set of measurement errors (class: interval or
 %                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.X:            set of state constraints (class: polytope)
 %
 % See Also:
 %       car, param_car_driveStraight

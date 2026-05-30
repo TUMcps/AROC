@@ -74,18 +74,31 @@ if all(b_pz-A_pz*[p;z]>=TOL-1e-6)
 end
 
 % if infeasible, find p that respects tolerance and is feasible
-options = optimoptions(@quadprog,'display','none');
+% ... linear inequalities
+Aineq = [A_pz,eye(n_s)];
+bineq = b_pz;
 
-% linear inequalities
-A = [A_pz,eye(n_s)];
-b = b_pz;
-
-% bounds
+% ... bounds
 lb = [-ones(n_p,1);zeros(n_z,1);TOL*ones(n_s,1)];
 ub = [ones(n_p,1);ones(n_z,1);inf(n_s,1)];
 H = blkdiag(eye(n_p),zeros(n_z+n_s));
 f = [-p;zeros(n_z+n_s,1)];
-[xval,~,exitflag] = quadprog(H,f,A,b,[],[],lb,ub,[],options);
+
+% ... setup input structure for CORAquadprog
+problem.H = H;
+problem.f = f;
+problem.Aineq = Aineq;
+problem.bineq = bineq;
+problem.Aeq = [];
+problem.beq = [];
+problem.lb = lb;
+problem.ub = ub;
+problem.x0 = [];
+
+% ... solve constrained quadratic program 
+[xval,~,exitflag,~,~] = CORAquadprog(problem);
+
+
 assert(exitflag>=0,'Fix!');
 pval = xval(1:n_p);
 zval = xval(n_p+1:n_p+n_z);

@@ -55,7 +55,7 @@ function plotObstacles(varargin)
         dynObs = varargin{2};
     end
 
-    if nargin > 2 && ~isempty(varargin{3})
+    if nargin > 2 && ~representsa(varargin{3},'emptySet')
         time = varargin{3};
     end
 
@@ -79,7 +79,7 @@ function plotObstacles(varargin)
 
     % plot dynamic obstacles
     for i = 1:length(dynObs)
-        if isempty(time) || isIntersecting(time,dynObs{i}.time)
+        if representsa(time,'emptySet') || isIntersecting(time,dynObs{i}.time)
             dimension = 1:dim(dynObs{i}.set);
             plot(dynObs{i}.set,dimension,'FaceColor',color,NVpairs{:});
         end

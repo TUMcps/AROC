@@ -1,7 +1,8 @@
-%% Test LQR Comfort Controller
-
 % load benchmark parameter
 Param = param_car();
+
+Param.tFinal = 0.5;
+Param.xf = [20; 0.00; 10.0; 0.2];
 
 % define algorithm options
 Opts = [];
@@ -10,7 +11,10 @@ Opts.reachSteps = 5;            % number of reachability steps
 Opts.tComp = 0.05;              % allocated computation time 
 Opts.refTraj.Q = 10*eye(4);     % state weighting matrix (reference traj.)        
 Opts.refTraj.R = 1/10*eye(2);   % input weighting matrix (reference traj.)
-    
+Opts.N = 5;
+
+%% Test LQR Comfort Controller
+
 % settings for the comfort controller that is applied online
 Opts.controller = {'LQR','LQR'};
 
@@ -42,9 +46,6 @@ assert(res == 1);
 
 
 %% Test MPC Comfort Controller
-
-% load benchmark parameter
-Param = param_car();
 
 % settings for the comfort controller that is applied online
 Opts.controller = 'MPC';

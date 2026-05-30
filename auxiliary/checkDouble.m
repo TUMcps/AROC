@@ -5,6 +5,7 @@ function Opts = checkDouble(Opts,field,default,varargin)
 %       Opts = CHECKDOUBLE(Opts,field,default)
 %       Opts = CHECKDOUBLE(Opts,field,default,lb)
 %       Opts = CHECKDOUBLE(Opts,field,default,lb,ub)
+%       Opts = CHECKDOUBLE(Opts,field,default,lb,ub,structName)
 %
 % Description:
 %       Checks if the specified setting is double and takes values in
@@ -18,6 +19,8 @@ function Opts = checkDouble(Opts,field,default,varargin)
 %       -default:   default value
 %       -lb:        lower bound of the valid range
 %       -ub:        upper bound of the valid range
+%       -structName:    name of "inner" structure to deal with nested
+%                       structures (i.e., we check Opts.structName.field)
 %
 % Output Arguments:
 %
@@ -46,6 +49,7 @@ function Opts = checkDouble(Opts,field,default,varargin)
 
     % parse input arguments
     lb = -inf; ub = inf;
+    fieldName = field;
 
     if nargin > 3
         lb = varargin{1};
@@ -60,7 +64,7 @@ function Opts = checkDouble(Opts,field,default,varargin)
             Opts.(field) = default;
             return;
         else
-            error(['Setting "Opts.',field,' is missing!']); 
+            error(['Setting "Opts.',fieldName,' is missing!']); 
         end
     end
 
@@ -68,7 +72,7 @@ function Opts = checkDouble(Opts,field,default,varargin)
     val = Opts.(field);
 
     if ~isnumeric(val) || ~isscalar(val) || val < lb || val > ub 
-        str = ['Wrong value for "Opts.',field,'"! Has to be a double'];
+        str = ['Wrong value for "Opts.',fieldName,'"! Has to be a double'];
         if ~isinf(lb)
             if ~isinf(ub)
                 str = [str, ' >= ',num2str(lb), ' and <= ',num2str(ub),'!'];

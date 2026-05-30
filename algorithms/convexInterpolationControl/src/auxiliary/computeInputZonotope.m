@@ -188,9 +188,20 @@ function [c,G] = inputZonotopeOptimized(uCorner,zonoR,I_big,u_max,u_min,u_x_temp
     A_ = (1-lambda) * A + lambda * A_exact;
     B_ = (1-lambda) * B + lambda * B_exact;
 
-    % solve quadratic program with constraints
-    options = optimoptions('quadprog','Display','off');
-    x_exact = quadprog(A_,B_',C,d,[],[],[],[],[],options);
+
+    % setup input structure for CORAquadprog
+    problem.H = A_;
+    problem.f = B_;
+    problem.Aineq = C;
+    problem.bineq = d;
+    problem.Aeq = [];
+    problem.beq = [];
+    problem.lb = [];
+    problem.ub = [];
+    problem.x0 = [];
+
+    % solve constrained quadratic program 
+    [x_exact,~,~,~,~] = CORAquadprog(problem);
     un_exact = reshape(x_exact,[nu,nx+1]);
     c = un_exact(:,1);
     G = un_exact(:,2:end);
@@ -235,9 +246,19 @@ function [c,G] = inputZonotopeCenter(uCenter,I_big,u_max,u_min,u_x_temp,nx,nu)
         index2 = index2 + nu;
     end
 
-    % solve quadratic program with constraints
-    options = optimoptions('quadprog','Display','off');
-    x_cent = quadprog(Ac,Bc',Cc,dc,[],[],[],[],[],options);
+    % setup input structure for CORAquadprog
+    problem.H = Ac;
+    problem.f = Bc;
+    problem.Aineq = Cc;
+    problem.bineq = dc;
+    problem.Aeq = [];
+    problem.beq = [];
+    problem.lb = [];
+    problem.ub = [];
+    problem.x0 = [];
+
+    % solve constrained quadratic program 
+    [x_cent,~,~,~,~] = CORAquadprog(problem);
     G = reshape(x_cent,[nu,nx]);
     c = uCenter;
 end

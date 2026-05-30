@@ -3,24 +3,29 @@
 
 % load system parameter
 ParamTerm = param_doubleIntegrator();
+ParamTerm = rmfield(ParamTerm,'R0');
 
 Param = ParamTerm;
 Param.xf = zeros(2,1);
 Param.x0 = [3;-3];
 
 % compute terminal region
+OptsTerm = [];
 OptsTerm.Tdomain = interval(-ones(2,1),ones(2,1));
 OptsTerm.timeStep = 0.1;
 OptsTerm.N = 30;
 OptsTerm.Q = eye(2);
 OptsTerm.R = eye(1);
-OptsTerm.genMethod = 'sampling2D';
-OptsTerm.costFun = 'sum';
+OptsTerm.terminalRegionType = 'fixed';
+OptsTerm.terminalRegionSet = 'zonotope';
+OptsTerm.genMethod = 'spherical';
+OptsTerm.nGenerators = 10;
 
-T = computeTerminalRegion('doubleIntegrator','zonoLinSys', ...
+T = computeTerminalRegion('doubleIntegrator','linSys', ...
                                                     ParamTerm,OptsTerm);
 
 % controller settings
+Opts = [];
 Opts.termReg = T;           % terminal region 
 Opts.tOpt = 8;              % prediction horizon
 Opts.N = 40;                % number of time steps

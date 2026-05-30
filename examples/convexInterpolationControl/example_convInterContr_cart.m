@@ -1,6 +1,6 @@
 % This script demonstrates on the cart benchmark model the influence of
 % different weighting functions on the final result for the case that an
-% extendet horizon is used.
+% extended horizon is used.
 
 % load benchmark parameter
 Param = param_cart();
@@ -39,10 +39,10 @@ title('Standard Case');
 
 %% EXTENDED OPTIMIZATION HORIZON
 
-% adapt algorithm options
+% adapt algorithm options - extended optimization horizon
 Opts.extHorizon.active = 1;             % use extended optimization horizon
 Opts.extHorizon.horizon = 4;            % time steps for ext. horizon
-Opts.extHorizon.decay = 'riseLinear';   % weight function for ext. horizon     
+Opts.extHorizon.weightingFunction = extendedHorizonWeights.riseLinear;   % weighting function    
 
 % controller synthesis
 clock = tic;

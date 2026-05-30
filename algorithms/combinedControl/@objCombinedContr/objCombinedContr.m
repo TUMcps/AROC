@@ -4,6 +4,7 @@ classdef objCombinedContr < objController
 %
 % Syntax:
 %       obj = OBJCOMBINEDCONTR(dyn,Rfin,contrLaw,Param)
+%       obj = OBJCOMBINEDCONTR(dyn,Rfin,contrLaw,Param,occSet)
 %
 % Description:
 %       Constructor of the controller object for the Combined Control 
@@ -38,7 +39,9 @@ classdef objCombinedContr < objController
 %           -.W:            set of uncertain disturbances (class: interval)
 %           -.V:            set of measurement errors (class: interval or
 %                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.X:            set of state constraints (class: polytope)
+%
+%       -occSet:  cell-array storing the occupancy set  
 %
 % Output Arguments:
 %
@@ -75,11 +78,11 @@ end
    
 methods
 
-    function obj = objCombinedContr(dyn,Rfin,contrLaw,Param)
+    function obj = objCombinedContr(dyn,Rfin,contrLaw,Param,varargin)
     % class constructor
     
         % call superclass constructor
-        obj = obj@objController(dyn,Rfin,Param);
+        obj = obj@objController(dyn,Rfin,Param,varargin{:});
         
         % store additional properties
         obj.FeedforwardCtrl = contrLaw.FeedforwardCtrl;

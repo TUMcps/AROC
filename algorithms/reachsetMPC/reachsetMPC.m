@@ -23,7 +23,7 @@ function res = reachsetMPC(benchmark,Param,Opts)
 %                           or zonotope)
 %           -.V:            set of measurement errors (class: interval or
 %                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.X:            set of state constraints (class: polytope)
 %
 %       -Opts:              a structure containing the algorithm settings
 %
@@ -37,7 +37,7 @@ function res = reachsetMPC(benchmark,Param,Opts)
 %           -.scale:        scaling factor for the tightend input and state
 %                           constraints [{0.9} / scalar between 0 and 1]
 %           -.termReg:      terminal region around the steady state xf
-%                           (class: mptPolytope or terminalRegion)
+%                           (class: polytope or terminalRegion)
 %           -.Q:            state weighting matrix for the cost function of
 %                           optimal control problem (reference trajectory)
 %           -.R:            input weighting matrix for the cost function of
@@ -111,7 +111,7 @@ function res = reachsetMPC(benchmark,Param,Opts)
 J = 1e6;
 L = inf;
 
-if isempty(Opts.V)
+if representsa(Opts.V,'emptySet')
     x0 = Opts.x0;
 else
     x0 = Opts.x0 + randPoint(Opts.V);
@@ -181,13 +181,13 @@ while length(param.K) >= counter
         [param_,res] = reachSetHorizon(sys,Rfin,param_,Opts);
     end
     tComp = toc;
-    
+
     % switch to new solution (see Lines 6-9 of Alg. 1 in [1])
     if res
         resJset = param_.Jset-param.Jset <= -Opts.alpha;
         resTime = tComp < Opts.tComp;
     end
-    
+ 
     if res && resJset && (resTime || ~Opts.realTime)
         disp('Switch to new solution');
         counter = 1;
@@ -251,9 +251,8 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
         nu = count(2);
         nw = count(3);
     end
-    
     % check if the specified paramters are valid
-    Param = checkParam(Param,mfilename,nx,nu,nw);
+    Param = checkParameters(Param,mfilename,nx,nu,nw);
     Opts = checkOpts(Opts,mfilename,Param,nx,nu);
 
     % copy benchmark parameter to options
@@ -264,13 +263,13 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
     Opts.nw = nw;
     
     if isfield(Opts.cora,'alg') && strcmp(Opts.cora.alg,'poly')
-        if isempty(Opts.V)
+        if representsa(Opts.V,'emptySet')
             Opts.R0 = polyZonotope(Opts.x0);
         else
             Opts.R0 = polyZonotope(Opts.V) + Opts.x0;
         end
     else
-        if isempty(Opts.V)
+        if representsa(Opts.V,'emptySet')
             Opts.R0 = zonotope(Opts.x0);
         else
             Opts.R0 = zonotope(Opts.V) + Opts.x0;
@@ -280,7 +279,7 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
     % options for reachability analysis with the CORA toolbox
     Opts.ReachOpts = Opts.cora;
     Opts = rmfield(Opts,'cora');
-    if isempty(Opts.V)
+    if representsa(Opts.V,'emptySet')
         Opts.ReachParams.U = zonotope(Opts.W);
     else
         Opts.ReachParams.U = cartProd(zonotope(Opts.W),zonotope(Opts.V));
@@ -289,7 +288,7 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
     % generate tightend input and state constraints
     Opts.U_ = center(Opts.U) + Opts.scale * (Opts.U - center(Opts.U));
 
-    if ~isempty(Opts.X)
+    if ~representsa(Opts.X,'fullspace')
         try
             c = center(Opts.X);
             Opts.X_ = c + Opts.scale * (Opts.X - c);
@@ -310,10 +309,7 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
     
     % store parameter for terminal region
     poly = Opts.termReg + (-Opts.xf);
-    temp.set = poly;
-    temp.A = get(poly,'A');
-    temp.b = get(poly,'b');
-    Opts.termReg = temp;
+    Opts.termReg = poly;
 
     % create function handles for matrices of the linearized system
     x = sym('x',[Opts.nx,1]);
@@ -332,7 +328,7 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
     % closed loop dynamics   
     name = ['AROCreachMPC',benchmark];
     
-    if isempty(Opts.V)
+    if representsa(Opts.V,'emptySet')
         sys = nonlinParamSys(name, ...
             @(x,u,p) closedLoopTracking(x,u,p,Opts.funHandle,Opts.nu), ...
             2*Opts.nx,Opts.nw,(1+Opts.nx)*Opts.nu);
@@ -342,26 +338,13 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
             2*Opts.nx,Opts.nw+Opts.nx,(1+Opts.nx)*Opts.nu);
     end
     
-    % generate ACADO or Fmincon files
+    % generate Fmincon files
     [path,~,~] = fileparts(mfilename('fullpath'));
     
     w = warning();
     warning('off','all');
 
-    if isempty(which('BEGIN_ACADO'))
-        Opts.useAcado = 0;
-        writeFminconFilesReachsetMPC(path,benchmark,Opts);
-    else
-        Opts.useAcado = 1;
-
-        
-
-        [path,~,~] = fileparts(mfilename('fullpath'));
-        rmpath(genpath(fullfile(path,'acado')));
-
-        acadoConvertDynamics(path,Opts,benchmark);
-        writeAcadoFilesReachsetMPC(path,benchmark,Opts);
-    end
+    writeFminconFilesReachsetMPC(path,benchmark,Opts);
 
     warning(w);
     

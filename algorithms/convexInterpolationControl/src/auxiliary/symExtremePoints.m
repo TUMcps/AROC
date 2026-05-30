@@ -45,7 +45,7 @@ function vert = symExtremePoints(zonoR, I)
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------
 
-    Zm = zonoR.Z;
+    Zm = [zonoR.c,zonoR.G];
     n = size(Zm,1);
 
     Iextended=[ones(1,2^n);I];

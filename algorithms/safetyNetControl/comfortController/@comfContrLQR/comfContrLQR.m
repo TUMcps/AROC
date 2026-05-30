@@ -23,7 +23,7 @@ classdef comfContrLQR
 %           -.W:            set of uncertain disturbances (class: interval)
 %           -.V:            set of measurement errors (class: interval or
 %                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.X:            set of state constraints (class: polytope)
 %           -.N:            number of time-steps
 %                           [{10} / positive integer]
 %           -.Ninter:       number of intermediate time steps
@@ -91,7 +91,7 @@ methods
         % copy options from input arguments
         obj.xf = Opts.xf;
         obj.tFinal = Opts.tFinal;
-        obj.U = mptPolytope(Opts.U);
+        obj.U = polytope(Opts.U);
         obj.W = Opts.W;
         obj.V = Opts.V;
         obj.X = Opts.X;
@@ -109,7 +109,7 @@ methods
         checkOpts(obj,ContrOpts,Opts);
         
         % number of time steps during allocated computation time
-        obj.Npred = Opts.tComp/(Opts.tFinal/(Opts.N*Opts.Ninter))+1;
+        obj.Npred = round(Opts.tComp/(Opts.tFinal/(Opts.N*Opts.Ninter))+1);
         
         % set options for reachability analysis with the CORA toolbox
         [options,params] = coraOptions(obj);
@@ -120,7 +120,7 @@ methods
         str = ['funHandle = @(x,u,w)',benchmark,'(x,u,w);'];
         eval(str);
         
-        if isempty(obj.V)
+        if representsa(obj.V,'emptySet')
            funHanLQR = @(x,w,p) closedLoopTracking(x,w,p,funHandle,obj.nu);
                                            
            obj.sys = nonlinParamSys(@(x,w,p) funHanLQR(x,w,p),2*obj.nx, ...
@@ -142,7 +142,7 @@ methods
 
         % set of disturbances and final time for reachability analysis
         params.U = zonotope(obj.W);
-        if ~isempty(obj.V)
+        if ~representsa(obj.V,'emptySet')
            params.U = cartProd(params.U,obj.V); 
         end
         params.tFinal = obj.tFinal/(obj.N*obj.Ninter); 

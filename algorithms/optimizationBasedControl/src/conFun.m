@@ -58,55 +58,59 @@ function [c,ceq] = conFun(x,Opts)
     
     % loop over all time steps
     for i = 1:Opts.N
+        for j = 1:Opts.Ninter
+
+            k = (i-1)*Opts.Ninter + j;
         
-        % get reference input
-        u_ref = Opts.uc(:,i);
-            
-        % compute closed loop system
-        if Opts.isLin
-            
-            % get feedback matrix
-            K = compFeedbackMatrix(x(:,i),Opts.linModel.A, ...
-                                   Opts.linModel.B);
-            
-            % construct linear system
-            sys = closedLoopSystemLin(Opts.linModel.A,Opts.linModel.B, ...
-                                      Opts.linModel.D,Opts.linModel.c, ...
-                                      K,u_ref,Opts.V);
-                                  
-            % compute the reachable set
-            R = reach(sys,params,options);
-            
-        else
-            
-            % get feedback matrix
-            K = compFeedbackMatrix(x(:,i),Opts.linModel.A{i}, ...
-                                   Opts.linModel.B{i});
-            
-            p = [u_ref;reshape(K,[Opts.nx*Opts.nu,1])];
-            params.paramInt = p;
-            
-            % compute the reachable set
-            try
-                R = reachNonlinear(Opts.sys,params,options);
-            catch
-                if isempty(Opts.stateCon)
-                    M = size(Opts.inputCon.A,1);
-                else
-                    M = size(Opts.inputCon.A,1)+size(Opts.stateCon.A,1);
+            % get reference input
+            u_ref = Opts.uc(:,k);
+                
+            % compute closed loop system
+            if Opts.isLin
+                
+                % get feedback matrix
+                K = compFeedbackMatrix(x(:,i),Opts.linModel.A, ...
+                                       Opts.linModel.B);
+                
+                % construct linear system
+                sys = closedLoopSystemLin(Opts.linModel.A,Opts.linModel.B, ...
+                                          Opts.linModel.D,Opts.linModel.c, ...
+                                          K,u_ref,Opts.V);
+                                      
+                % compute the reachable set
+                R = reach(sys,params,options);
+                
+            else
+                
+                % get feedback matrix
+                K = compFeedbackMatrix(x(:,i),Opts.linModel.A{k}, ...
+                                       Opts.linModel.B{k});
+                
+                p = [u_ref;reshape(K,[Opts.nx*Opts.nu,1])];
+                params.paramInt = p;
+                
+                % compute the reachable set
+                try
+                    R = reachNonlinear(Opts.sys,params,options);
+                catch
+                    if isempty(Opts.stateCon)
+                        M = size(Opts.inputCon.A,1);
+                    else
+                        M = size(Opts.inputCon.A,1)+size(Opts.stateCon.A,1);
+                    end
+                    c = inf * ones(M*Opts.N*Opts.Ninter*Opts.reachSteps,1);
+                    ceq = [];
+                    return;
                 end
-                c = inf * ones(M*Opts.N*Opts.reachSteps,1);
-                ceq = [];
-                return;
             end
+            
+            % loop over all reachability time steps
+            cTemp = checkConstraints(R.timeInterval.set,K,u_ref,Opts);
+            c = [c;cTemp];
+            
+            % update initial set
+            params.R0 = R.timePoint.set{end};
         end
-        
-        % loop over all reachability time steps
-        cTemp = checkConstraints(R.timeInterval.set,K,u_ref,Opts);
-        c = [c;cTemp];
-        
-        % update initial set
-        params.R0 = R.timePoint.set{end};
     end
     
     % assign output values

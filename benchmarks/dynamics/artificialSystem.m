@@ -6,7 +6,7 @@ function f = artificialSystem(x,u,w)
 %       f = ARTIFICIALSYSTEM(x, u, w)
 %
 % Description:
-%       Dynamic equation for the artifical system benchmark model as 
+%       Dynamics equation for the artifical system benchmark model as 
 %       defined in Eq. (19) in [1]. 
 %
 % Input Arguments:
@@ -20,12 +20,12 @@ function f = artificialSystem(x,u,w)
 %       -f:     value of the dynamic function = time derivative of x
 %
 % See Also:
-%       cart, robotArm
+%       -
 %
 % References:
-%       * *[1] Yu et al. (2013)*, Tube MPC scheme based on robust control 
-%              invariant set with application to Lipschitz nonlinear 
-%              systems, Systems & Control Letters
+%       [1] Yu et al., "Tube MPC scheme based on robust control invariant 
+%           set with application to Lipschitz nonlinear systems", 2013,
+%           Systems & Control Letters
 %
 %------------------------------------------------------------------
 % This file is part of <a href="matlab:docsearch aroc">AROC</a>, a Toolbox for Automatic Reachset-
@@ -46,9 +46,11 @@ function f = artificialSystem(x,u,w)
 %------------------------------------------------------------------ 
 
     % system dynamics
-    f(1,1) = -x(1) + 2*x(2) + 0.5*u(1);
-    f(2,1) = -3*x(1) + 4*x(2) -0.25*x(2)^3 - 2*u(1) + w(1);
+    x1_dot = -x(1) + 2*x(2) + 0.5*u(1);
+    x2_dot = -3*x(1) + 4*x(2) -0.25*x(2)^3 - 2*u(1) + w(1);
     
+    f = [x1_dot; x2_dot];
+
     % convert from minutes to seconds
     f = f./60;
 end

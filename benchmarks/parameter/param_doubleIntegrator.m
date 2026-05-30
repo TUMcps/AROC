@@ -13,17 +13,14 @@ function Param = param_doubleIntegrator()
 %
 %       -Param:             a structure containing following options
 %
-%           -.R0:           initial set of states (class: interval)
-%           -.xf:           goal state
-%           -.tFinal:       final time after which the goal state should be
-%                           reached
-%           -.U:            set of admissible control inputs (class:
-%                           interval)
-%           -.W:            set of uncertain disturbances (class: interval 
-%                           or zonotope)
-%           -.V:            set of measurement errors (class: interval or
-%                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.R0:           initial set of states 
+%                           (class: interval)
+%           -.U:            set of admissible control inputs 
+%                           (class: interval)
+%           -.W:            set of uncertain disturbances 
+%                           (class: interval)
+%           -.X:            set of admissible states 
+%                           (class: polytope)
 %
 % See Also:
 %       doubleIntegrator
@@ -46,6 +43,9 @@ function Param = param_doubleIntegrator()
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------
     
+    % set of admissible states
+    Param.X = polytope(fullspace(2));
+
     % set of admissible control inputs
     width = 1;
     Param.U = interval(-width,width);
@@ -53,5 +53,9 @@ function Param = param_doubleIntegrator()
     % set of uncertain disturbances
     width = [0.1; 0.1];
     Param.W = interval(-width,width);
+
+    % set of initial states
+    width = [0.2;0.2];
+    Param.R0 = interval(-width,width);
 
 end

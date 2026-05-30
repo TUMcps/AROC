@@ -86,7 +86,7 @@ function [R,H] = linearBackwardReach(goalSet,xCenter,uCenter,U,Opts)
 
     % generate matrix H that stores the generator-to-input assignment
     dim = Opts.Ninter*Opts.nu;
-    gen = size(goalSet.Z,2)-1;
+    gen = size(goalSet.G,2);
 
     H = [zeros(dim,gen),eye(dim)];
 end

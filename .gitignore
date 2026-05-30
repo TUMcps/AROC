@@ -1,6 +1,9 @@
 /.project
+*.html
 *.asv
 *.aux
+**/*.pdf
+!/*.pdf
 *.log
 *.out
 *.blg
@@ -8,9 +11,16 @@
 *.toc
 *.dvi
 *.ps
+*.m~
+*.gz
+*.zap
+*.json
+*.bolt
+*-pstool.tex
 /documentation/doc/source/*
 !/documentation/doc/source/product_page.m
 !/documentation/doc/source/functions_index.m
 !/documentation/doc/source/getting_started.m
-acado/
+fmincon/
 /documentation/doc/html/helpsearch-v3/*
+/documentation/doc/html/*.png

@@ -14,7 +14,7 @@ function poly = innerApproxPoly(Z)
 %
 % Output Arguments:
 %
-%       -poly:   inner-approximating polytope (class: mptPolytope)
+%       -poly:   inner-approximating polytope (class: polytope)
 %
 % See Also:
 %       linSysMPC, reachsetMPC
@@ -38,7 +38,7 @@ function poly = innerApproxPoly(Z)
 %------------------------------------------------------------------
 
     % check if exact conversion is feasible
-    n = dim(Z); m = size(Z.Z,2)-1;
+    n = dim(Z); m = size([Z.c Z.G],2)-1;
 
     w = warning();
     warning('off');
@@ -46,7 +46,7 @@ function poly = innerApproxPoly(Z)
     warning(w);
 
     if tmp < 100
-        poly = mptPolytope(Z);
+        poly = polytope(Z);
         return;
     end
 
@@ -72,17 +72,24 @@ function poly = innerApproxSimplex(Z)
     end
 
     V = V + center(Z);
-    poly = mptPolytope(V');
+    poly = polytope(V);
+    % compute halfspace representation
+    poly.constraints;
 
     % ensure that the center of the zonotope is in the polytope
     if ~contains(poly,center(Z))
 
         % determine point in simplex closest to the center
-        options = optimoptions('quadprog','display','off');
+        problem.H = eye(n);
+        problem.f = -2*center(Z);
+        problem.Aineq = poly.A;
+        problem.bineq = poly.b;
+        problem.Aeq = [];
+        problem.beq = [];
+        problem.lb = [];
+        problem.ub = [];
 
-        x = quadprog(eye(n),-2*center(Z),poly.P.A,poly.P.b,[],[],[], ...
-                                                            [],[],options);
-
+        x = CORAquadprog(problem);
         dir = center(Z) - x;
         
         % determine boundary point in the direction
@@ -90,7 +97,7 @@ function poly = innerApproxSimplex(Z)
         tmp = conZonotope(zeros(n,1),dir./norm(dir)*len);
         [~,v] = supportFunc(conZonotope(Z_) & tmp, dir);
 
-        poly = mptPolytope([V, v + center(Z)]');
-        poly = removeRedundancies(poly,'all');
+        poly = polytope([V, v + center(Z)]);
+        poly = compact(poly,'all');
     end
 end

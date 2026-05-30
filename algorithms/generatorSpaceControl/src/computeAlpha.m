@@ -158,8 +158,8 @@ function alpha = computeAlphaExtHorizon(R0,A,B,c,xf,iter,Opts)
         len = min(len_,Opts.extHorizon.horizon);
     end
     
-    % get the weights for the decay function of the extended horizon
-    w = decayFunctions(len,Opts);
+    % get the values of the weighting function for the extended horizon
+    w = Opts.extHorizon.weightingFunction.computeWeights(len);
 
     % compute reachable set for the time-discrete system 
     % x(k+1) = A x(k) + B u(k) + c

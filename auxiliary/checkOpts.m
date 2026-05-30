@@ -66,7 +66,7 @@ function Opts = checkOpts(Opts,name,Param,nx,nu,varargin)
             Opts = checkMatrix(Opts,'R',zeros(nu),[nu,nu],true);
             
             % control law Opts.controller
-            validValues = {'linear','quadratic','exact'};
+            validValues = {'linear','exact'};
             Opts = checkString(Opts,'controller','linear',validValues);
             
             % parallel computing Opts.parallel
@@ -210,6 +210,9 @@ function Opts = checkOpts(Opts,name,Param,nx,nu,varargin)
             
             % number of time steps Opts.N
             Opts = checkInteger(Opts,'N',5,1);
+
+            % number of intermediate time steps Opts.Ninter
+            Opts = checkInteger(Opts,'Ninter',1,1);
             
             % number of reachability steps Opts.reachSteps
             Opts = checkInteger(Opts,'reachSteps',10,1);
@@ -224,7 +227,7 @@ function Opts = checkOpts(Opts,name,Param,nx,nu,varargin)
             Opts = checkInteger(Opts,'maxIter',15,1);
             
             % reference trajectory Opts.refTraj
-            [Opts,redFields] = checkReferenceTrajectory(Opts,Param,nx,nu,0);
+            [Opts,redFields] = checkReferenceTrajectory(Opts,Param,nx,nu,1);
             
             % check reachability settings for CORA toolbox
             Def.taylorTerms = 10;         
@@ -243,8 +246,8 @@ function Opts = checkOpts(Opts,name,Param,nx,nu,varargin)
             redFields = [redFields,temp];           
             
             % valid settings for this algorithm
-            validFields = {'N','reachSteps','reachStepsFin','bound', ...
-                           'maxIter','refTraj','cora'};
+            validFields = {'N','Ninter','reachSteps','reachStepsFin', ...
+                            'bound','maxIter','refTraj','cora'};
         
         case 'combinedControl'
             
@@ -445,8 +448,6 @@ function Opts = checkOpts(Opts,name,Param,nx,nu,varargin)
             
                 % input weighting matrix Opts.Rlqr
                 Opts = checkMatrix(Opts,'Rlqr',eye(nu),[nu,nu],true);
-                
-                validFields = {'Rlqr','Qlqr'};
             end
             
             % real-time mode Opts.realTime
@@ -467,8 +468,8 @@ function Opts = checkOpts(Opts,name,Param,nx,nu,varargin)
             end
             
             % valid settings for this algorithm
-            validFields = [validFields, {'tOpt','N','Q','R','Qlqr', ...
-                            'Rlqr','termReg','realTime','alpha','cora'}];
+            validFields = {'tOpt','N','Q','R', 'K', 'Qlqr', ...
+                            'Rlqr','termReg','realTime','alpha','cora'};
                        
         case 'conformantSynthesis'
             
@@ -591,7 +592,7 @@ function Opts = checkOpts(Opts,name,Param,nx,nu,varargin)
                 
             % cost function for the optimization problem Opts.costFun
             validValues = {'geomean','sum','none'};
-            Opts = checkString(Opts,'costFun','sum',validValues);        
+            Opts = checkString(Opts,'costFun','geomean',validValues);        
             
             % check reachability settings for CORA toolbox Opts.cora
             Def.taylorTerms = 4;
@@ -606,8 +607,54 @@ function Opts = checkOpts(Opts,name,Param,nx,nu,varargin)
             
             % valid settings for this algorithm
             validFields = [validFields, {'Tdomain','timeStep','N','K', ...
-                      'xEq','uEq','maxDist','costFun','genMethod','cora'}];
-                       
+                      'xEq','uEq','maxDist','costFun','genMethod','cora'}]; 
+
+        case 'nonlinSysOpt'
+
+           validFields = {};
+            
+            % equilibrium point Opts.xEq
+            Opts = checkMatrix(Opts,'xEq',zeros(nx,1),[nx,1]);
+            validFields = [validFields, 'xEq'];
+            
+            % check control input for equilibrium point
+            Opts = checkMatrix(Opts,'uEq',zeros(nu,1),[nu,1]);
+            validFields = [validFields, 'uEq'];
+            
+            % time step size for sampled-data controller Opts.timeStep
+            checkDouble(Opts,'timeStep',[],0);
+            validFields = [validFields, 'timeStep'];
+  
+            % order of the zonotope representing the terminal region
+            checkTermRegOrder(Opts,nx);
+            validFields = [validFields, 'termRegOrder'];
+
+            % print interate info to command window
+            if isfield(Opts,'verbose')
+                assert(islogical(Opts.verbose), ...
+                    'Wrong value: "Opts.verbose" must be logical.')
+            else
+                Opts.verbose = false;
+            end
+            validFields = [validFields, 'verbose'];
+
+            % check algorithm
+            if ~ismember(Opts.nonlinSysTermRegAlg, ['lin', 'poly'])
+                error('Wrong value of "Opts.nonlinSysTermRegAlg" - must be "lin" or "poly"!')
+            end
+            validFields = [validFields, 'nonlinSysTermRegAlg'];
+
+            % check dynamical system settings
+            Opts = checkTermRegNonlinSysDynamicsSettings(Opts);
+            validFields = [validFields, 'sysType', 'integrator'];
+
+            % check settings for initial guess computation
+            Opts = checkNolinSysTermRegOptAlgInitGuessSettings(Opts,nx,nu);
+
+            validFields = [validFields, 'initialGuess'];
+
+            redFields = [];
+        
         otherwise
             error('Wrong value for input argument "name"!');
     end
@@ -665,15 +712,15 @@ function Opts = checkTerminalRegion(Opts,Param,nx,isLin)
             error(['Wrong value for "Opts.termReg"! Objects of class ', ...
                 class(Opts.termReg),' are only allowed for linear systems!']);
         end
-        if ~isa(Opts.termReg.set,'mptPolytope')
+        if ~isa(Opts.termReg.set,'polytope')
             Opts.termReg = innerApproxPoly(Opts.termReg.set);
         else
             Opts.termReg = Opts.termReg.set;
         end
     end
 
-    if ~isa(Opts.termReg,'mptPolytope')
-        error('Wrong value for "Opts.termReg"! Has to be object of class "mptPolytope" or class "terminalRegion"!');
+    if ~isa(Opts.termReg,'polytope')
+        error('Wrong value for "Opts.termReg"! Has to be object of class "polytope" or class "terminalRegion"!');
     elseif dim(Opts.termReg) ~= nx
         error('Wrong dimension for "Opts.termReg"! Has to match number of system states!');
     elseif ~contains(Opts.termReg,Param.xf)
@@ -821,7 +868,7 @@ function [Opts,redFields] = checkApprox(Opts,defMethod,defLambda)
 
     redFields = [];
 
-    if strcmp(Opts.controller,'linear') || strcmp(Opts.controller,'quadratic')
+    if strcmp(Opts.controller,'linear')
        
        if ~isfield(Opts,'approx')
            Opts.approx.method = defMethod;
@@ -844,13 +891,13 @@ function Opts = checkApproxMethod(Opts,defVal)
 % check if method for approximating the interpolation control law
 % Opts.approx.method takes a valid value
 
-    validValues = {'scaled','optimized','center'};
+    validValues = {'scaled','optimized'};
 
     if ~isfield(Opts.approx,'method')
         Opts.approx.method = defVal; 
     elseif ~ischar(Opts.approx.method) || ...
            ~ismember(Opts.approx.method,validValues)
-        error('Wrong value for "Opts.approx.method"! Valid values are ''scaled'', ''optimized'', or ''center''!');
+        error('Wrong value for "Opts.approx.method"! Valid values are ''scaled'' or ''optimized''!');
     end
 end
 
@@ -997,8 +1044,8 @@ function [Opts,redFields] = checkExtendedHorizon(Opts)
               error('Wrong value for "Opts.extHorizon.active"! Has to be boolean!');
            elseif Opts.extHorizon.active == 1
               checkHorizon(Opts);
-              checkDecay(Opts);
-              validFields = {'active','decay','horizon'}; 
+              checkWeightingFunction(Opts);
+              validFields = {'active','weightingFunction','horizon'}; 
            end
        else
            Opts.extHorizon.active = 0;
@@ -1008,7 +1055,11 @@ function [Opts,redFields] = checkExtendedHorizon(Opts)
        redFields = getRedundantFields(Opts.extHorizon,validFields,'extHorizon');
        
     else
-       Opts.extHorizon.active = false;
+        Opts.extHorizon.active = false;
+        % choosing the weighting function 'final' yields a cost function
+        % whose structure is identical to the cost function of the basic 
+        % version of the optimal control problem
+        Opts.extHorizon.weightingFunction = extendedHorizonWeights.final;
     end
 end
 
@@ -1029,18 +1080,22 @@ function checkHorizon(Opts)
     end
 end
 
-function checkDecay(Opts)
-% check if the horizon Opts.extHorizon.decay takes a valid value
+function checkWeightingFunction(Opts)
+% check if the weighting function Opts.extHorizon.weightingFunction takes 
+% a valid value
 
-    validValues = {'fall+End','uniform','fall','fallLinear', ...
-                   'fallLinear+End','fallEqDiff','rise','quad', ...
-                   'riseLinear','riseEqDiff','end'};
-
-    if ~isfield(Opts.extHorizon,'decay')
-        error('Decay function "Opts.extHorizon.decay" is missing!'); 
-    elseif ~ischar(Opts.extHorizon.decay) || ...
-           ~ismember(Opts.extHorizon.decay,validValues)
-        error('Wrong value for "Opts.extHorizon.decay"!');
+    if ~isfield(Opts.extHorizon,'weightingFunction')
+        error('Weighting function "Opts.extHorizon.weightingFunction" is missing!'); 
+    elseif ~isa(Opts.extHorizon.weightingFunction,'extendedHorizonWeights')
+        error('Wrong value for "Opts.extHorizon.weightingFunction"!');
+    else
+        try 
+            Opts.extHorizon.weightingFunction.computeWeights(5);
+        catch
+            error(['No weights computation function for weighting ' ...
+                'function "Opts.extHorizon.weightingFunction" ' ...
+                'is implemented!']);
+        end
     end
 end
 
@@ -1263,7 +1318,7 @@ function checkInitialDomain(Opts,Param,nx)
     elseif ~isa(Opts.Tinit,'interval') || dim(Opts.Tinit) ~= nx || ...
            ~contains(Opts.Tinit,Opts.xEq)
         error('Wrong value for "Opts.Tinit"! Has to be an interval containing the equilibrium point Opts.xEq.');
-    elseif isfield(Param,'X') && ~in(Param.X,Opts.Tinit)
+    elseif isfield(Param,'X') && ~contains(Param.X,Opts.Tinit)
         error('Wrong value for "Opts.Tinit"! Has to satisfy the state constraints Param.X.');
     end
 end
@@ -1305,4 +1360,95 @@ function checkComfController(Opts)
             end
         end
     end
+end
+
+function checkTermRegOrder(Opts,nx)
+% checks the value of the (zonotope) order of the terminal region
+
+    % value must be provided by the user
+    if ~isfield(Opts,'termRegOrder')
+        error('Setting "Opts.termRegOrder" is missing!'); 
+    end
+
+    % terminal region must be non-degenerate
+    if ~Opts.termRegOrder >= 1
+        error('Setting "Opts.termRegOrder" must be greater or equal than 1!'); 
+    end
+
+    % number of generators must be integer
+    nGen = nx*Opts.termRegOrder;
+    if ~(nGen == fix(nGen))
+        error('Wrong value of "Opts.termRegOrder" - number of generators must be integer!')
+    end
+end
+
+function Opts = checkTermRegNonlinSysDynamicsSettings(Opts)
+% check settings related to to the dynamical system
+
+    % system type
+    if ~isa(Opts.sysType,'termRegSysType')
+        error('Wrong value for "Opts.sysType"! Must be instance of class termRegSysType.')
+    end
+
+    % poly algorithm is only implemetned for sampled-data systems
+    if ~(Opts.sysType == termRegSysType.SD) && strcmp(Opts.nonlinSysTermRegAlg, 'poly')
+        error('Wrong value for "Opts.sysType"! Must be termRegSysType.SD for poly algorithm!')
+    end
+    
+    % check integration/discretiation scheme for discrete-time systems
+    if Opts.sysType.isDiscreteTimeSystem
+        % set default value
+        if ~isfield(Opts,'integrator') 
+            Opts.integrator = Opts.sysType.getDefaultDiscretizationScheme;
+        end
+
+        % check consistency
+        [res, errMsg] = Opts.sysType.isConsistentDiscretizationScheme(Opts.integrator);
+        if ~res
+            error(errMsg)
+        end      
+    end
+end
+
+
+function Opts = checkNolinSysTermRegOptAlgInitGuessSettings(Opts,nx,nu)
+
+    if ~isfield(Opts,'initialGuess')
+        Opts.initialGuess = struct();
+    end
+
+    % state and input weighting matrices for @computeTermRegNonlinSysOptAppproach/initialGuessSet_RiccatiEq
+    Opts.initialGuess = checkMatrix(Opts.initialGuess,'Q',eye(nx),nx,true,'initialGuess');
+    Opts.initialGuess = checkMatrix(Opts.initialGuess,'R',eye(nu),nu,true,'initialGuess');
+
+    % check weights
+    if ~isfield(Opts.initialGuess,'weights')
+        Opts.initialGuess.weights = struct();
+    end   
+    % -> @computeTermRegNonlinSysOptAppproach/initialGuessSet_RiccatiEq
+    if ~isfield(Opts.initialGuess.weights,'RiccatiEq') || isempty(Opts.initialGuess.weights.RiccatiEq)
+        Opts.initialGuess.weights.RiccatiEq = 0.5;
+    elseif Opts.initialGuess.weights.RiccatiEq < 0
+        error('Wrong value for "Opts.initialGuess.weights.RiccatiEq" - be non-negative.')
+    end
+
+
+    Opts.initialGuess.weights = checkDouble(Opts.initialGuess.weights,'RiccatiEq',0.5,0.0,inf, ...
+        'initialGuess.weights');
+    % -> @computeTermRegNonlinSysOptAppproach/initialGuessSet_GSB
+    Opts.initialGuess.weights = checkDouble(Opts.initialGuess.weights,'minRCI',0.0,0.0,inf, ...
+        'initialGuess.weights');
+    % -> @computeTermRegNonlinSysOptAppproach/initialGuessSet_mRPI
+    Opts.initialGuess.weights = checkDouble(Opts.initialGuess.weights,'minRPI',2.0,0.0,inf, ...
+        'initialGuess.weights');
+    % -> one-step 0-controllable set (bw-reachset of origin)
+    Opts.initialGuess.weights = checkDouble(Opts.initialGuess.weights,'bwReachInputs',0.5,0.0,inf, ...
+        'initialGuess.weights');
+    % ... sum of weights must be greater than 0 to avoid degeneracy
+    % (sum > 0 is necessary but not sufficient!)
+    weights = struct2cell(Opts.initialGuess.weights);
+    if 0 >= sum([weights{:}])
+        error('Wrong values for fields of "Opts.initialGuess.weights"! Sum of weights must be positive!')
+    end
+
 end

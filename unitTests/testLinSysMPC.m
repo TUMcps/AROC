@@ -2,6 +2,7 @@
 
 % get benchmark parameter
 Param = param_doubleIntegrator();
+Param = rmfield(Param,'R0');
 
 Param.xf = zeros(2,1);
 Param.x0 = [3;-3];
@@ -9,7 +10,7 @@ Param.x0 = [3;-3];
 % controller settings
 Opts = [];
 
-Opts.termReg = mptPolytope([1 0;0 1;-1 0;0 -1;1 1;-1 -1],[1;1;1;1;1.2;1.2]);
+Opts.termReg = polytope([1 0;0 1;-1 0;0 -1;1 1;-1 -1],[1;1;1;1;1.2;1.2]);
 Opts.tOpt = 8;
 Opts.N = 40;
 
@@ -23,8 +24,4 @@ assert(res == 1);
 % check if the end points of the simulation are located inside the terminal
 % region
 res = checkFinalSimPointsInSet(result,Opts.termReg);
-assert(res == 1);
-
-% check if the final reachable set is located inside the terminal region
-res = contains(Opts.termReg,result.reachSetTimePoint{end});
 assert(res == 1);

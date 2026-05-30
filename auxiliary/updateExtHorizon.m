@@ -54,5 +54,6 @@ function Opts = updateExtHorizon(i,Opts)
         len = 1;
     end
     Opts.extHorizon.length = len;
-    Opts.extHorizon.weights = decayFunctions(len,Opts);
+    Opts.extHorizon.weights = ...
+        Opts.extHorizon.weightingFunction.computeWeights(Opts.extHorizon.length);
 end

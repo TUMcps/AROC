@@ -22,7 +22,8 @@ Opts.parallel = 1;                    % use parallel computing
 Opts.approx.method = 'optimized';     % method for approximating contr. law
 Opts.extHorizon.active = true;        % use extended optimization horizon
 Opts.extHorizon.horizon = 3;          % time steps for extended horizon
-Opts.extHorizon.decay = 'fall+End';   % weight function for ext. horizon 
+Opts.extHorizon.weightingFunction = ...
+    extendedHorizonWeights.fallFinal; % weight function for ext. horizon   
 
 % define control inputs and initial states for motion primitives
 list_x0 = {[0;0;0;1;1],[0;0;0;0;0],[0;0;0;1;1],[0;0;0;1;1]};

@@ -52,8 +52,8 @@ function R = reachSetPred(obj,x0,iter,Param)
     options = obj.ReachOpts;
     params = obj.ReachParams;
     params.R0 = zonotope([x0;xc(:,3)]);
-    
-    if ~isempty(obj.V)
+
+    if ~representsa(obj.V,'emptySet')
        params.R0 = params.R0 + cartProd(obj.V,zeros(obj.nx,1)); 
     end
     

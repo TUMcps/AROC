@@ -1,7 +1,7 @@
 %% This script runs all unit tests from the AROC toolbox
 
 % get current MATALB path
-path = pwd;
+origDir = pwd;
 
 % switch to the unit test folder
 [pathTest,~,~] = fileparts(mfilename('fullpath'));
@@ -14,4 +14,4 @@ suite = testsuite;
 run(suite)
 
 % restore original path
-cd(path)
+cd(origDir)

@@ -24,12 +24,12 @@ function f = quadrotor2D(x,u,w)
 %       -f:     value of the dynamic function = time derivative of x
 %
 % See Also:
-%       cart, robotArm
+%       -
 %
 % References:
-%       * *[1] Yuan et al. (2022)*, Safe-Control-Gym: A Unified Benchmark 
-%              Suite for Safe Learning-Based Control and Reinforcement 
-%              Learning in Robotics
+%       [1] Yuan et al., "Safe-Control-Gym: A Unified Benchmark Suite for 
+%           Safe Learning-Based Control and Reinforcement Learning in 
+%           Robotics", 2022, IEEE Robotics and Automation Letters
 %
 %------------------------------------------------------------------
 % This file is part of <a href="matlab:docsearch aroc">AROC</a>, a Toolbox for Automatic Reachset-
@@ -53,12 +53,15 @@ function f = quadrotor2D(x,u,w)
     m = 0.027;
     Iyy = 1.4e-5;
     l = 0.0397;
-    g = 9.8;
+    g = 9.81;
     
     % dynamic function
-    f(1,1) = x(4);
-    f(2,1) = x(5);
-    f(3,1) = x(6);
-    f(4,1) = sin(x(3))*(u(1)+u(2))/m + w(1);
-    f(5,1) = cos(x(3))*(u(1)+u(2))/m - g + w(2);
-    f(6,1) = (u(2)-u(1))*l/(sqrt(2) * Iyy) + w(3);
+    x_dot = x(4);
+    z_dot = x(5);
+    phi_dot = x(6);
+    x_dotdot = sin(x(3))*(u(1)+u(2))/m + w(1);
+    z_dotdot = cos(x(3))*(u(1)+u(2))/m - g + w(2);
+    phi_dotdot = (u(2)-u(1))*l/(sqrt(2) * Iyy) + w(3);
+
+    f = [x_dot;z_dot;phi_dot;x_dotdot;z_dotdot;phi_dotdot];
+end

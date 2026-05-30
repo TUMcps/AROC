@@ -1,6 +1,8 @@
 % This script demonstrates linear model predictive control for the
 % platoon benchmark
 
+benchmark = 'platoon4';
+
 % load system parameter
 ParamTerm = param_platoon();
 
@@ -20,9 +22,12 @@ OptsTerm = [];
 OptsTerm.timeStep = 0.1;
 OptsTerm.xEq = Param.xf;
 OptsTerm.uEq = [0; 0; 0; 0];
-OptsTerm.costFun = 'none';
+OptsTerm.terminalRegionType = 'fixed';
+OptsTerm.terminalRegionSet = 'zonotope';
+OptsTerm.genMethod = 'spherical';
+OptsTerm.nGenerators = 8;
 
-T = computeTerminalRegion('platoon','zonoLinSys',ParamTerm,OptsTerm);
+T = computeTerminalRegion(benchmark,'linSys',ParamTerm,OptsTerm);
 
 % controller settings
 Opts = [];
@@ -35,7 +40,7 @@ Opts.R = 0.01*eye(4);       % input weighting matrix (MPC)
 Opts.Rlqr = 0.01*eye(4);    % input weighitng matrix (feedback controller)
 
 % model predictive control
-res = linSysMPC('platoon',Param,Opts);
+res = linSysMPC(benchmark,Param,Opts);
 
 % visualization
 figure; hold on; box on;

@@ -20,7 +20,7 @@ function Param = param_artificialSystem()
 %           -.U:            set of admissible control inputs (class:
 %                           interval)
 %           -.W:            set of uncertain disturbances (class: interval)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.X:            set of state constraints (class: polytope)
 %
 % See Also:
 %       artificial system, param_car

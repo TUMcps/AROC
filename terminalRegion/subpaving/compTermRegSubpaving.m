@@ -14,7 +14,7 @@ function T = compTermRegSubpaving(benchmark,Param,Opts)
 %
 %       -benchmark:    name of the considered benchmark model (see
 %                      "aroc/benchmarks/dynamics/...")
-%       -Param:             a structure containing the benchmark parameters
+%       -Param:             a struct containing the benchmark parameters
 %
 %           -.U:            set of admissible control inputs (class:
 %                           interval)
@@ -22,9 +22,9 @@ function T = compTermRegSubpaving(benchmark,Param,Opts)
 %                           or zonotope)
 %           -.V:            set of measurement errors (class: interval or
 %                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.X:            set of state constraints (class: polytope)
 %
-%       -Opts:              a structure containing the algorithm settings
+%       -Opts:              a struct containing the algorithm settings
 %
 %           -.Tdomain:      search domain for the terminal region (class:
 %                           interval)
@@ -124,7 +124,7 @@ function T = compTermRegSubpaving(benchmark,Param,Opts)
     end
     
     % initialize search domain if it is not given
-    if isempty(Opts.Tdomain)
+    if representsa(Opts.Tdomain,'emptySet')
         if isfield(Param,'X')
             Opts.Tdomain = initSearchDomain(K,Opts.xEq,Opts.uEq, ...
                                                         Param.U,Param.X);
@@ -136,7 +136,7 @@ function T = compTermRegSubpaving(benchmark,Param,Opts)
     % initialize closed-loop system
     name = ['AROCsubpaving',benchmark];
     
-    if isempty(Opts.V)
+    if representsa(Opts.V,'emptySet')
         dynFun = @(x,w) Opts.funHandle(x,Opts.uEq + K*(x-Opts.xEq),w);
         sys = nonlinearSys(name,dynFun,Opts.nx,Opts.nw);
     else
@@ -155,6 +155,8 @@ function T = compTermRegSubpaving(benchmark,Param,Opts)
     D = Opts.Tinit;
     ver = compReachSet(sys,D,D,K,Opts);
     
+    % assert(ver,'Failed to compute an invariant initial set!')
+
     while ver
        
         % enlarge set
@@ -274,7 +276,7 @@ function Opts = initialization(benchmark,Param,Opts)
     Opts.nw = nw;
     
     % define settings for CORA toolbox
-    if isempty(Opts.V)
+    if representsa(Opts.V,'emptySet')
         param.U = zonotope(Opts.W);
     else
         param.U = cartProd(zonotope(Opts.W),zonotope(Opts.V)); 
@@ -317,7 +319,7 @@ function res = compReachSet(sys,R0,target,K,Opts)
         
        % compute reachable set 
        try
-           R = reachNonlinear(sys,options,params);
+           R = reachNonlinear(sys,params,options);
        catch
            return;
        end
@@ -331,7 +333,7 @@ function res = compReachSet(sys,R0,target,K,Opts)
            end
            
            % check input constraints
-           if isempty(Opts.V)
+           if representsa(Opts.V,'emptySet')
                U = Opts.uEq + K*(R.timeInterval.set{j} + (-Opts.xEq)); 
            else
                U = Opts.uEq+K*(R.timeInterval.set{j}+Opts.V+(-Opts.xEq)); 
@@ -421,11 +423,14 @@ function poly = scalePolytope(C,d_,list,D,Opts,varargin)
     end
 
     % solve linear program with the YALMIP toolbox
-    optimize(Constraints,Objective,sdpsettings('verbose',0));
+    diagnostics = optimize(Constraints,Objective,sdpsettings('verbose',0));
+    if diagnostics.problem ~= 0
+        warning('No feasible inner approximation of the terminal region has been found!')
+    end
 
     % store the solution
     d = value(d);
 
     % define resulting polytope
-    poly = mptPolytope(C,d) + Opts.xEq;
+    poly = polytope(C,d) + Opts.xEq;
 end

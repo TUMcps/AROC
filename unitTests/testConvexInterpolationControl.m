@@ -38,8 +38,14 @@ assert(res == 1);
 % get benchmark parameter
 Param = param_car();
 
-% adapt algorithm options
-Opts.controller = 'exact';
+% define algorithm options
+Opts = [];
+
+Opts.Q = diag([2,5,1,1]);             % state weighting matrix
+Opts.R = diag([0;0]);                 % input weighting matrix
+Opts.refTraj.Q = 10*eye(4);           % state weighting matrix (ref. traj.)
+Opts.refTraj.R = 1/10*eye(2);         % input weighting matrix (ref. traj.)
+Opts.controller = 'exact';            % controller
 Opts.polyZono.N = 5;
 
 % offline phase computations
@@ -63,7 +69,7 @@ res = checkFinalInInitSet(result,Param.R0);
 assert(res == 1);
 
 
-%% Test Extendet Optimization Horizon
+%% Test Extended Optimization Horizon
 
 % load benchmark parameter
 Param = param_cart();
@@ -77,7 +83,7 @@ Opts.refTraj.Q = eye(2)./(0.2^2);     % state weighting matrix (ref. traj.)
 Opts.refTraj.R = 1/(14^2);            % input weighting matrix (ref. traj.) 
 Opts.extHorizon.active = 1;           % use extended optimization horizon
 Opts.extHorizon.horizon = 4;          % time steps for ext. horizon
-Opts.extHorizon.decay = 'riseLinear'; % weight function for ext. horizon 
+Opts.extHorizon.weightingFunction = extendedHorizonWeights.riseLinear;   % weighting function    
 
 % offline phase computations
 [obj,result] = convexInterpolationControl('cart',Param,Opts);

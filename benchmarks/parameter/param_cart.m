@@ -13,17 +13,17 @@ function Param = param_cart()
 %
 %       -Param:             a structure containing following options
 %
-%           -.R0:           initial set of states (class: interval)
+%           -.R0:           initial set of states 
+%                           (class: interval)
 %           -.xf:           goal state
 %           -.tFinal:       final time after which the goal state should be
 %                           reached
-%           -.U:            set of admissible control inputs (class:
-%                           interval)
-%           -.W:            set of uncertain disturbances (class: interval 
-%                           or zonotope)
-%           -.V:            set of measurement errors (class: interval or
-%                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.U:            set of admissible control inputs 
+%                           (class: interval)
+%           -.W:            set of uncertain disturbances 
+%                           (class: interval / zonotope)
+%           -.X:            set of admissible states 
+%                           (class: polytope)
 %
 % See Also:
 %       cart
@@ -57,7 +57,7 @@ function Param = param_cart()
 
     % set of admissible states
     width = [6; 6];
-    Param.X = interval(-width, width);
+    Param.X = polytope(interval(-width, width));
     
     % set of admissible control inputs
     width = 14;

@@ -69,14 +69,14 @@ function [reachSet,R] = reachSetGenSpaceContr(sys,R,P,alpha,Opts)
     if isa(R,'zonotope')
         G = generators(R);
     else
-        G = [R.G,R.Grest]; 
-        E = R.expMat;
+        G = [R.G,R.GI]; 
+        E = R.E;
     end
     
     inputAssign = Gp\G;
     
     % compute measurement error set
-    if ~isempty(Opts.V)
+    if ~representsa(Opts.V,'emptySet')
         Opts.V = zonotope(Gp\Opts.V.Z);
     end
     
@@ -89,7 +89,7 @@ function [reachSet,R] = reachSetGenSpaceContr(sys,R,P,alpha,Opts)
         alpha_g = temp(:,2:end);
         
         % compute extended initial set
-        if isempty(Opts.V)
+        if representsa(Opts.V,'emptySet')
             c_ = [c; cu+Gu*alpha_u; zeros(size(inputAssign,1),1)];
             G_ = [G; Gu*alpha_g*inputAssign; inputAssign]; 
         else
@@ -104,7 +104,7 @@ function [reachSet,R] = reachSetGenSpaceContr(sys,R,P,alpha,Opts)
         end
         
         % add set of measurement errors
-        if ~isempty(Opts.V)
+        if ~representsa(Opts.V,'emptySet')
            R0 = cartProd(R0,Opts.V);
            p = [cu+Gu*alpha_u; reshape(Gu*alpha_g,[Opts.nu*Opts.nx,1])];
            params.paramInt = p;
@@ -127,15 +127,15 @@ function [reachSet,R] = reachSetGenSpaceContr(sys,R,P,alpha,Opts)
         if isa(R,'zonotope')
             G_ = generators(Rfin);
         else
-            G_ = [Rfin.G,Rfin.Grest];
-            E = Rfin.expMat;
+            G_ = [Rfin.G,Rfin.GI];
+            E = Rfin.E;
         end
         
         c_ = center(Rfin);
         c = c_(1:Opts.nx);
         G = G_(1:Opts.nx,:);
         
-        if isempty(Opts.V)
+        if representsa(Opts.V,'emptySet')
             inputAssign = G_(Opts.nx+Opts.nu+1:Opts.nx+Opts.nu+Opts.nx,:); 
         else
             inputAssign = G_(Opts.nx+1:2*Opts.nx,:); 

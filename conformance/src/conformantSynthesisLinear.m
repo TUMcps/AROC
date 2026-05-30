@@ -85,7 +85,6 @@ function [W,V] = conformantSynthesisLinear(A,B,D,c,measurements,Opts)
     end
     
     % initialization
-    options = optimoptions('quadprog','display','off');
     W = zeros(nw,1); V = zeros(nx,1);
 
     % loop over all measurements
@@ -141,8 +140,8 @@ function [W,V] = conformantSynthesisLinear(A,B,D,c,measurements,Opts)
                 end
             end
             
-            % construct equality constraints H*x <= d for linear program
-            H1 = []; H2 = []; d = []; x = x0;
+            % construct equality constraints H*x = d for linear program
+            H1 = []; H2 = []; beq = []; x = x0;
             
             for k = 1:size(X_,2)
                 if ~uniform
@@ -157,40 +156,42 @@ function [W,V] = conformantSynthesisLinear(A,B,D,c,measurements,Opts)
                 H1 = [H1 zeros(size(H1,1),nw);Dall];
                 H2 = blkdiag(H2,eye(nx));
                 x = A_*x + B_*U_(:,k) + c_;
-                d = [d; X_(:,k) - x];
+                beq = [beq; X_(:,k) - x];
             end
             
             if Opts.measErr
-                H = [H1 H2];
+                Aeq = [H1 H2];
             else
-                H = [H1 0*H2];
+                Aeq = [H1 0*H2];
             end
             x0 = x;
             
-            % construct objective function min_x f*x for linear program
+            % construct cost matrix
             f = [Opts.mu*ones(size(H1,2),1); ...
                                     (1-Opts.mu)*ones(size(H2,2),1)];
+            H = diag(f);
             
-            % solve linear program
-            x = quadprog(diag(f),[],[],[],H,d,[],[],[],options);
+            % solve quadratic program
+            problem = struct();
+            problem.H = H;
+            problem.f = [];
+            problem.Aeq = Aeq; problem.beq = beq;
+            problem.Aineq = []; problem.bineq = [];
+            problem.lb = []; problem.ub = [];
+            [xOpt,~,exitflag,~,~] = CORAquadprog(problem);
 
-            if isempty(x)
+            if exitflag ~= 1
                 error('Conformance checking failed!');
             end
             
             % extract values for disturbances w_i and measurement err. v_i
-            temp = blkdiag(eye(size(H1,2)), eye(size(H2,2)))*x;
+            temp = blkdiag(eye(size(H1,2)), eye(size(H2,2)))*xOpt;
             w = temp(1:size(H1,2)); v = temp(size(H1,2)+1:end);
             w = reshape(w,[nw,length(w)/nw]);
             v = reshape(v,[nx,length(v)/nx]);
             
             % update sets for disturbances and measurement errors
-            if strcmp(Opts.set,'interval')
-                W = W | interval(min(w,[],2),max(w,[],2));
-                V = V | interval(min(v,[],2),max(v,[],2));
-            else
-                W = [W, w]; V = [V, v];
-            end
+            W = [W, w]; V = [V, v];
             
             % initialize reachable set in the first iteration
             if i == 1 && j == 1
@@ -199,12 +200,19 @@ function [W,V] = conformantSynthesisLinear(A,B,D,c,measurements,Opts)
         end
     end
 
-    % enclose point cloud with a zonotope
-    if ~strcmp(Opts.set,'interval')
+    % enclose point cloud with a zonotope or interval
+    if strcmp(Opts.set,'interval')
+       W = interval.enclosePoints(W); 
+       if Opts.measErr
+          V = interval.enclosePoints(V); 
+       end
+    elseif strcmp(Opts.set,'zonotope')
        W = zonotope.enclosePoints(W,'maiga'); 
        if Opts.measErr
           V = zonotope.enclosePoints(V,'maiga'); 
        end
+    else
+        error('Invalid value of enclosing set representation.')
     end
 
     % assign output arguments 
@@ -219,15 +227,16 @@ end
 function p = getClosestPoint(R,p)
 % estimate for the point closest to p in the zonotope R
 
-    c = p - R.Z(:,1);
-    alpha = sign(c'*R.Z(:,2:end));
-    p = R.Z(:,1) + R.Z(:,2:end)*alpha';
+    c = p - R.c;
+    alpha = sign(c'*R.G);
+    p = R.c + R.G*alpha';
 end
 
 function [A,B,D,c] = discreteTimeSystem(A,B,D,c,dt)
 % convert a continuous time linear system to a discrete time one
 
     m = size(B,2);
-    sys = linearSysDT(linearSys(A,[B,D],[],c),dt);
+    sys = linearSysDT(linearSys(A,[B,D],c,[]),dt);
+    % sys = linearSysDT(linearSys(A,[B,D],[],c),dt);
     A = sys.A; B = sys.B(:,1:m); D = sys.B(:,m+1:end); c = sys.c;
 end

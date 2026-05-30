@@ -89,6 +89,9 @@ methods
     
         % get initial and final reachable set
         Rfin = obj.reachSetTimePoint{end};
+        if isa(Rfin,'polyZonotope')
+            Rfin = zonotope(Rfin);
+        end
         
         % shift the initial set
         R0 = R0 + (-center(R0)) + center(Rfin);
@@ -131,12 +134,12 @@ methods
     % constraints  
         
         res = 1;
-        tol = 1e-10;
+        tol = 1e-6;
         
         % convert set of admissble control inputs to a polytope
-        poly = mptPolytope(U);
-        C = get(poly,'A');
-        d = get(poly,'b');
+        poly = polytope(U);
+        C = poly.A;
+        d = poly.b;
         
         if ~isempty(obj.simulation)
            

@@ -1,8 +1,9 @@
-function [res,t,x,u] = simulate(obj,x0,w,varargin)
+function [res,t,x,u] = simulate(obj,x0,varargin)
 % SIMULATE - simulate a trajectory of a nonlinear system controlled with 
 %            the Convex Interpolation Controller
 %
 % Syntax:
+%       [res,t,x,u] = SIMULATE(obj,x0)
 %       [res,t,x,u] = SIMULATE(obj,x0,w)
 %       [res,t,x,u] = SIMULATE(obj,x0,w,v)
 %
@@ -51,20 +52,27 @@ function [res,t,x,u] = simulate(obj,x0,w,varargin)
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------    
 
-
     % check if the number of specified disturbance vectors is correct
-    Nw = 1;
-    
-    if size(w,2) > 1
+    if nargin > 2 && ~isempty(varargin{1})
+        w = varargin{1};
+        if size(w,2) == 1
+           w = repelem(w,1,obj.N*obj.Ninter);
+        end
         Nw = size(w,2)/(obj.N * obj.Ninter);
         if Nw < 1 || floor(Nw) ~= Nw
-           error('Number of disturbance vectors has to be a multiple of ''Nc*Ninter''!'); 
+           error('Number of disturbance vectors has to be a multiple of ''N*Ninter''!'); 
         end
+    else
+        w = repelem(center(obj.W),1,obj.N*obj.Ninter);
+        Nw = 1;
     end
     
     % check if the number of specified measurement errors is correct
-   	if nargin > 3
-       v = varargin{1};
+   	if nargin > 3 && ~isempty(varargin{2})
+       v = varargin{2};
+       if size(v,2) == 1
+           v = repelem(v,1,obj.N);
+       end
        if ~all(size(v) == [obj.nx,obj.N])
            error('Wrong dimension for the measurement errors "v"!'); 
        end

@@ -131,7 +131,7 @@ function O = postprocessingPolygon(f,P,R,varargin)
        end
        
        if ~isempty(tol)
-          O{i}.set = simplify(set,tol);
+          O{i}.set = compact(set,'douglasPeucker',tol);
        else
           O{i}.set = set;
        end

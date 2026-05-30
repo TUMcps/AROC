@@ -12,32 +12,50 @@ function T = computeTerminalRegion(benchmark,alg,Param,Opts)
 %
 % Input Arguments:
 %
-%       -benchmark:    name of the considered benchmark model (see
-%                      "aroc/benchmarks/dynamics/...")
-%       -alg:          string specifying the algorithm that is used to
-%                      calculate the terminal region. The available
-%                      algorithms are 'subpaving' (see [1]) and 
-%                      'zonoLinSys' (see [2])
-%       -Param:        a structure containing the benchmark parameters
+%       -benchmark:     name of the considered benchmark model (see
+%                       "aroc/benchmarks/dynamics/...")
+%       -alg:           string specifying the algorithm that is used to
+%                       calculate the terminal region. The available
+%                       algorithms are 'subpaving' (see [1]), 'linSys' (see 
+%                       [2],[3]) and 'nonlinSysOpt' (see [4],[5])
+%       -Param:         a struct containing the benchmark parameters
+%           -.X:
+%           -.U:        set of admissible control inputs 
+%                       (class: interval)
+%           -.W:        set of disturbances 
+%                       (class: interval / zonotope)
+%           –.V:        set of measurement errors V 
+%                       (class: interval / zonotope)
+%           –.X:        set of state constraints X 
+%                       (class: polytope)
 %
-%           -.U:       set of admissible control inputs (class: interval)
-%           -.W:       set of uncertain disturbances (class: interval)
-%
-%       -Opts:         a structure containing the algorithm settings
+%       -Opts:          a struct containing the algorithm settings
 %
 % Output Arguments:
 %
 %       -T:     object of class terminalRegion
 %
 % See Also:
-%       terminalRegion, termRegSubpaving, termRegZonoLinSys
+%       terminalRegion, termRegSubpaving, termRegZonoLinSys,
+%       termRegNonlinSsyOptApproach
 %
 % References:
-%       * *[1] El-Guindy et al. (2017)*, Estimating the region of 
-%              attraction via forward reachable sets, ACC 2017
-%       * *[2] Gruber et al. (2021)*, Computing safe sets of linear 
-%              sampled-data systems, IEEE Control Syst. Lett., vol. 5, 
-%              no. 2, pp. 385-390
+%       * *[1]  El-Guindy et al., "Estimating the region of attraction via 
+%               forward reachable sets", 2017, American Control Conference
+%       * *[2]  Gruber et al., "Computing safe sets of linear sampled-data 
+%               systems", 2021, IEEE Control Syst. Lett., vol. 5, 
+%               no. 2, pp. 385-390
+%       * *[3]  A. Kulmburg et al., "Approximability of the Containment 
+%               Problem for Zonotopes and Ellipsotopes", 2025, IEEE 
+%               Transactions on Automatic Control, vol. 70, no. 12, 
+%               pp. 8104-8119.
+%       * *[4]  L. Schäfer et al., "Scalable Computation of Robust Control 
+%               Invariant Sets of Nonlinear Systems", 2024, IEEE Transactions 
+%               on Automatic Control, vol. 69, no. 2, pp. 755-770.
+%       * *[5]  L. Schäfer and M. Althoff, "Computing Robust Control 
+%               Invariant Sets of Nonlinear Systems Using Polynomial 
+%               Controller Synthesis," 2024 American Control Conference, 
+%               pp. 4162-4169.
 %
 %------------------------------------------------------------------
 % This file is part of <a href="matlab:docsearch aroc">AROC</a>, a Toolbox for Automatic Reachset-
@@ -59,11 +77,11 @@ function T = computeTerminalRegion(benchmark,alg,Param,Opts)
 
     if strcmp(alg,'subpaving')
         T = compTermRegSubpaving(benchmark,Param,Opts);
-    elseif strcmp(alg,'zonoLinSys')
-        T = computeTermRegZonoLinSys(benchmark,Param,Opts);
-    elseif strcmp(alg,'nonlinSysLinApproach')
-        T = computeTermRegNonlinSysLinApproach(benchmark,Param,Opts);
+    elseif strcmp(alg,'linSys')
+        T = computeTermReglinSys(benchmark,Param,Opts);
+    elseif strcmp(alg,'nonlinSysOpt')
+        T = computeTerminalRegionNonlinSysOpt(benchmark,Param,Opts);
     else
-        error('Wrong value for input argument "alg"!')
+        error('Wrong value for input argument "algorithm"!')
     end
 end

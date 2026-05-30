@@ -102,7 +102,7 @@ function [res,t,x,u] = simulateRandom(obj,ind,x0,varargin)
             % draw random measurement errors from the corresponding set
             V_{j} = zeros(objContr.nx,Nv);
             
-            if ~isempty(objContr.V)
+            if ~representsa(objContr.V,'emptySet')
                 V_{j} = randPoint(objContr.V,Nw);
             end
         end
@@ -136,7 +136,12 @@ function [Nw,Nv] = numberDistMeasErr(obj,distChanges)
         Nw = obj.N * obj.Ninter * distChanges;
         Nv = obj.N;
 
-    elseif isa(obj,'objOptBasedContr') || isa(obj,'objCombinedContr')
+    elseif isa(obj,'objOptBasedContr') 
+        
+        Nw = obj.N * obj.Ninter * distChanges;
+        Nv = obj.N * obj.Ninter * distChanges;
+
+    elseif isa(obj,'objCombinedContr')
 
         Nw = obj.N * distChanges;
         Nv = obj.N * distChanges;

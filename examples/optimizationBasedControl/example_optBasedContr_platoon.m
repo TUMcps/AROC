@@ -1,6 +1,8 @@
 % This script demonstrates the control algorithm that is based on the
 % optimization over reachable sets for the platoon benchmark
 
+benchmark = 'platoon4';
+
 % load benchmark parameter
 Param = param_platoon();
 
@@ -8,14 +10,14 @@ Param = param_platoon();
 Opts = [];
 
 Opts.reachSteps = 11;           % number of reachability steps
-Opts.maxIter = 200;             % max number of iterations for optimization
+Opts.maxIter = 50;             % max number of iterations for optimization
 Opts.bound = 10000;             % diff. bet. upper and lower bound of vars.
 Opts.refTraj.Q = eye(8);        % state weighting matrix (reference traj.)
 Opts.refTraj.R = 0.02*eye(4);   % input weighting matrix (reference traj.)
 
 % controller synthesis
 clock = tic;
-[objContr,res] = optimizationBasedControl('platoon',Param,Opts);
+[objContr,res] = optimizationBasedControl(benchmark,Param,Opts);
 tComp = toc(clock);
 
 disp([newline,'Computation time: ',num2str(tComp),'s']);
@@ -24,7 +26,7 @@ disp([newline,'Computation time: ',num2str(tComp),'s']);
 [resSim,~,~] = simulateRandom(objContr);
 
 % animation
-animate(resSim,'platoon');
+animate(resSim,benchmark);
 
 % compute shifted final reachable set
 Rshift = res.reachSetTimePoint{end};

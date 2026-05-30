@@ -37,7 +37,7 @@ function [param,res] = reachSetHorizon(sys,R0,param,Opts)
 %           -.dT:               time step. Prediction horizon: 
 %                               Opts.N * Opts.dT 
 %           -.termReg:          terminal region around the steady state xf
-%                               (class: mptPolytope)
+%                               (class: polytope)
 %           -.fbContr:          struct with name and parameter of the
 %                               applied tracking controller
 %           -.ReachOptsTrack:   reachability options for the CORA toolbox
@@ -122,11 +122,11 @@ function [param,res] = reachSetHorizon(sys,R0,param,Opts)
             % check if state constraints are satisfied
             resState = 1;
 
-            if ~isempty(Opts.X)
+            if ~representsa(Opts.X,'fullspace')
                 for k = 1:length(Rtemp.timeInterval.set)
-                    I = interval(Opts.X.P.A * ...
+                    I = interval(Opts.X.A * ...
                             project(Rtemp.timeInterval.set{k},1:Opts.nx));
-                    if ~all(supremum(I) <= Opts.X.P.b)
+                    if ~all(supremum(I) <= Opts.X.b)
                         resState = 0;
                         break;
                     end
@@ -141,7 +141,7 @@ function [param,res] = reachSetHorizon(sys,R0,param,Opts)
         param.R{i} = R0;
         
         % check if the current set is inside the terminal region
-        if isempty(Opts.V)
+        if representsa(Opts.V,'emptySet')
             Rtemp = R0 + (-Opts.xf);
         else
             Rtemp = R0 + Opts.V + (-Opts.xf);

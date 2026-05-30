@@ -49,9 +49,8 @@ function u = exactControlLaw(x,zonoR,uCorner)
 %------------------------------------------------------------------
 
     % extract parallelotope parameter
-    Z = zonoR.Z;
-    G = Z(:,2:end);
-    c = Z(:,1);
+    G = zonoR.G;
+    c = zonoR.c;
     
     nx = length(c);
 

@@ -75,7 +75,7 @@ function [x,t,u] = simulateSysAlloc(sys,K,uc,xc,p,Opts)
         for j = 1:N
         
             % update disturbances
-            if isempty(Opts.V)
+            if representsa(Opts.V,'emptySet')
                 params.u = randPoint(Opts.W,1,'extreme');
             else
                 params.u = randPoint(cartProd(Opts.W,Opts.V),1,'extreme');
@@ -85,20 +85,20 @@ function [x,t,u] = simulateSysAlloc(sys,K,uc,xc,p,Opts)
             [tTemp,xTemp] = simulate(sys,params,options);
 
             % store the simulated trajectory
-            x = [x;xTemp];
+            x = [x;xTemp'];
             if isempty(t)
-               t = tTemp;
+               t = tTemp';
             else
-                t = [t;tTemp+t(end)];
+                t = [t;tTemp'+t(end)];
             end
 
             % update initial state
-            params.x0 = x(end,:)';
+            params.x0 = xTemp(:,end);
             
             % compute control input
-            uTemp = (uc(:,cnt)+K{cnt}'*(xTemp(:,1:Opts.nx)- ...
-                                    xTemp(:,Opts.nx+1:end))')';
-            u = [u;uTemp];
+            uTemp = (uc(:,cnt)+K{cnt}'*(xTemp(1:Opts.nx,:) - ...
+                                    xTemp(Opts.nx+1:end,:)));
+            u = [u;uTemp'];
         end
         
         % update counter

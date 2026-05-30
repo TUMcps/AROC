@@ -72,7 +72,7 @@ function [Rfinal,reachSet] = reachExactController(dynamic,R0,param,Opts)
         params.paramInt = param(:,l);
         
         % add set of measurement errors
-        if ~isempty(Opts.V)
+        if ~representsa(Opts.V,'emptySet')
            R0 = cartProd(R0,Opts.V); 
         end
             
@@ -80,9 +80,9 @@ function [Rfinal,reachSet] = reachExactController(dynamic,R0,param,Opts)
         params.R0 = R0;
         if tStart ~= 0
             params.tStart = tStart;
-            params.tFinal = params.tStart + Opts.hinter;
+            params.tFinal = params.tStart + Opts.dt/Opts.Ninter;
         else
-            params.tFinal = Opts.hinter;
+            params.tFinal = Opts.dt/Opts.Ninter;
         end
         
         % compute reachable set

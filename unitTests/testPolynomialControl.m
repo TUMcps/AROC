@@ -16,7 +16,7 @@ Opts.Q = diag([1,2,1,1]);   % state weighting matrix
 
 % simulation 
 [tmp,~,~] = simulateRandom(objContr);
-add(result,tmp);
+result = add(result,tmp);
 
 % check if the input constraints are satisfied
 res = checkSimInputs(result,Param.U);

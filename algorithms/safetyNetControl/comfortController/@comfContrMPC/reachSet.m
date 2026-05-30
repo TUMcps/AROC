@@ -55,9 +55,9 @@ function [res,R,Param] = reachSet(obj,x0,iter)
     Nc = obj.N - iter + 1;
     
     if Nc <= obj.horizon
-        Opts.Nc = Nc*obj.Ninter;
+        Opts.N = Nc*obj.Ninter;
     else
-        Opts.Nc = obj.horizon*obj.Ninter;
+        Opts.N = obj.horizon*obj.Ninter;
         xc = obj.xCenter{iter+obj.horizon};
         Opts.xf = xc(:,1);
     end
@@ -80,7 +80,7 @@ function [res,R,Param] = reachSet(obj,x0,iter)
         Rtemp = reachNonlinear(obj.sys,params,options);
         
         % check state constraints
-        if isa(obj.X,'mptPolytope')
+        if isa(obj.X,'polytope')
             for j = 1:length(Rtemp.timeInterval.set)
                if ~contains(obj.X,project(Rtemp.timeInterval.set{j},1:obj.nx))
                    res = 0; return;

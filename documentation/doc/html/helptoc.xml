@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <toc image="$toolbox/matlab/icons/book_mat.gif" version="2.0">
-   <tocitem target="product_page.html">AROC<tocitem image="HelpIcon.FUNCTION" target="functions_index.html">Function Reference<tocitem image="HelpIcon.FUNCTION" target="algorithms_index.html">Algorithms<tocitem image="HelpIcon.FUNCTION" target="combinedControl_index.html">Combined Control<tocitem image="HelpIcon.FUNCTION" target="@objCombinedContr_index.html">@objCombinedContr<tocitem image="HelpIcon.FUNCTION" target="@objCombinedControbjCombinedContrhelp.html">objCombinedContr</tocitem>
-                  <tocitem image="HelpIcon.FUNCTION" target="@objCombinedContrsimulatehelp.html">simulate</tocitem>
+    <tocitem target="product_page.html">AROC<tocitem image="HelpIcon.FUNCTION" target="functions_index.html">Function Reference<tocitem image="HelpIcon.FUNCTION" target="algorithms_index.html">Algorithms<tocitem image="HelpIcon.FUNCTION" target="combinedControl_index.html">Combined Control<tocitem image="HelpIcon.FUNCTION" target="@objCombinedContr_index.html">@objCombinedContr<tocitem image="HelpIcon.FUNCTION" target="@objCombinedContrmirrorhelp.html">mirror</tocitem>
+       <tocitem image="HelpIcon.FUNCTION" target="@objCombinedControbjCombinedContrhelp.html">objCombinedContr</tocitem>
+       <tocitem image="HelpIcon.FUNCTION" target="@objCombinedContrsimulatehelp.html">simulate</tocitem>
                   <tocitem image="HelpIcon.FUNCTION" target="@objCombinedContrsimulateRandomhelp.html">simulateRandom</tocitem>
                </tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="src_index.html">Src<tocitem image="HelpIcon.FUNCTION" target="computeFeedbackControlhelp.html">computeFeedbackControl</tocitem>
@@ -11,23 +12,20 @@
                </tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="combinedControlhelp.html">combinedControl</tocitem>
             </tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="convexInterpolationControl_index.html">Convex Interpolation Control<tocitem image="HelpIcon.FUNCTION" target="@objConvInterContr_index.html">@objConvInterContr<tocitem image="HelpIcon.FUNCTION" target="@objConvInterControbjConvInterContrhelp.html">objConvInterContr</tocitem>
-                  <tocitem image="HelpIcon.FUNCTION" target="@objConvInterContrsimulatehelp.html">simulate</tocitem>
+       <tocitem image="HelpIcon.FUNCTION" target="convexInterpolationControl_index.html">Convex Interpolation Control<tocitem image="HelpIcon.FUNCTION" target="@objConvInterContr_index.html">@objConvInterContr<tocitem image="HelpIcon.FUNCTION" target="@objConvInterContrmirrorhelp.html">mirror</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="@objConvInterControbjConvInterContrhelp.html">objConvInterContr</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="@objConvInterContrsimulatehelp.html">simulate</tocitem>
                   <tocitem image="HelpIcon.FUNCTION" target="@objConvInterContrsimulateRandomhelp.html">simulateRandom</tocitem>
                </tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="src_index.html">Src<tocitem image="HelpIcon.FUNCTION" target="src_auxiliary_index.html">Auxiliary<tocitem image="HelpIcon.FUNCTION" target="computeInputZonotopehelp.html">computeInputZonotope</tocitem>
-                     <tocitem image="HelpIcon.FUNCTION" target="computeQuadraticControlLawhelp.html">computeQuadraticControlLaw</tocitem>
-                     <tocitem image="HelpIcon.FUNCTION" target="constraintfunctionQuadhelp.html">constraintfunctionQuad</tocitem>
                      <tocitem image="HelpIcon.FUNCTION" target="exactControlLawhelp.html">exactControlLaw</tocitem>
-                     <tocitem image="HelpIcon.FUNCTION" target="localCornerControlhelp.html">localCornerControl</tocitem>
+                   <tocitem image="HelpIcon.FUNCTION" target="localVertexControlhelp.html">localVertexControl</tocitem>
                      <tocitem image="HelpIcon.FUNCTION" target="symExtremePointshelp.html">symExtremePoints</tocitem>
                   </tocitem>
                   <tocitem image="HelpIcon.FUNCTION" target="contolLaws_index.html">Contol Laws<tocitem image="HelpIcon.FUNCTION" target="dynamicsClosedLoopExacthelp.html">dynamicsClosedLoopExact</tocitem>
                      <tocitem image="HelpIcon.FUNCTION" target="dynamicsClosedLoopExactMeasErrhelp.html">dynamicsClosedLoopExactMeasErr</tocitem>
                      <tocitem image="HelpIcon.FUNCTION" target="dynamicsClosedLoopLinearhelp.html">dynamicsClosedLoopLinear</tocitem>
                      <tocitem image="HelpIcon.FUNCTION" target="dynamicsClosedLoopLinearMeasErrhelp.html">dynamicsClosedLoopLinearMeasErr</tocitem>
-                     <tocitem image="HelpIcon.FUNCTION" target="dynamicsClosedLoopQuadratichelp.html">dynamicsClosedLoopQuadratic</tocitem>
-                     <tocitem image="HelpIcon.FUNCTION" target="dynamicsClosedLoopQuadraticMeasErrhelp.html">dynamicsClosedLoopQuadraticMeasErr</tocitem>
                   </tocitem>
                   <tocitem image="HelpIcon.FUNCTION" target="reachablityAnalysis_index.html">Reachablity Analysis<tocitem image="HelpIcon.FUNCTION" target="exactController_index.html">Exact Controller<tocitem image="HelpIcon.FUNCTION" target="computeExactControllerhelp.html">computeExactController</tocitem>
                         <tocitem image="HelpIcon.FUNCTION" target="reachExactControllerhelp.html">reachExactController</tocitem>
@@ -35,14 +33,13 @@
                      <tocitem image="HelpIcon.FUNCTION" target="linearController_index.html">Linear Controller<tocitem image="HelpIcon.FUNCTION" target="computeLinearControllerhelp.html">computeLinearController</tocitem>
                         <tocitem image="HelpIcon.FUNCTION" target="reachLinearControllerhelp.html">reachLinearController</tocitem>
                      </tocitem>
-                     <tocitem image="HelpIcon.FUNCTION" target="quadraticController_index.html">Quadratic Controller<tocitem image="HelpIcon.FUNCTION" target="computeQuadraticControllerhelp.html">computeQuadraticController</tocitem>
-                     </tocitem>
                   </tocitem>
                </tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="convexInterpolationControlhelp.html">convexInterpolationControl</tocitem>
             </tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="generatorSpaceControl_index.html">Generator Space Control<tocitem image="HelpIcon.FUNCTION" target="@objGenSpaceContr_index.html">@objGenSpaceContr<tocitem image="HelpIcon.FUNCTION" target="@objGenSpaceControbjGenSpaceContrhelp.html">objGenSpaceContr</tocitem>
-                  <tocitem image="HelpIcon.FUNCTION" target="@objGenSpaceContrsimulatehelp.html">simulate</tocitem>
+       <tocitem image="HelpIcon.FUNCTION" target="generatorSpaceControl_index.html">Generator Space Control<tocitem image="HelpIcon.FUNCTION" target="@objGenSpaceContr_index.html">@objGenSpaceContr<tocitem image="HelpIcon.FUNCTION" target="@objGenSpaceContrmirrorhelp.html">mirror</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="@objGenSpaceControbjGenSpaceContrhelp.html">objGenSpaceContr</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="@objGenSpaceContrsimulatehelp.html">simulate</tocitem>
                   <tocitem image="HelpIcon.FUNCTION" target="@objGenSpaceContrsimulateRandomhelp.html">simulateRandom</tocitem>
                </tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="src_index.html">Src<tocitem image="HelpIcon.FUNCTION" target="computeAlphahelp.html">computeAlpha</tocitem>
@@ -52,12 +49,15 @@
                <tocitem image="HelpIcon.FUNCTION" target="generatorSpaceControlhelp.html">generatorSpaceControl</tocitem>
             </tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="linSysMPC_index.html">Lin Sys MPC<tocitem image="HelpIcon.FUNCTION" target="src_index.html">Src<tocitem image="HelpIcon.FUNCTION" target="initOptProblemhelp.html">initOptProblem</tocitem>
-                  <tocitem image="HelpIcon.FUNCTION" target="loadParamAndOptshelp.html">loadParamAndOpts</tocitem>
-               </tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="loadParamAndOptionshelp.html">loadParamAndOptions</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="loadParamAndOptshelp.html">loadParamAndOpts</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="validateOptionslinsysMPChelp.html">validateOptionslinsysMPC</tocitem>
+                </tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="linSysMPChelp.html">linSysMPC</tocitem>
             </tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="optimizationBasedControl_index.html">Optimization Based Control<tocitem image="HelpIcon.FUNCTION" target="@objOptBasedContr_index.html">@objOptBasedContr<tocitem image="HelpIcon.FUNCTION" target="@objOptBasedControbjOptBasedContrhelp.html">objOptBasedContr</tocitem>
-                  <tocitem image="HelpIcon.FUNCTION" target="@objOptBasedContrsimulatehelp.html">simulate</tocitem>
+       <tocitem image="HelpIcon.FUNCTION" target="optimizationBasedControl_index.html">Optimization Based Control<tocitem image="HelpIcon.FUNCTION" target="@objOptBasedContr_index.html">@objOptBasedContr<tocitem image="HelpIcon.FUNCTION" target="@objOptBasedContrmirrorhelp.html">mirror</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="@objOptBasedControbjOptBasedContrhelp.html">objOptBasedContr</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="@objOptBasedContrsimulatehelp.html">simulate</tocitem>
                   <tocitem image="HelpIcon.FUNCTION" target="@objOptBasedContrsimulateRandomhelp.html">simulateRandom</tocitem>
                </tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="src_index.html">Src<tocitem image="HelpIcon.FUNCTION" target="checkConstraintshelp.html">checkConstraints</tocitem>
@@ -71,8 +71,9 @@
                </tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="optimizationBasedControlhelp.html">optimizationBasedControl</tocitem>
             </tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="polynomialControl_index.html">Polynomial Control<tocitem image="HelpIcon.FUNCTION" target="@objPolyContr_index.html">@objPolyContr<tocitem image="HelpIcon.FUNCTION" target="@objPolyControbjPolyContrhelp.html">objPolyContr</tocitem>
-                  <tocitem image="HelpIcon.FUNCTION" target="@objPolyContrsimulatehelp.html">simulate</tocitem>
+       <tocitem image="HelpIcon.FUNCTION" target="polynomialControl_index.html">Polynomial Control<tocitem image="HelpIcon.FUNCTION" target="@objPolyContr_index.html">@objPolyContr<tocitem image="HelpIcon.FUNCTION" target="@objPolyContrmirrorhelp.html">mirror</tocitem>
+           <tocitem image="HelpIcon.FUNCTION" target="@objPolyControbjPolyContrhelp.html">objPolyContr</tocitem>
+           <tocitem image="HelpIcon.FUNCTION" target="@objPolyContrsimulatehelp.html">simulate</tocitem>
                   <tocitem image="HelpIcon.FUNCTION" target="@objPolyContrsimulateRandomhelp.html">simulateRandom</tocitem>
                </tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="src_index.html">Src<tocitem image="HelpIcon.FUNCTION" target="computeCtrlhelp.html">computeCtrl</tocitem>
@@ -99,7 +100,6 @@
                      <tocitem image="HelpIcon.FUNCTION" target="simulateSysAllochelp.html">simulateSysAlloc</tocitem>
                   </tocitem>
                   <tocitem image="HelpIcon.FUNCTION" target="optimalControl_index.html">Optimal Control<tocitem image="HelpIcon.FUNCTION" target="optimalControlReachsetMPChelp.html">optimalControlReachsetMPC</tocitem>
-                     <tocitem image="HelpIcon.FUNCTION" target="writeAcadoFilesReachsetMPChelp.html">writeAcadoFilesReachsetMPC</tocitem>
                      <tocitem image="HelpIcon.FUNCTION" target="writeFminconFilesReachsetMPChelp.html">writeFminconFilesReachsetMPC</tocitem>
                   </tocitem>
                   <tocitem image="HelpIcon.FUNCTION" target="trackingController_index.html">Tracking Controller<tocitem image="HelpIcon.FUNCTION" target="lqrTrackhelp.html">lqrTrack</tocitem>
@@ -107,19 +107,22 @@
                </tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="reachsetMPChelp.html">reachsetMPC</tocitem>
             </tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="safetyNetControl_index.html">Safety Net Control<tocitem image="HelpIcon.FUNCTION" target="@objSafetyNetContr_index.html">@objSafetyNetContr<tocitem image="HelpIcon.FUNCTION" target="@objSafetyNetControbjSafetyNetContrhelp.html">objSafetyNetContr</tocitem>
-                  <tocitem image="HelpIcon.FUNCTION" target="@objSafetyNetContrsimulatehelp.html">simulate</tocitem>
+       <tocitem image="HelpIcon.FUNCTION" target="safetyNetControl_index.html">Safety Net Control<tocitem image="HelpIcon.FUNCTION" target="@objSafetyNetContr_index.html">@objSafetyNetContr<tocitem image="HelpIcon.FUNCTION" target="@objSafetyNetContrmirrorhelp.html">mirror</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="@objSafetyNetControbjSafetyNetContrhelp.html">objSafetyNetContr</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="@objSafetyNetContrsimulatehelp.html">simulate</tocitem>
                   <tocitem image="HelpIcon.FUNCTION" target="@objSafetyNetContrsimulateRandomhelp.html">simulateRandom</tocitem>
                </tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="comfortController_index.html">Comfort Controller<tocitem image="HelpIcon.FUNCTION" target="@comfContrLQR_index.html">@comfContrLQR<tocitem image="HelpIcon.FUNCTION" target="@comfContrLQRcomfContrLQRhelp.html">comfContrLQR</tocitem>
                      <tocitem image="HelpIcon.FUNCTION" target="@comfContrLQRinithelp.html">init</tocitem>
-                     <tocitem image="HelpIcon.FUNCTION" target="@comfContrLQRreachSethelp.html">reachSet</tocitem>
+                   <tocitem image="HelpIcon.FUNCTION" target="@comfContrLQRmirrorhelp.html">mirror</tocitem>
+                   <tocitem image="HelpIcon.FUNCTION" target="@comfContrLQRreachSethelp.html">reachSet</tocitem>
                      <tocitem image="HelpIcon.FUNCTION" target="@comfContrLQRreachSetPredhelp.html">reachSetPred</tocitem>
                      <tocitem image="HelpIcon.FUNCTION" target="@comfContrLQRsimulatehelp.html">simulate</tocitem>
                   </tocitem>
                   <tocitem image="HelpIcon.FUNCTION" target="@comfContrMPC_index.html">@comfContrMPC<tocitem image="HelpIcon.FUNCTION" target="@comfContrMPCcomfContrMPChelp.html">comfContrMPC</tocitem>
                      <tocitem image="HelpIcon.FUNCTION" target="@comfContrMPCinithelp.html">init</tocitem>
-                     <tocitem image="HelpIcon.FUNCTION" target="@comfContrMPCreachSethelp.html">reachSet</tocitem>
+                      <tocitem image="HelpIcon.FUNCTION" target="@comfContrMPCmirrorhelp.html">mirror</tocitem>
+                      <tocitem image="HelpIcon.FUNCTION" target="@comfContrMPCreachSethelp.html">reachSet</tocitem>
                      <tocitem image="HelpIcon.FUNCTION" target="@comfContrMPCreachSetPredhelp.html">reachSetPred</tocitem>
                      <tocitem image="HelpIcon.FUNCTION" target="@comfContrMPCsimulatehelp.html">simulate</tocitem>
                   </tocitem>
@@ -134,23 +137,59 @@
                <tocitem image="HelpIcon.FUNCTION" target="safetyNetControlhelp.html">safetyNetControl</tocitem>
             </tocitem>
          </tocitem>
-         <tocitem image="HelpIcon.FUNCTION" target="aroc_auxiliary_index.html">Auxiliary<tocitem image="HelpIcon.FUNCTION" target="acadoConvertDynamicshelp.html">acadoConvertDynamics</tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="centerTrajectoryhelp.html">centerTrajectory</tocitem>
+         <tocitem image="HelpIcon.FUNCTION" target="aroc_auxiliary_index.html">Auxiliary<tocitem image="HelpIcon.FUNCTION" target="@discretizeDynamics_index.html">@discretizeDynamics<tocitem image="HelpIcon.FUNCTION"
+                                                                                                                                                                                               target="@discretizeDynamicsdiscretizeDynamicshelp.html">discretizeDynamics</tocitem>
+             </tocitem>
+            <tocitem image="HelpIcon.FUNCTION" target="@extendedHorizonWeights_index.html">@extendedHorizonWeights<tocitem image="HelpIcon.FUNCTION"
+                                                                                                                           target="@extendedHorizonWeightscomputeWeightsFallhelp.html">computeWeightsFall</tocitem>
+               <tocitem image="HelpIcon.FUNCTION"
+                        target="@extendedHorizonWeightscomputeWeightsFallEqDiffhelp.html">computeWeightsFallEqDiff</tocitem>
+               <tocitem image="HelpIcon.FUNCTION"
+                        target="@extendedHorizonWeightscomputeWeightsFallEqDiffFinalhelp.html">computeWeightsFallEqDiffFinal</tocitem>
+               <tocitem image="HelpIcon.FUNCTION"
+                        target="@extendedHorizonWeightscomputeWeightsFallFinalhelp.html">computeWeightsFallFinal</tocitem>
+               <tocitem image="HelpIcon.FUNCTION"
+                        target="@extendedHorizonWeightscomputeWeightsFallLinearhelp.html">computeWeightsFallLinear</tocitem>
+               <tocitem image="HelpIcon.FUNCTION"
+                        target="@extendedHorizonWeightscomputeWeightsFallLinearFinalhelp.html">computeWeightsFallLinearFinal</tocitem>
+               <tocitem image="HelpIcon.FUNCTION"
+                        target="@extendedHorizonWeightscomputeWeightsQuadhelp.html">computeWeightsQuad</tocitem>
+               <tocitem image="HelpIcon.FUNCTION"
+                        target="@extendedHorizonWeightscomputeWeightsRisehelp.html">computeWeightsRise</tocitem>
+               <tocitem image="HelpIcon.FUNCTION"
+                        target="@extendedHorizonWeightscomputeWeightsRiseEqDiffhelp.html">computeWeightsRiseEqDiff</tocitem>
+               <tocitem image="HelpIcon.FUNCTION"
+                        target="@extendedHorizonWeightscomputeWeightsRiseLinearhelp.html">computeWeightsRiseLinear</tocitem>
+               <tocitem image="HelpIcon.FUNCTION"
+                        target="@extendedHorizonWeightsextendedHorizonWeightshelp.html">extendedHorizonWeights</tocitem>
+             </tocitem>
+            <tocitem image="HelpIcon.FUNCTION" target="@optimalControl_index.html">@optimalControl<tocitem image="HelpIcon.FUNCTION"
+                                                                                                           target="@optimalControlcomputeConstraintIndiceshelp.html">computeConstraintIndices</tocitem>
+               <tocitem image="HelpIcon.FUNCTION"
+                        target="@optimalControlcomputeVariableIndiceshelp.html">computeVariableIndices</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="@optimalControlconstraintshelp.html">constraints</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="@optimalControlcostFunctionhelp.html">costFunction</tocitem>
+               <tocitem image="HelpIcon.FUNCTION"
+                        target="@optimalControlinitialGuessInterpolatehelp.html">initialGuessInterpolate</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="@optimalControloptimalControlhelp.html">optimalControl</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="@optimalControlsetupSolverhelp.html">setupSolver</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="@optimalControlsolveOCPhelp.html">solveOCP</tocitem>
+             </tocitem>
+             <tocitem image="HelpIcon.FUNCTION" target="RK2integratorhelp.html">RK2integrator</tocitem>
+             <tocitem image="HelpIcon.FUNCTION" target="RK4integratorhelp.html">RK4integrator</tocitem>
+             <tocitem image="HelpIcon.FUNCTION" target="centerTrajectoryhelp.html">centerTrajectory</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="checkBooleanhelp.html">checkBoolean</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="checkDoublehelp.html">checkDouble</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="checkIntegerhelp.html">checkInteger</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="checkMatrixhelp.html">checkMatrix</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="checkOptshelp.html">checkOpts</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="checkParamhelp.html">checkParam</tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="checkStateConstraintshelp.html">checkStateConstraints</tocitem>
+             <tocitem image="HelpIcon.FUNCTION" target="checkParametershelp.html">checkParameters</tocitem>
+             <tocitem image="HelpIcon.FUNCTION" target="checkStateConstraintshelp.html">checkStateConstraints</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="checkStringhelp.html">checkString</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="collisionCheckerhelp.html">collisionChecker</tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="commonocean2corahelp.html">commonocean2cora</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="compOccupancySethelp.html">compOccupancySet</tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="constraintfunctionFminconhelp.html">constraintfunctionFmincon</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="containsFasthelp.html">containsFast</tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="costfunctionFminconhelp.html">costfunctionFmincon</tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="decayFunctionshelp.html">decayFunctions</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="defaultSimulateRandomhelp.html">defaultSimulateRandom</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="generateExpMathelp.html">generateExpMat</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="getNameValuePairhelp.html">getNameValuePair</tocitem>
@@ -159,8 +198,6 @@
             <tocitem image="HelpIcon.FUNCTION" target="initSearchDomainhelp.html">initSearchDomain</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="innerApproxPolyhelp.html">innerApproxPoly</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="isLinearModelhelp.html">isLinearModel</tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="optimalControlhelp.html">optimalControl</tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="optimalControlFminconhelp.html">optimalControlFmincon</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="parseOptshelp.html">parseOpts</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="plotObstacleshelp.html">plotObstacles</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="plotOccupancySethelp.html">plotOccupancySet</tocitem>
@@ -168,15 +205,15 @@
             <tocitem image="HelpIcon.FUNCTION" target="projectReachSethelp.html">projectReachSet</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="reachNonlinearhelp.html">reachNonlinear</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="reachSetConformancehelp.html">reachSetConformance</tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="symLinearizehelp.html">symLinearize</tocitem>
+             <tocitem image="HelpIcon.FUNCTION" target="scaleZonoIntoZonohelp.html">scaleZonoIntoZono</tocitem>
+             <tocitem image="HelpIcon.FUNCTION" target="symLinearizehelp.html">symLinearize</tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="updateExtHorizonhelp.html">updateExtHorizon</tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="writeAcadoFileshelp.html">writeAcadoFiles</tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="writeFminconFileshelp.html">writeFminconFiles</tocitem>
+             <tocitem image="HelpIcon.FUNCTION" target="zonoContainmenthelp.html">zonoContainment</tocitem>
          </tocitem>
          <tocitem image="HelpIcon.FUNCTION" target="benchmarks_index.html">Benchmarks<tocitem image="HelpIcon.FUNCTION" target="animation_index.html">Animation<tocitem image="HelpIcon.FUNCTION" target="animateCarhelp.html">animateCar</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="animateCartpolehelp.html">animateCartpole</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="animateMobileRobothelp.html">animateMobileRobot</tocitem>
-               <tocitem image="HelpIcon.FUNCTION" target="animatePlatoonhelp.html">animatePlatoon</tocitem>
+             <tocitem image="HelpIcon.FUNCTION" target="animatePlatoon4help.html">animatePlatoon4</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="animateQuadrotor2Dhelp.html">animateQuadrotor2D</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="animateRobotArmhelp.html">animateRobotArm</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="animateShiphelp.html">animateShip</tocitem>
@@ -204,10 +241,14 @@
             <tocitem image="HelpIcon.FUNCTION" target="dynamics_index.html">Dynamics<tocitem image="HelpIcon.FUNCTION" target="artificialSystemhelp.html">artificialSystem</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="carhelp.html">car</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="carthelp.html">cart</tocitem>
-               <tocitem image="HelpIcon.FUNCTION" target="cartpolehelp.html">cartpole</tocitem>
-               <tocitem image="HelpIcon.FUNCTION" target="doubleIntegratorhelp.html">doubleIntegrator</tocitem>
-               <tocitem image="HelpIcon.FUNCTION" target="mobileRobothelp.html">mobileRobot</tocitem>
-               <tocitem image="HelpIcon.FUNCTION" target="platoonhelp.html">platoon</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="cart_linearhelp.html">cart_linear</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="cartpolehelp.html">cartpole</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="chainMSD_10help.html">chainMSD_10</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="controlledJetEnginehelp.html">controlledJetEngine</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="doubleIntegratorhelp.html">doubleIntegrator</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="longQuadrotorhelp.html">longQuadrotor</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="mobileRobothelp.html">mobileRobot</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="platoon4help.html">platoon4</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="quadrotor2Dhelp.html">quadrotor2D</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="robotArmhelp.html">robotArm</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="shiphelp.html">ship</tocitem>
@@ -218,8 +259,11 @@
                <tocitem image="HelpIcon.FUNCTION" target="param_carhelp.html">param_car</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="param_carthelp.html">param_cart</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="param_cartpolehelp.html">param_cartpole</tocitem>
-               <tocitem image="HelpIcon.FUNCTION" target="param_doubleIntegratorhelp.html">param_doubleIntegrator</tocitem>
-               <tocitem image="HelpIcon.FUNCTION" target="param_mobileRobothelp.html">param_mobileRobot</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="param_chainMSDhelp.html">param_chainMSD</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="param_controlledJetEnginehelp.html">param_controlledJetEngine</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="param_doubleIntegratorhelp.html">param_doubleIntegrator</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="param_longQuadrotorhelp.html">param_longQuadrotor</tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="param_mobileRobothelp.html">param_mobileRobot</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="param_platoonhelp.html">param_platoon</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="param_quadrotor2Dhelp.html">param_quadrotor2D</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="param_robotArmhelp.html">param_robotArm</tocitem>
@@ -228,15 +272,17 @@
                <tocitem image="HelpIcon.FUNCTION" target="param_truckhelp.html">param_truck</tocitem>
             </tocitem>
          </tocitem>
-         <tocitem image="HelpIcon.FUNCTION" target="classes_index.html">Classes<tocitem image="HelpIcon.FUNCTION" target="@maneuverAutomaton_index.html">@maneuverAutomaton<tocitem image="HelpIcon.FUNCTION" target="@maneuverAutomatonmaneuverAutomatonhelp.html">maneuverAutomaton</tocitem>
-               <tocitem image="HelpIcon.FUNCTION" target="@maneuverAutomatonmotionPlannerhelp.html">motionPlanner</tocitem>
+       <tocitem image="HelpIcon.FUNCTION" target="classes_index.html">Classes<tocitem image="HelpIcon.FUNCTION" target="@maneuverAutomaton_index.html">@maneuverAutomaton<tocitem image="HelpIcon.FUNCTION" target="@maneuverAutomatonexportXMLhelp.html">exportXML</tocitem>
+           <tocitem image="HelpIcon.FUNCTION" target="@maneuverAutomatonmaneuverAutomatonhelp.html">maneuverAutomaton</tocitem>
+           <tocitem image="HelpIcon.FUNCTION" target="@maneuverAutomatonmotionPlannerhelp.html">motionPlanner</tocitem>
                <tocitem image="HelpIcon.FUNCTION"
                         target="@maneuverAutomatonplotPlannedTrajectoryhelp.html">plotPlannedTrajectory</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="@maneuverAutomatonsimulatehelp.html">simulate</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="@maneuverAutomatonsimulateRandomhelp.html">simulateRandom</tocitem>
             </tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="@objController_index.html">@objController<tocitem image="HelpIcon.FUNCTION" target="@objControllerobjControllerhelp.html">objController</tocitem>
-            </tocitem>
+           <tocitem image="HelpIcon.FUNCTION" target="@objController_index.html">@objController<tocitem image="HelpIcon.FUNCTION" target="@objControllercheckSymmetryhelp.html">checkSymmetry</tocitem>
+               <tocitem image="HelpIcon.FUNCTION" target="@objControllerobjControllerhelp.html">objController</tocitem>
+               </tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="@results_index.html">@results<tocitem image="HelpIcon.FUNCTION" target="@resultsanimatehelp.html">animate</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="@resultscreateVideohelp.html">createVideo</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="@resultsplotReachhelp.html">plotReach</tocitem>
@@ -249,29 +295,133 @@
          </tocitem>
          <tocitem image="HelpIcon.FUNCTION" target="conformance_index.html">Conformance<tocitem image="HelpIcon.FUNCTION" target="src_index.html">Src<tocitem image="HelpIcon.FUNCTION" target="conformantSynthesisLinearhelp.html">conformantSynthesisLinear</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="conformantSynthesisNonlinearhelp.html">conformantSynthesisNonlinear</tocitem>
-               <tocitem image="HelpIcon.FUNCTION" target="writeAcadoFilesConfCheckinghelp.html">writeAcadoFilesConfChecking</tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="writeFminconFilesConfCheckinghelp.html">writeFminconFilesConfChecking</tocitem>
             </tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="conformantSynthesishelp.html">conformantSynthesis</tocitem>
          </tocitem>
-         <tocitem image="HelpIcon.FUNCTION" target="terminalRegion_index.html">Terminal Region<tocitem image="HelpIcon.FUNCTION" target="subpaving_index.html">Subpaving<tocitem image="HelpIcon.FUNCTION" target="@termRegSubpaving_index.html">@termRegSubpaving<tocitem image="HelpIcon.FUNCTION" target="@termRegSubpavingsimulatehelp.html">simulate</tocitem>
-                  <tocitem image="HelpIcon.FUNCTION" target="@termRegSubpavingsimulateRandomhelp.html">simulateRandom</tocitem>
-                  <tocitem image="HelpIcon.FUNCTION" target="@termRegSubpavingtermRegSubpavinghelp.html">termRegSubpaving</tocitem>
+       <tocitem image="HelpIcon.FUNCTION" target="terminalRegion_index.html">Terminal Region<tocitem image="HelpIcon.FUNCTION" target="linSys_index.html">Lin Sys<tocitem image="HelpIcon.FUNCTION" target="@termReglinSys_index.html">@termReglinSys<tocitem image="HelpIcon.FUNCTION" target="@termReglinSyscomputeControlInputhelp.html">computeControlInput</tocitem>
+           <tocitem image="HelpIcon.FUNCTION" target="@termReglinSysdisplayRuntimeshelp.html">displayRuntimes</tocitem>
+           <tocitem image="HelpIcon.FUNCTION" target="@termReglinSyssimulatehelp.html">simulate</tocitem>
+           <tocitem image="HelpIcon.FUNCTION" target="@termReglinSyssimulateRandomhelp.html">simulateRandom</tocitem>
+           <tocitem image="HelpIcon.FUNCTION" target="@termReglinSystermReglinSyshelp.html">termReglinSys</tocitem>
+           <tocitem image="HelpIcon.FUNCTION" target="@termReglinSysverifyTrajectoryhelp.html">verifyTrajectory</tocitem>
+           </tocitem>
+           <tocitem image="HelpIcon.FUNCTION" target="src_index.html">Src<tocitem image="HelpIcon.FUNCTION" target="fixed_oneStepReachabilityhelp.html">fixed_oneStepReachability</tocitem>
+               <tocitem image="HelpIcon.FUNCTION" target="fixed_stateInputContainmenthelp.html">fixed_stateInputContainment</tocitem>
+               <tocitem image="HelpIcon.FUNCTION" target="fixed_terminalSethelp.html">fixed_terminalSet</tocitem>
+               <tocitem image="HelpIcon.FUNCTION" target="implicit_oneStepReachabilityhelp.html">implicit_oneStepReachability</tocitem>
+               <tocitem image="HelpIcon.FUNCTION" target="implicit_stateInputContainmenthelp.html">implicit_stateInputContainment</tocitem>
+               <tocitem image="HelpIcon.FUNCTION" target="setOptsInternalhelp.html">setOptsInternal</tocitem>
+           </tocitem>
+           <tocitem image="HelpIcon.FUNCTION" target="computeTermReglinSyshelp.html">computeTermReglinSys</tocitem>
+           </tocitem>
+            <tocitem image="HelpIcon.FUNCTION" target="nonlinSysOpt_index.html">Nonlin Sys Opt<tocitem image="HelpIcon.FUNCTION"
+                        target="@computeTermRegNonlinSysLinApproach_index.html">@computeTermRegNonlinSysLinApproach<tocitem image="HelpIcon.FUNCTION"
+                                                                                                                            target="@computeTermRegNonlinSysLinApproachapproxAbsErrQuad_coefficientshelp.html">approxAbsErrQuad_coefficients</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysLinApproachapproxAbsErrQuad_evalhelp.html">approxAbsErrQuad_eval</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysLinApproachcomputeInitialGuesshelp.html">computeInitialGuess</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysLinApproachcomputeTermRegNonlinSysLinApproachhelp.html">computeTermRegNonlinSysLinApproach</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysLinApproachcomputeTrustRegionExploitationhelp.html">computeTrustRegionExploitation</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysLinApproachcvx_approxZonoVolumehelp.html">cvx_approxZonoVolume</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysLinApproachcvx_intervalTermReghelp.html">cvx_intervalTermReg</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysLinApproachcvx_paramReachSethelp.html">cvx_paramReachSet</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysLinApproachcvx_zonoContSoftConstrainthelp.html">cvx_zonoContSoftConstraint</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysLinApproachcvx_zonoInPolyConstrainthelp.html">cvx_zonoInPolyConstraint</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysLinApproachsolveOptProblemhelp.html">solveOptProblem</tocitem>
+                </tocitem>
+               <tocitem image="HelpIcon.FUNCTION" target="@computeTermRegNonlinSysOpt_index.html">@computeTermRegNonlinSysOpt<tocitem image="HelpIcon.FUNCTION"
+                                                                                                                                      target="@computeTermRegNonlinSysOptcheckInvariancehelp.html">checkInvariance</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysOptcomputeAbsErrhelp.html">computeAbsErr</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysOptcomputeTermRegNonlinSysOpthelp.html">computeTermRegNonlinSysOpt</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysOptgetAbsErrArgumentshelp.html">getAbsErrArguments</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysOptinitCostFunctionhelp.html">initCostFunction</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysOptinitialGuessSet_GSBhelp.html">initialGuessSet_GSB</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysOptinitialGuessSet_RiccatiEqhelp.html">initialGuessSet_RiccatiEq</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysOptinitialGuessSet_mRPIhelp.html">initialGuessSet_mRPI</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysOptpostprocessIteratehelp.html">postprocessIterate</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysOptupdateTrustRegionhelp.html">updateTrustRegion</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysOptverifyTerminalRegionhelp.html">verifyTerminalRegion</tocitem>
+                </tocitem>
+               <tocitem image="HelpIcon.FUNCTION"
+                        target="@computeTermRegNonlinSysPolyApproach_index.html">@computeTermRegNonlinSysPolyApproach<tocitem image="HelpIcon.FUNCTION"
+                                                                                                                              target="@computeTermRegNonlinSysPolyApproachapproxAbsErrPwLin_coefficientshelp.html">approxAbsErrPwLin_coefficients</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysPolyApproachapproxAbsErrPwLin_conhelp.html">approxAbsErrPwLin_con</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysPolyApproachapproxAbsErrPwLin_evalhelp.html">approxAbsErrPwLin_eval</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysPolyApproachcomputeDualInitialGuesshelp.html">computeDualInitialGuess</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysPolyApproachcomputeInitialGuesshelp.html">computeInitialGuess</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysPolyApproachcomputeInitialGuessCtrlhelp.html">computeInitialGuessCtrl</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysPolyApproachcomputeTermRegNonlinSysPolyApproachhelp.html">computeTermRegNonlinSysPolyApproach</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysPolyApproachcomputeVariableIndiceshelp.html">computeVariableIndices</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysPolyApproachevalPZfuncCasadihelp.html">evalPZfuncCasadi</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysPolyApproachoptimizeRCIpolyhelp.html">optimizeRCIpoly</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysPolyApproachparamPartZonotopehelp.html">paramPartZonotope</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysPolyApproachparamReachhelp.html">paramReach</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysPolyApproachpostprocessIteratehelp.html">postprocessIterate</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysPolyApproachreduceTemplatehelp.html">reduceTemplate</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@computeTermRegNonlinSysPolyApproachsolveOptProblemhelp.html">solveOptProblem</tocitem>
+                </tocitem>
+               <tocitem image="HelpIcon.FUNCTION" target="@termRegNonlinSysLinApproach_index.html">@termRegNonlinSysLinApproach<tocitem image="HelpIcon.FUNCTION"
+                                                                                                                                        target="@termRegNonlinSysLinApproachtermRegNonlinSysLinApproachhelp.html">termRegNonlinSysLinApproach</tocitem>
+                </tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="@termRegNonlinSysOpt_index.html">@termRegNonlinSysOpt<tocitem image="HelpIcon.FUNCTION" target="@termRegNonlinSysOptsimulatehelp.html">simulate</tocitem>
+                    <tocitem image="HelpIcon.FUNCTION" target="@termRegNonlinSysOptsimulateRandomhelp.html">simulateRandom</tocitem>
+                  <tocitem image="HelpIcon.FUNCTION"
+                           target="@termRegNonlinSysOpttermRegNonlinSysOpthelp.html">termRegNonlinSysOpt</tocitem>
+                </tocitem>
+               <tocitem image="HelpIcon.FUNCTION" target="@termRegNonlinSysPolyApproach_index.html">@termRegNonlinSysPolyApproach<tocitem image="HelpIcon.FUNCTION"
+                                                                                                                                          target="@termRegNonlinSysPolyApproachtermRegNonlinSysPolyApproachhelp.html">termRegNonlinSysPolyApproach</tocitem>
+                </tocitem>
+               <tocitem image="HelpIcon.FUNCTION" target="auxiliaryNonlinSysApproach_index.html">Auxiliary Nonlin Sys Approach<tocitem image="HelpIcon.FUNCTION" target="@termRegNonlinSysDynamics_index.html">@termRegNonlinSysDynamics<tocitem image="HelpIcon.FUNCTION"
+                                                                                                                                                                                                                                                 target="@termRegNonlinSysDynamicstermRegNonlinSysDynamicshelp.html">termRegNonlinSysDynamics</tocitem>
+                   </tocitem>
+                  <tocitem image="HelpIcon.FUNCTION" target="@termRegNonlinSysSolutionAuxData_index.html">@termRegNonlinSysSolutionAuxData<tocitem image="HelpIcon.FUNCTION"
+                                                                                                                                                   target="@termRegNonlinSysSolutionAuxDatatermRegNonlinSysSolutionAuxDatahelp.html">termRegNonlinSysSolutionAuxData</tocitem>
+                   </tocitem>
+                   <tocitem image="HelpIcon.FUNCTION" target="@termRegSysType_index.html">@termRegSysType<tocitem image="HelpIcon.FUNCTION" target="@termRegSysTypetermRegSysTypehelp.html">termRegSysType</tocitem>
+                   </tocitem>
+                </tocitem>
+                <tocitem image="HelpIcon.FUNCTION" target="computeTerminalRegionNonlinSysOpthelp.html">computeTerminalRegionNonlinSysOpt</tocitem>
+           </tocitem>
+           <tocitem image="HelpIcon.FUNCTION" target="subpaving_index.html">Subpaving<tocitem image="HelpIcon.FUNCTION" target="@termRegSubpaving_index.html">@termRegSubpaving<tocitem image="HelpIcon.FUNCTION" target="@termRegSubpavingsimulatehelp.html">simulate</tocitem>
+               <tocitem image="HelpIcon.FUNCTION" target="@termRegSubpavingsimulateRandomhelp.html">simulateRandom</tocitem>
+               <tocitem image="HelpIcon.FUNCTION" target="@termRegSubpavingtermRegSubpavinghelp.html">termRegSubpaving</tocitem>
                </tocitem>
                <tocitem image="HelpIcon.FUNCTION" target="compTermRegSubpavinghelp.html">compTermRegSubpaving</tocitem>
-            </tocitem>
-            <tocitem image="HelpIcon.FUNCTION" target="zonoLinSys_index.html">Zono Lin Sys<tocitem image="HelpIcon.FUNCTION" target="@termRegZonoLinSys_index.html">@termRegZonoLinSys<tocitem image="HelpIcon.FUNCTION" target="@termRegZonoLinSyssimulatehelp.html">simulate</tocitem>
-                  <tocitem image="HelpIcon.FUNCTION" target="@termRegZonoLinSyssimulateRandomhelp.html">simulateRandom</tocitem>
-                  <tocitem image="HelpIcon.FUNCTION" target="@termRegZonoLinSystermRegZonoLinSyshelp.html">termRegZonoLinSys</tocitem>
                </tocitem>
-               <tocitem image="HelpIcon.FUNCTION" target="src_index.html">Src<tocitem image="HelpIcon.FUNCTION" target="computeSafeInitialSethelp.html">computeSafeInitialSet</tocitem>
-                  <tocitem image="HelpIcon.FUNCTION" target="computeSafeTerminalSethelp.html">computeSafeTerminalSet</tocitem>
-                  <tocitem image="HelpIcon.FUNCTION" target="loadParametersAndOptionshelp.html">loadParametersAndOptions</tocitem>
-                  <tocitem image="HelpIcon.FUNCTION" target="reachControlledLTISystemhelp.html">reachControlledLTISystem</tocitem>
-                  <tocitem image="HelpIcon.FUNCTION" target="stateAndInputConstraintshelp.html">stateAndInputConstraints</tocitem>
-               </tocitem>
-               <tocitem image="HelpIcon.FUNCTION" target="computeTermRegZonoLinSyshelp.html">computeTermRegZonoLinSys</tocitem>
-            </tocitem>
             <tocitem image="HelpIcon.FUNCTION" target="computeTerminalRegionhelp.html">computeTerminalRegion</tocitem>
          </tocitem>
       </tocitem>

@@ -11,11 +11,16 @@ function Tdomain = initSearchDomain(K,xEq,uEq,U,varargin)
 %
 % Input Arguments:
 %
-%       -K:     feedback matrix for the controller (dimension: [nu,nx])
-%       -xEq:   equilibrium point of the system (dimension: [nx,1])
-%       -uEq:   control input for the equilibrium point (dimension: [nu,1])
-%       -U:     set of control inputs (class: interval or zonotope)
-%       -X:     set of state constraints (class: mptPolytope)
+%       -K:     feedback matrix for the controller 
+%               (dimension: [nu,nx])
+%       -xEq:   equilibrium point of the system 
+%               (dimension: [nx,1])
+%       -uEq:   control input for the equilibrium point 
+%               (dimension: [nu,1])
+%       -U:     set of control inputs 
+%               (class: interval or zonotope)
+%       -X:     set of state constraints 
+%               (class: polytope)
 %
 % Output Arguments:
 %
@@ -43,10 +48,10 @@ function Tdomain = initSearchDomain(K,xEq,uEq,U,varargin)
 %------------------------------------------------------------------
 
     % parse input arguments
-    X = [];
+    X = polytope.empty();
     
-    if nargin > 4 && ~isempty(varargin{1})
-       X.set = varargin{1}; 
+    if nargin > 4 && ~representsa(varargin{1},'emptySet')
+       X = varargin{1}; 
     end
     
     % approximate the region where the input constraints are satisfied
@@ -58,7 +63,7 @@ function Tdomain = initSearchDomain(K,xEq,uEq,U,varargin)
     Tdomain = width*interval(-ones(nx,1),ones(nx,1)) + xEq;
     
     % scale the region so that is satisfies the state constraints
-    if ~isempty(X) 
+    if ~representsa(X,'emptySet') 
         
         % get properties from domain
         nx = dim(Tdomain);
@@ -71,8 +76,8 @@ function Tdomain = initSearchDomain(K,xEq,uEq,U,varargin)
         
         obj = @(x) -prod(x(1:nx));
         
-        C = abs(X.set.P.A*G);
-        d = X.set.P.b - X.set.P.A*c;
+        C = abs(X.A*G);
+        d = X.b - X.A*c;
         
         x = fmincon(obj,ones(nx,1),C,d,[],[],zeros(nx,1),ones(nx,1), ...
                                                               [],options);

@@ -55,9 +55,9 @@ function [res,reachSet,R,K] = computeFinalReachSet(xOpt,Opts)
 %------------------------------------------------------------------ 
 
     % initialization
-    K = cell(Opts.N,1);
+    K = cell(Opts.N*Opts.Ninter,1);
     reachSet = [];
-    R = cell(Opts.N,1);
+    R = cell(Opts.N*Opts.Ninter,1);
     R{1} = Opts.R0;
     res = 1;
     
@@ -73,60 +73,64 @@ function [res,reachSet,R,K] = computeFinalReachSet(xOpt,Opts)
     
     % loop over all time steps
     for i = 1:Opts.N
+        for j = 1:Opts.Ninter
 
-        % get reference input
-        u_ref = Opts.uc(:,i);
-            
-        % compute closed loop system
-        if Opts.isLin
-            
-            % get feedback matrix
-            K{i} = compFeedbackMatrix(xOpt(:,i),Opts.linModel.A, ...
-                                      Opts.linModel.B);
-            
-            % construct linear system
-            sys = closedLoopSystemLin(Opts.linModel.A,Opts.linModel.B, ...
-                                      Opts.linModel.D,Opts.linModel.c, ...
-                                      K{i},u_ref,Opts.V);
-        else
-            
-            % get feedback matrix
-            K{i} = compFeedbackMatrix(xOpt(:,i),Opts.linModel.A{i}, ...
-                                      Opts.linModel.B{i});
-            
-            p = [u_ref;reshape(K{i},[Opts.nx*Opts.nu,1])];
-            params.paramInt = p;
-            
-            % get system object
-            sys = Opts.sys;
-        end
-        
-        % update time
-        if tStart ~= 0
-            params.tStart = tStart;
-            params.tFinal = params.tStart + dT;
-        else
-            params.tFinal = dT;
-        end
-        tStart = params.tFinal;
+            k = (i-1)*Opts.Ninter + j;
 
-        % compute the reachable set
-        Rtemp = reach(sys,params,options);
-        
-        % check if the constraints are satisfied
-        c = checkConstraints(Rtemp.timeInterval.set,K{i},u_ref,Opts);
-        
-        if any(c > 0)
-           res = 0;
-           return;
+            % get reference input
+            u_ref = Opts.uc(:,k);
+                
+            % compute closed loop system
+            if Opts.isLin
+                
+                % get feedback matrix
+                K{k} = compFeedbackMatrix(xOpt(:,i),Opts.linModel.A, ...
+                                          Opts.linModel.B);
+                
+                % construct linear system
+                sys = closedLoopSystemLin(Opts.linModel.A,Opts.linModel.B, ...
+                                          Opts.linModel.D,Opts.linModel.c, ...
+                                          K{i},u_ref,Opts.V);
+            else
+                
+                % get feedback matrix
+                K{k} = compFeedbackMatrix(xOpt(:,i),Opts.linModel.A{k}, ...
+                                          Opts.linModel.B{k});
+                
+                p = [u_ref;reshape(K{k},[Opts.nx*Opts.nu,1])];
+                params.paramInt = p;
+                
+                % get system object
+                sys = Opts.sys;
+            end
+            
+            % update time
+            if tStart ~= 0
+                params.tStart = tStart;
+                params.tFinal = params.tStart + dT;
+            else
+                params.tFinal = dT;
+            end
+            tStart = params.tFinal;
+    
+            % compute the reachable set
+            Rtemp = reach(sys,params,options);
+            
+            % check if the constraints are satisfied
+            c = checkConstraints(Rtemp.timeInterval.set,K{k},u_ref,Opts);
+            
+            if any(c > 0)
+               res = 0;
+               return;
+            end
+    
+            % update initial set
+            params.R0 = Rtemp.timePoint.set{end};
+            
+            % store reachable set
+            reachSet = add(reachSet,Rtemp);
+            R{k+1} = project(params.R0,1:Opts.nx);
         end
-
-        % update initial set
-        params.R0 = Rtemp.timePoint.set{end};
-        
-        % store reachable set
-        reachSet = add(reachSet,Rtemp);
-        R{i+1} = project(params.R0,1:Opts.nx);
     end
     
     % remove extendet states from the reachable set

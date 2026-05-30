@@ -76,8 +76,8 @@ c_R0 = center(R0);
 if isa(R0,'zonotope') 
     G_R0 = generators(R0);
 else
-    G_R0 = [R0.G,R0.Grest];
-    E_R0 = R0.expMat;
+    G_R0 = [R0.G,R0.GI];
+    E_R0 = R0.E;
 end
 
 % reachable set is computed for one time step of the center trajectory, 
@@ -91,7 +91,7 @@ for l = 1:Opts.Ninter
     % used to make reachability analysis simpler
     
     % construct extended zonotope
-    if isempty(Opts.V)
+    if representsa(Opts.V,'emptySet')
         c_big = [c_R0;cu{l};zeros(size(inputAssign,1),1)];
         G_big = [G_R0;Gu{l}*inputAssign;inputAssign];
     else
@@ -107,7 +107,7 @@ for l = 1:Opts.Ninter
     end 
     
     % add set of measurement errors
-    if ~isempty(Opts.V)
+    if ~representsa(Opts.V,'emptySet')
        R0 = cartProd(R0,Opts.V);
        p = [cu{l}; reshape(Gu{l},[Opts.nu*Opts.nx,1])];
        params.paramInt = p;
@@ -117,9 +117,9 @@ for l = 1:Opts.Ninter
     params.R0 = R0;
     if tStart ~= 0
         params.tStart = tStart;
-        params.tFinal = params.tStart + Opts.hinter;
+        params.tFinal = params.tStart + Opts.dt/Opts.Ninter;
     else
-        params.tFinal = Opts.hinter;
+        params.tFinal = Opts.dt/Opts.Ninter;
     end
 
     % compute reachable set
@@ -135,15 +135,15 @@ for l = 1:Opts.Ninter
     if isa(Rfin,'zonotope')
         G_ = generators(Rfin);
     else
-        G_ = [Rfin.G,Rfin.Grest];
-        E_R0 = Rfin.expMat;
+        G_ = [Rfin.G,Rfin.GI];
+        E_R0 = Rfin.E;
     end
 
     c_ = center(Rfin);
     c_R0 = c_(1:Opts.nx);
     G_R0 = G_(1:Opts.nx,:);
 
-    if isempty(Opts.V)
+    if representsa(Opts.V,'emptySet')
         inputAssign = G_(Opts.nx+Opts.nu+1:Opts.nx+Opts.nu+Opts.nx,:); 
     else
         inputAssign = G_(Opts.nx+1:2*Opts.nx,:); 

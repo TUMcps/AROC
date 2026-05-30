@@ -33,7 +33,7 @@ function [param,res] = optimalControlReachsetMPC(x0,J,L,Opts)
 %           -.R:            input weighting matrix for the cost function
 %                           (center trajectory)
 %           -.termReg:      terminal region around the steady state xf
-%                           (class: mptPolytope)
+%                           (class: polytope)
 %           -.alpha:        contraction rate for the contraction constraint
 %                           [{0.1} / alpha > 0]
 %           -.maxIter:      maximum number of iterations for the optimal
@@ -78,12 +78,8 @@ function [param,res] = optimalControlReachsetMPC(x0,J,L,Opts)
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------
 
-    % check if ACADO or fmincon is used for optimization
-    if Opts.useAcado
-       [u,x] = optimalControlAcado(Opts.funHandle,x0,J,Opts); 
-    else
-       [u,x] = optimalControlFmincon(Opts.funHandle,x0,J,Opts); 
-    end
+    % use fmincon for optimization
+    [u,x] = optimalControlFmincon(Opts.funHandle,x0,J,Opts); 
     
     % check if optimal control problem found a feasible solution
     [res,L,J] = checkConstraint(x,u,L,J,Opts);
@@ -98,71 +94,6 @@ end
 
 % Auxiliary Functions -----------------------------------------------------
 
-function [u,x] = optimalControlAcado(sys,x0,J,Opts)
-% solver optimal control problem using ACADO
-
-    % passing optimization variables to ACADO Toolbox, every scalar has to
-    % be passed individually
-    A_ = num2cell(Opts.termReg.A');
-    b_ = num2cell(Opts.termReg.b);
-    x0_ = num2cell(x0);
-    x_f_ = num2cell(Opts.xf);
-    Q_ = num2cell(Opts.Q');
-    R_ = num2cell(Opts.R');
-    u_max_ = num2cell(Opts.uMax_);
-    u_min_ = num2cell(Opts.uMin_);
-    
-    alphaPoly = 1/(1+Opts.alpha);
-
-    if ~isempty(Opts.X)
-        C = num2cell(Opts.X_.P.A);
-        d = num2cell(Opts.X_.P.b);
-    else
-        C = num2cell([]); d = num2cell([]);
-    end
-
-    evalc(['out = acadoReachsetMPC_RUN(x0_{:},x_f_{:},Q_{:},R_{:},Opts.Ninter,', ...
-          'Opts.dT,u_max_{:},u_min_{:},A_{:},b_{:},alphaPoly,J,Opts.alpha,C{:},d{:});']);
-
-    % saving optimal inputs for center trajectory which were computed in
-    % optimal control problem using ACADO
-    t_CONTROLS = out.CONTROLS(:,1)';
-    uTemp = out.CONTROLS(:,2:end)';
-    
-    % restructure u to the correct format
-    u = cell(Opts.N,1);
-    index = 1;
-    
-    for i = 1:Opts.N
-        u{i} = uTemp(index:index+Opts.nu-1,1:end-1);
-        index = index + Opts.nu;
-    end
-
-    % to obtain states from center trajectory, we simulate the corner
-    % trajectory using the optimized corner inputs with Runge-Kutta 45
-    % integrator. This is done because the state determined by ACADO can
-    % by inaccurate sometimes. 
-    dt = t_CONTROLS(1,2)-t_CONTROLS(1,1);
-    x = cell(Opts.N,1);
-
-    % integration stepwise since piece-wise constant control inputs
-    funHan = @(x,u)sys(x,u,zeros(Opts.nw,1));
-    
-    for i = 1:Opts.N
-        
-        x{i} = zeros(Opts.nx,Opts.Ninter+1);
-        x{i}(:,1) = x0;
-        
-        for k = 1:Opts.Ninter
-            [~,x_temp] = ode45(@(t,x)funHan(x,u{i}(1:Opts.nu,k)),...
-                               [0 dt],x{i}(:,k)');
-            x{i}(:,k+1) = x_temp(end,:)';
-        end    
-        
-        x0 = x_temp(end,:)';
-    end
-end
-
 function [u,x] = optimalControlFmincon(sys,x0,J,Opts)
 % Solve optimal control problem using fmincon
 
@@ -171,19 +102,24 @@ function [u,x] = optimalControlFmincon(sys,x0,J,Opts)
     N = Opts.N * Opts.Ninter;
     alphaPoly = 1/(1+Opts.alpha);
     
-    if ~isempty(Opts.X)
+    if ~representsa(Opts.X,'fullspace')
+        % text = sprintf(['cost = @(x) fminconReachsetMPC_cost(x,x0,', ...
+        %                 'Opts.xf,Opts.Q,Opts.R,Opts.dT/Opts.Ninter,', ...
+        %                 'Opts.termReg.A,Opts.termReg.b,Opts.alpha,', ...
+        %                 'alphaPoly,J,Opts.uMin_,Opts.uMax_,', ...
+        %                 'Opts.X_.P.A,Opts.X_.P.b);']);
         text = sprintf(['cost = @(x) fminconReachsetMPC_cost(x,x0,', ...
                         'Opts.xf,Opts.Q,Opts.R,Opts.dT/Opts.Ninter,', ...
                         'Opts.termReg.A,Opts.termReg.b,Opts.alpha,', ...
                         'alphaPoly,J,Opts.uMin_,Opts.uMax_,', ...
-                        'Opts.X_.P.A,Opts.X_.P.b);']);
+                        'Opts.X_.A,Opts.X_.b);']);
         eval(text);
     
         text = sprintf(['con = @(x) fminconReachsetMPC_con(x,x0,', ...
                         'Opts.xf,Opts.Q,Opts.R,Opts.dT/Opts.Ninter,', ...
                         'Opts.termReg.A,Opts.termReg.b,Opts.alpha,', ...
                         'alphaPoly,J,Opts.uMin_,Opts.uMax_,', ...
-                        'Opts.X_.P.A,Opts.X_.P.b);']);
+                        'Opts.X_.A,Opts.X_.b);']);
         eval(text);
     else
         text = sprintf(['cost = @(x) fminconReachsetMPC_cost(x,x0,', ...
@@ -205,6 +141,7 @@ function [u,x] = optimalControlFmincon(sys,x0,J,Opts)
                         
     nOpt = Opts.nx*(N*inter+1) + Opts.nu*N + Opts.N;
     xInit = zeros(nOpt,1);
+    
     
     lb = -inf*ones(nOpt,1);
     ub = inf*ones(nOpt,1);

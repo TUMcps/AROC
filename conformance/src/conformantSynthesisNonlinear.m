@@ -68,23 +68,11 @@ function [W,V] = conformantSynthesisNonlinear(benchmark,measurements,Opts)
     str = ['funHan = @(x,u,w)',benchmark,'(x,u,w);'];
     eval(str);
 
-    % check if ACADO is available or not
-    useAcado = 1;
-    if isempty(which('BEGIN_ACADO'))
-        useAcado = 0;
-    end
-
     % store data in options
-    Opts.useAcado = useAcado;
     Opts.funHan = funHan;
-    
-    % geneate filed for ACADO toolbox
-    if useAcado
-        writeAcadoFilesConfChecking(benchmark,Opts);
-    else
-        writeFminconFilesConfChecking(benchmark,Opts);
-    end
-        
+
+    writeFminconFilesConfChecking(benchmark,Opts);
+
     % loop over all measurements and compute uncertainty
     W = zeros(Opts.nw,1); V = zeros(Opts.nx,1);
     
@@ -108,108 +96,48 @@ function [W,V] = conformantSynthesisNonlinear(benchmark,measurements,Opts)
             tmp = M.t(batch_start(j)-1:batch_end(j));
             dt = diff(tmp);
             
-            if Opts.useAcado
-                if Opts.measErr
-                    [w,v,tmp] = compUncertaintyACADO(x0,x,u,dt,Opts);
-                else
-                    [w,tmp] = compUncertainInputACADO(x0,x,u,dt,Opts);                    
-                end
+           
+            if Opts.measErr
+                [w,v,tmp] = compUncertaintyFmincon(x0,x,u,dt,Opts);
             else
-                if Opts.measErr
-                    [w,v,tmp] = compUncertaintyFmincon(x0,x,u,dt,Opts);
-                else
-                    [w,tmp] = compUncertainInputFmincon(x0,x,u,dt,Opts);
-                end
+                [w,tmp] = compUncertainInputFmincon(x0,x,u,dt,Opts);
             end
+
             
             % update initial state
             traj = [traj, tmp];
 
-            % update set of uncertain inputs
-            if strcmp(Opts.set,'interval')
-                W = W | interval(w);
-                if Opts.measErr
-                   V = V | interval(v); 
-                end
-            else
-                W = [W,w]; 
-                if Opts.measErr
-                   V = [V,v]; 
-                end
+            % update set of uncertain inputs (append new points)
+            W = [W,w]; 
+            if Opts.measErr
+               V = [V,v]; 
             end
         end                        
     end
     
-    % enclose point cloud with a zonotope
-    if ~strcmp(Opts.set,'interval')
+    % enclose point cloud with a zonotope or interval
+    if strcmp(Opts.set,'interval')
+       W = interval.enclosePoints(W); 
+       if Opts.measErr
+          V = interval.enclosePoints(V); 
+       end
+    elseif strcmp(Opts.set,'zonotope')
        W = zonotope.enclosePoints(W,'maiga'); 
        if Opts.measErr
           V = zonotope.enclosePoints(V,'maiga'); 
        end
+    else
+        error('Invalid value of enclosing set representation.')
+    end
+
+    % assign output arguments 
+    if ~Opts.measErr
+        V = [];
     end
 end
 
 
 % Auxiliary Functions -----------------------------------------------------
-
-function [w,x_] = compUncertainInputACADO(x0,x,u,dt,Opts)
-% compute the set of required uncertain inputs using ACADO
-
-    % passing optimization variables to ACADO Toolbox, every scalar has to
-    % be passed individually
-    x0_ = num2cell(x0);
-    x_ = num2cell(reshape(x,[numel(x),1]));
-    u_ = num2cell(reshape(u,[numel(u),1]));
-    dt_ = num2cell(max(dt)./dt);
-
-    text = sprintf('out = acadoConfChecking_No_%i_RUN(x0_{:},x_{:},u_{:},dt_{:},max(dt),Opts.mu);',Opts.group);
-    evalc(text);
-    
-    w = out.CONTROLS(2,2:end)';
-    w = reshape(w,[numel(w)/Opts.group,Opts.group]);
-    x_ = x0;
-    
-    for i = 1:size(w,2)
-        [~,traj] = ode45(@(t,x_)Opts.funHan(x_,u(:,i),w(:,i)),[0 dt(i)],x_(:,end));
-        x_ = [x_, traj(end,:)'];
-    end
-    x_ = x_(:,2:end);
-    
-    if max(max(abs(x_-x))) > 1e-3
-        error('Conformance checking failed!');
-    end
-end
-function [w,v,x_] = compUncertaintyACADO(x0,x,u,dt,Opts)
-% compute the set of required uncertain inputs and measurement errors using 
-% ACADO
-
-    % passing optimization variables to ACADO Toolbox, every scalar has to
-    % be passed individually
-    x0_ = num2cell(x0);
-    x_ = num2cell(reshape(x,[numel(x),1]));
-    u_ = num2cell(reshape(u,[numel(u),1]));
-    dt_ = num2cell(max(dt)./dt);
-
-    text = sprintf('out = acadoConfChecking_Meas_%i_RUN(x0_{:},x_{:},u_{:},dt_{:},max(dt),Opts.mu);',Opts.group);
-    evalc(text);
-    
-    tmp = out.CONTROLS(2,2:end)';
-    v = tmp(end-Opts.group*length(x0)+1:end);
-    w = tmp(1:end-Opts.group*length(x0));
-    w = reshape(w,[numel(w)/Opts.group,Opts.group]);
-    v = reshape(v,[numel(v)/Opts.group,Opts.group]);
-    x_ = x0;
-    
-    for i = 1:size(w,2)
-        [~,traj] = ode45(@(t,x_)Opts.funHan(x_,u(:,i),w(:,i)),[0 dt(i)],x_(:,end));
-        x_ = [x_, traj(end,:)'];
-    end
-    x_ = x_(:,2:end);
-    
-    if max(max(abs(x_+v-x))) > 1e-3
-        error('Conformance checking failed!');
-    end
-end
 
 function [w,x_] = compUncertainInputFmincon(x0,xf,u,dt,Opts)
 % compute the set of required uncertain inputs using fmincon

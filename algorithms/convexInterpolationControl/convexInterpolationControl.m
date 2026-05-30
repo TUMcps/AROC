@@ -27,7 +27,7 @@ function [objContr,res] = convexInterpolationControl(benchmark,Param,varargin)
 %                           or zonotope)
 %           -.V:            set of measurement errors (class: interval or
 %                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.X:            set of state constraints (class: polytope)
 %
 %       -Opts:              a structure containing the algorithm settings
 %
@@ -47,8 +47,6 @@ function [objContr,res] = convexInterpolationControl(benchmark,Param,varargin)
 %           -.R:            input weighting matrix for the cost function of
 %                           the optimal control problem
 %                           [{zeros(nu)} / positive-definite square matrix]
-%           -.parallel:     use parallel computing
-%                           [{false} / true]
 %
 %           -.approx.method:        method used to determine the
 %                                   approximated control law
@@ -78,14 +76,11 @@ function [objContr,res] = convexInterpolationControl(benchmark,Param,varargin)
 %                                   horizon in reference trajectory time 
 %                                   steps
 %                                   [{'all'} / positive integer]
-%           -.extHorizon.decay:     decay function for the objective
-%                                   function of the optimization problem
-%                                   with extended optimization horizon
-%                                   [{'fall+End'} / 'uniform' / 'fall' / 
-%                                    'fallLinear' / 'fallLinear+End' / 
-%                                    'fallEqDiff' / 'fallEqDiff+End' / 
-%                                    'rise' / 'quad' /  'riseLinear' /
-%                                    'riseEqDiff' / 'end']
+%           -.extHorizon.weightingFunction:     instance of enumeration
+%                                               class extendedHorizonWeights 
+%                                               specifying the weighting 
+%                                               function for the extended 
+%                                               horizon 
 %
 %           -.refTraj.Q:    state weighting matrix for the cost function of
 %                           optimal control problem (dimension:[nx,nx])
@@ -165,7 +160,7 @@ controlLawParam = cell(Opts.N,1);       % control law parameter
 reachSet = [];                          % object storing the reachable set
 
 parallelo = cell(Opts.N+1,1);           % parallelotope enclosures
-if isempty(Opts.V)
+if representsa(Opts.V,'emptySet')
     parallelo{1} = zonotope(Opts.R0);     
 else
     parallelo{1} = reduce(zonotope(Opts.R0)+Opts.V,'pca',1); 
@@ -189,84 +184,79 @@ Opts.uc = uCenter;
 %% Algorithm
 
 % convex interpolation control algorithm (see Alg. 1 in [1])
-for tc = 1:Opts.N 
+for kk = 1:Opts.N 
     
     % compute extreme points of the parallelotope 
     % (see Line 5 of Alg. 1 in [1])
-    v(:,:,tc) = symExtremePoints(parallelo{tc},Opts.I);       
+    v(:,:,kk) = symExtremePoints(parallelo{kk},Opts.I);       
     
-    % select optimization horizon
+    % select (extended) optimization horizon M
     if Opts.extHorizon.active
         if ischar(Opts.extHorizon.horizon) && strcmp(Opts.extHorizon.horizon,'all')
-            horizon = Opts.N-tc+1;
+            M = Opts.N-kk+1;
         else
-            horizon = min(Opts.N-tc+1,Opts.extHorizon.horizon);
+            M = min(Opts.N-kk+1,Opts.extHorizon.horizon);
         end
     else
-        horizon = 1;
+        M = 1;
     end  
     
     % solve local optimal control problems for all vertices 
     % (see Lines 6-8 of Alg. 1 in [1])
-    [uCornerMultiExt,~] = localCornerControl(sys,xCenter(:,tc+1:tc+horizon), ...
-                                v(:,:,tc),Opts.hinter,Opts.Q,Opts.R, ...
-                                Opts.Ninter,horizon,Opts);
+    [uCornerMultiExt,~] = localVertexControl( ...
+        sys,v(:,:,kk),xCenter(:,kk+1:kk+M),M,Opts.lvcOpts);
     
     % only the first few control values are applied to the system for the
-    % case that a extendet optimization horizon is used
+    % case that a extended optimization horizon is used
     uCornerMulti = uCornerMultiExt(:,:,1:Opts.Ninter);
     
     % display current iteration
-    fprintf('Time step: %i\n',tc);
+    fprintf('Time step: %i\n',kk);
         
     % compute the controller and the corresponding reachable sets
     % (see Line 9 of Alg. 1 in [1])
-    Opts.tStart = (tc-1)*Opts.hc;
+    Opts.tStart = (kk-1)*Opts.dt;
     
     if strcmp(Opts.controller,'linear')
-        [zonoExt{tc+1},Rtemp,controlLawParam{tc}] = ...
-                            computeLinearController(dynamic,zono{tc}, ...
-                            parallelo{tc},uCornerMulti,uCenter(:,tc),Opts);
-    elseif strcmp(Opts.controller,'quadratic')   
-        [zonoExt{tc+1},Rtemp,controlLawParam{tc}] = ...
-                            computeQuadraticController(dynamic,zono{tc}, ...
-                            parallelo{tc},uCornerMulti,Opts);
+        [zonoExt{kk+1},Rtemp,controlLawParam{kk}] = ...
+                            computeLinearController(dynamic,zono{kk}, ...
+                            parallelo{kk},uCornerMulti,uCenter(:,kk),Opts);
     else   
-        [zonoExt{tc+1},Rtemp,controlLawParam{tc}] = ...
-                            computeExactController(dynamic,zono{tc}, ...
-                            parallelo{tc},uCornerMulti,Opts);
+        [zonoExt{kk+1},Rtemp,controlLawParam{kk}] = ...
+                            computeExactController(dynamic,zono{kk}, ...
+                            parallelo{kk},uCornerMulti,Opts);
     end
     
     reachSet = add(reachSet,Rtemp);
 
     % save only the state part without the auxiliary states of the 
     % exteneded zonotope
-    zono{tc+1} = project(zonoExt{tc+1},1:Opts.nx);
+    zono{kk+1} = project(zonoExt{kk+1},1:Opts.nx);
 
-    if tc <= Opts.N
+    if kk <= Opts.N
         
         % restructure the polynomial zonotope to increase dependent part
-        if isa(zono{tc+1},'polyZonotope')
-            if mod(tc,Opts.polyZono.N) == 0
-                zono{tc+1} = polyZonotope(reduce(zonotope(zono{tc+1}),'pca',1));
-                zonoTemp = zonotope(zono{tc+1});
+        if isa(zono{kk+1},'polyZonotope')
+            if mod(kk,Opts.polyZono.N) == 0
+                zono{kk+1} = polyZonotope(reduce(zonotope(zono{kk+1}),'pca',1));
+                zonoTemp = zonotope(zono{kk+1});
             else
-                zono{tc+1} = restructure(zono{tc+1},'reduceGirard', ...
+                zono{kk+1} = restructure(zono{kk+1},'reduceGirard', ...
                                          Opts.polyZono.orderDep, ...
                                          Opts.polyZono.order);
                                      
-                zonoTemp = zonotope(zono{tc+1});
+                zonoTemp = zonotope(zono{kk+1});
             end
         else
-            zonoTemp = zono{tc+1};
+            zonoTemp = zono{kk+1};
         end
 
         % compute the parallelotope over-approximation of linear zonotope
         % (see Line 4 of Alg. 1 in [1])
-        if isempty(Opts.V)
-            parallelo{tc+1} = reduce(zonoTemp,'pca',1);
+        if representsa(Opts.V,'emptySet')
+            parallelo{kk+1} = reduce(zonoTemp,'pca',1);
         else
-            parallelo{tc+1} = reduce(zonoTemp + Opts.V,'pca',1);
+            parallelo{kk+1} = reduce(zonoTemp + Opts.V,'pca',1);
         end
     end
 end
@@ -313,21 +303,33 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
     Opts = initOpts(mfilename,benchmark,Opts,Param);
 
     % initialize algorithm dependent settings
-    Opts.hinter = Opts.tFinal/(Opts.N*Opts.Ninter);
-    Opts.ReachOpts.timeStep = Opts.hinter / Opts.reachSteps;
-    Opts.useAcado = Opts.CentOpts.useAcado;
-    Opts.uMax = Opts.CentOpts.uMax;
-    Opts.uMin = Opts.CentOpts.uMin;
-    Opts.hc = Opts.tFinal/Opts.N;
+    dt_inter = Opts.tFinal/(Opts.N*Opts.Ninter);
+    Opts.ReachOpts.timeStep = dt_inter / Opts.reachSteps;
+    Opts.uMax = supremum(Param.U);
+    Opts.uMin = infimum(Param.U);
+    Opts.dt = Opts.tFinal/Opts.N;
     
-    Opts.CentOpts.Nc = Opts.N;               % number ref. traj. time steps
-    Opts.CentOpts.hc = Opts.hc;              % size center traj. time steps
-    
+    Opts.CentOpts.N = Opts.N;               % number ref. traj. time steps
+    Opts.CentOpts.dt = Opts.dt;             % size center traj. time steps
+
+    % options for computing the local vertex control inputs
+    Opts.lvcOpts.nx = Opts.nx;
+    Opts.lvcOpts.nu = Opts.nu;
+    Opts.lvcOpts.nw = Opts.nw;
+    Opts.lvcOpts.dt = Opts.CentOpts.dt;
+    Opts.lvcOpts.Ninter = Opts.Ninter;
+    Opts.lvcOpts.Q = Opts.Q;
+    Opts.lvcOpts.R = Opts.R;
+    Opts.lvcOpts.X = Opts.X;
+    Opts.lvcOpts.U = Opts.U;
+    Opts.lvcOpts.W = Opts.W;
+    Opts.lvcOpts.extHorizonWeightingFunction = Opts.extHorizon.weightingFunction;
+        
     if strcmp(Opts.controller,'exact')
        Opts.ReachOpts.lagrangeRem.simplify = 'collect'; 
     end
     
-    if ~strcmp(Opts.controller,'linear') || ~isempty(Opts.V)
+    if ~strcmp(Opts.controller,'linear') || ~representsa(Opts.V,'emptySet')
        Opts.ReachOpts.intermediateTerms = 4; 
     end
     
@@ -336,7 +338,7 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
             Opts.ReachOpts.alg,num2str(Opts.ReachOpts.tensorOrder)];
         
     if strcmp(Opts.controller,'linear')
-        if isempty(Opts.V)
+        if representsa(Opts.V,'emptySet')
             nExt = 2*Opts.nx+Opts.nu;
             funHan = @(x,w) dynamicsClosedLoopLinear(x,w, ...
                                            Opts.nx,Opts.nu,Opts.funHandle);
@@ -348,24 +350,8 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
             sys = nonlinParamSys(name,@(x,w,p) funHan(x,w,p), ...
                                  nExt,Opts.nw,Opts.nu*(Opts.nx+1));
         end
-    elseif strcmp(Opts.controller,'quadratic')
-        if isempty(Opts.V)
-            nExt = 2*Opts.nx;            
-            nParam = Opts.nu*(2*Opts.nx + 1); 
-            funHan = @(x,w,p) dynamicsClosedLoopQuadratic( ...
-                                             x,w,p,Opts.nx,Opts.funHandle);
-            sys = nonlinParamSys(name,@(x,w,p)funHan(x,w,p),nExt, ... 
-                                 Opts.nw,nParam);
-        else
-            nExt = 3*Opts.nx;            
-            nParam = Opts.nu*(2*Opts.nx + 1); 
-            funHan = @(x,w,p) dynamicsClosedLoopQuadraticMeasErr( ...
-                                             x,w,p,Opts.nx,Opts.funHandle);
-            sys = nonlinParamSys(name,@(x,w,p)funHan(x,w,p),nExt, ...
-                                 Opts.nw,nParam);
-        end
     elseif strcmp(Opts.controller,'exact')
-        if isempty(Opts.V)
+        if representsa(Opts.V,'emptySet')
             nExt = 2*Opts.nx;            
             nParam = 2^(Opts.nx)*(Opts.nu); 
             funHan = @(x,w,p) dynamicsClosedLoopExact(x,w, ...

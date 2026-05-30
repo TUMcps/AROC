@@ -17,7 +17,8 @@ Opts.N = 5;                         % number of time steps
 Opts.Ninter = 5;                    % number of intermediate time steps
 Opts.extHorizon.active = 1;         % use extended optimization horizon
 Opts.extHorizon.horizon = 3;        % time steps for ext. horizon
-Opts.extHorizon.decay = 'fall';     % weight function for ext. horizon   
+Opts.extHorizon.weightingFunction = ...
+    extendedHorizonWeights.fall;    % weight function for ext. horizon     
 
 % define control inputs and initial states for motion primitives
 list_x0 = {[16.79;0;0;0]};

@@ -5,7 +5,7 @@ function f = cartpole(x,u,w)
 %       f = CARTPOLE(x,u,w)
 %
 % Description:
-%       Dynamic equation for the cartpole benchmark model. The system
+%       Dynamics equation for the cartpole benchmark model. The system
 %       states are the position of the cart, the angle of the pole, the 
 %       velocity of the car, and the angular velocity of the pole. The
 %       control input is the force acting on the cart.
@@ -26,8 +26,8 @@ function f = cartpole(x,u,w)
 %       -
 %
 % References:
-%       [1] S. Geva "A Cartpole Experiment Benchmark for Trainable 
-%	    Controllers", 1993
+%       [1] J. Theis, "Sum-of-Squares Applications in Nonlinear Controller 
+%           Synthesis", UC Berkeley, 2012
 %
 %------------------------------------------------------------------
 % This file is part of <a href="matlab:docsearch aroc">AROC</a>, a Toolbox for Automatic Reachset-
@@ -49,14 +49,18 @@ function f = cartpole(x,u,w)
 
 % parameters
 l = 1;   % [m]
-m_c = 1;   % [kg]
-m_p = 0.1;  % [kg]
+m1 = 1;   % [kg]
+m2 = 0.1;  % [kg]
 g = 9.81;   % [m/s^2]
 
-% dynamics
-f(1,1) = x(3);
-f(2,1) = x(4);
-f(3,1) = (m_p*l*x(4)^2*sin(x(2))*cos(x(2))^2 - (m_c + m_p)*g*cos(x(2))*sin(x(2)) + cos(x(2))^2*u)/(4/3*(m_c + m_p)^2*l - m_p*(m_c + m_p)*l*cos(x(2))^2) + (u(1) + m_p*l*x(4)^2*sin(x(2)))/(m_c + m_p) + w(1);
-f(4,1) = ((m_c + m_p)*g*sin(x(2)) - m_p*l*x(4)^2*sin(x(2))*cos(x(2)) - cos(x(2))*u(1))/(4/3*(m_c + m_p)*l - m_p*l*cos(x(2))^2) + w(2);
+% dynamics, see [1, Eq. (71)]
+x_dot = x(3);
+psi_dot = x(4);
+v_dot = (m2*g*cos(x(2))*sin(x(2))-m2*l*x(4)^2*sin(x(2)) + u(1) + w(1))/ ...
+    (m1+m2-m2*cos(x(2))^2);
+psi_dotdot = ((m1+m2)*g*sin(x(2))-m2*l*x(4)^2*sin(x(2))*cos(x(2)) + ...
+    cos(x(2))*(u(1)+w(1)))/(m1*l+m2*l-m2*l*cos(x(2))^2) + w(2);
+
+f = [x_dot;psi_dot;v_dot;psi_dotdot];
 
 end

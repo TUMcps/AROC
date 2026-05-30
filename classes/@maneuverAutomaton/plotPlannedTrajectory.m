@@ -52,7 +52,7 @@ function plotPlannedTrajectory(obj,ind,x0,varargin)
     NVpairs = {};
 
     % parse input arguments  
-    if nargin > 3 && ~isempty(varargin{1})
+    if nargin > 3 && ~representsa(varargin{1},'emptySet')
         time = varargin{1};
     end
 
@@ -82,7 +82,7 @@ function plotPlannedTrajectory(obj,ind,x0,varargin)
         occSet = updateOccupancy(obj,x_pre,current_motion,t);
 
         % plot overall occupancy set
-        if isempty(time)
+        if representsa(time,'emptySet')
 
             dims = 1:dim(occSet{1}.set);
 

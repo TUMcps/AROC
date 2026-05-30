@@ -25,10 +25,10 @@ function f = ship(x,u,w)
 %       -f:     value of the dynamic function = time derivative of x
 %
 % See Also:
-%       cart, robotArm
+%       -
 %
 % References:
-%       * *[1] Krasowski et al. (2022)*, CommonOcean: Vessel Models
+%       [1] Krasowski et al., "CommonOcean: Vessel Models", 2022
 %
 %------------------------------------------------------------------
 % This file is part of <a href="matlab:docsearch aroc">AROC</a>, a Toolbox for Automatic Reachset-
@@ -83,8 +83,10 @@ function f = ship(x,u,w)
          0 -Yv -Yr; 
          0 -Nv -Nr];
 
-    f(1,1) = cos(x(3))*x(4) - sin(x(3))*x(5);
-    f(2,1) = sin(x(3))*x(4) + cos(x(3))*x(5);
-    f(3,1) = x(6);
-    f(4:6,1) = Minv*(-C*x(4:6) - D*x(4:6) + [u(1);u(2);u(3)] + w(1:3)); 
+    x_dot = cos(x(3))*x(4) - sin(x(3))*x(5);
+    y_dot = sin(x(3))*x(4) + cos(x(3))*x(5);
+    phi_dot = x(6);
+    v_dot = Minv*(-C*x(4:6) - D*x(4:6) + [u(1);u(2);u(3)] + w(1:3)); 
+
+    f = [x_dot;y_dot;phi_dot;v_dot];
 end

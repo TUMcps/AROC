@@ -8,7 +8,7 @@ Param.x0 = [3.5;-2.5];
 % define algorithm settings
 Opts = [];
 
-Opts.N = 18;                    % number of time steps
+Opts.N = 20;                    % number of time steps
 Opts.reachSteps = 5;            % number of reachability steps
 Opts.tOpt = 150;                % final time for optimization horizon
 Opts.Q = diag([3,3]);           % state weighting matrix  
@@ -24,9 +24,9 @@ Opts.maxIter = 12;              % max number of iterations for opt. control
 % robust control invariant set with application to Lipschitz nonlinear 
 % systems", Systems & Control Letters)
 E = ellipsoid(inv([7.9997 -12.2019; -12.2019 27.0777]./10));
-Z = zonotope(E,10,'i:norm:bnd');
+Z = zonotope(E,'inner:norm_bnd',10);
 
-Opts.termReg = mptPolytope(Z);
+Opts.termReg = polytope(Z);
 
 % execute reachset model predictive control algorithm
 res = reachsetMPC('artificialSystem',Param,Opts);

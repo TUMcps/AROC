@@ -28,7 +28,7 @@ function [objContr,res] = generatorSpaceControl(benchmark,Param,varargin)
 %                           or zonotope)
 %           -.V:            set of measurement errors (class: interval or
 %                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.X:            set of state constraints (class: polytope)
 %
 %       -Opts:              a structure containing the algorithm settings
 %
@@ -55,14 +55,11 @@ function [objContr,res] = generatorSpaceControl(benchmark,Param,varargin)
 %           -.extHorizon.horizon:   length of the extended optimization
 %                                   horizon in center trajectory time steps
 %                                   [{'all'} / positive integer]
-%           -.extHorizon.decay:     decay function for the objective
-%                                   function of the optimization problem
-%                                   with extended optimization horizon
-%                                   [{'fall+End'} / 'uniform' / 'fall' / 
-%                                    'fallLinear' / 'fallLinear+End' / 
-%                                    'fallEqDiff' / 'fallEqDiff+End' / 
-%                                    'rise' / 'quad' /  'riseLinear' /
-%                                    'riseEqDiff' / 'end']
+%           -.extHorizon.weightingFunction:     instance of enumeration
+%                                               class extendedHorizonWeights 
+%                                               specifying the weighting 
+%                                               function for the extended 
+%                                               horizon 
 %           
 %           -.refTraj.Q:    state weighting matrix for the cost function of
 %                           optimal control problem (dimension:[nx,nx])
@@ -139,7 +136,7 @@ alpha = cell(Opts.N,1);
 
 % parallelotope enclosure of the time point reachable set
 P = cell(Opts.N+1,1);
-if isempty(Opts.V)
+if representsa(Opts.V,'emptySet')
     P{1} = zonotope(Opts.R0);
 else
     P{1} = reduce(zonotope(Opts.R0)+Opts.V,'pca',1); 
@@ -185,7 +182,7 @@ for i = 1:Opts.N
     reachSet = add(reachSet,Rtemp);
     
     % compute parallelotope enclosure of the reachable set
-    if isempty(Opts.V)
+    if representsa(Opts.V,'emptySet')
         P{i+1} = reduce(zonotope(R{i+1}),'pca',1);  
     else
         P{i+1} = reduce(zonotope(R{i+1})+Opts.V,'pca',1); 
@@ -236,12 +233,12 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
     Opts.dt = Opts.tFinal/(Opts.N*Opts.Ninter);
     Opts.ReachOpts.timeStep = Opts.dt / Opts.reachSteps;
     
-    if ~isempty(Opts.V)
+    if ~representsa(Opts.V,'emptySet')
        Opts.ReachOpts.intermediateTerms = 4; 
     end
     
-    Opts.CentOpts.Nc = Opts.N*Opts.Ninter;   % number ref. traj. time steps
-    Opts.CentOpts.hc = Opts.dt;              % size center traj. time steps
+    Opts.CentOpts.N = Opts.N*Opts.Ninter;   % number ref. traj. time steps
+    Opts.CentOpts.dt = Opts.dt;             % size center traj. time steps
     
     % generate function handles for linearized dynamics
     x = sym('x',[Opts.nx,1]); 
@@ -260,7 +257,7 @@ function [Opts,sys] = initialization(benchmark,Param,Opts)
     name = ['AROCgenSpace',benchmark,Opts.ReachOpts.alg, ...
             num2str(Opts.ReachOpts.tensorOrder)];
     
-    if isempty(Opts.V)
+    if representsa(Opts.V,'emptySet')
         nExt = 2*Opts.nx + Opts.nu;
         funHan = @(x,w) dynamicsClosedLoopLinear(x,w,Opts.nx, ...
                                                Opts.nu,Opts.funHandle);

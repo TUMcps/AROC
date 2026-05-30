@@ -46,7 +46,7 @@ function sys = closedLoopSystemLin(A,B,D,c,K,u_ref,V)
 %------------------------------------------------------------------ 
 
     % system with or without measurement errors
-    if isempty(V)
+    if representsa(V,'emptySet')
 
         % construct system matrices
         A_ = [A + B*K,-B*K;

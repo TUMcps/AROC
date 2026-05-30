@@ -78,7 +78,7 @@ function [res,t,x,u] = simulateRandom(obj,varargin)
             while size(indExt,1) ~= Nextr
               indExt = unique([indExt ; randi([1,Nw])]);
             end
-            ind = setdiff(1:Nw,indExtr);
+            ind = setdiff(1:Nw,indExt);
         else
             ind = [];
             while size(ind,1) ~= (Nw-Nextr)
@@ -95,7 +95,7 @@ function [res,t,x,u] = simulateRandom(obj,varargin)
         % draw random measurement errors from the set of measurement errors
         V{i} = zeros(obj.nx,obj.N);
         
-        if ~isempty(obj.V)
+        if ~representsa(obj.V,'emptySet')
             V{i} = randPoint(obj.V,obj.N);
         end
     end

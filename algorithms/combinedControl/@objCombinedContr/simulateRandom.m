@@ -95,7 +95,7 @@ function [res,t,x,u] = simulateRandom(obj,varargin)
         % draw random measurement errors from the set of measurement errors
         V{i} = zeros(obj.nx,Nw);
         
-        if ~isempty(obj.V)
+        if ~representsa(obj.V,'emptySet')
             V{i} = randPoint(obj.V,Nw);
         end
     end

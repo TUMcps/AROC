@@ -1,15 +1,15 @@
-function [res,A,B,D,c] = isLinearModel(model,nx,nu,nw)
+function [res,A,B,E,c] = isLinearModel(model,nx,nu,nw)
 % ISLINEARMODEL - check if a model is linear or nonlinear
 %
 % Syntax:
-%       [res,A,B,D,c] = ISLINEARMODEL(model,nx,nu,nw)
+%       [res,A,B,E,c] = ISLINEARMODEL(model,nx,nu,nw)
 %
 % Description:
-%       Checks if a model is linear of nonlinear. If the model is linear,
+%       Checks if a model is linear or nonlinear. If the model is linear,
 %       the function returns the system matrices of the linear system
 %       equation
 %
-%       $\dot x = A \cdot x + B \cdot u + D \cdot w + c$
+%       $\dot x = A \cdot x + B \cdot u + E \cdot w + c$
 %
 % Input Arguments:
 %
@@ -23,7 +23,7 @@ function [res,A,B,D,c] = isLinearModel(model,nx,nu,nw)
 %       -res:   1 if the model is linear, 0 if not
 %       -A:     system matrix of the linear model (dimension: [nx,nx])
 %       -B:     input matrix of the linear model (dimension: [nx,nu])
-%       -D:     disturbance matrix of the linear model (dimension: [nu,nw])
+%       -E:     disturbance matrix of the linear model (dimension: [nu,nw])
 %       -c:     constand offset of the linear model (dimension: [nx,1])
 %
 % See Also:
@@ -48,7 +48,7 @@ function [res,A,B,D,c] = isLinearModel(model,nx,nu,nw)
 %------------------------------------------------------------------
 
     res = 1;
-    A = []; B = []; D = []; c = [];
+    A = []; B = []; E = []; c = [];
 
     % create symbolic variables
     x = sym('x',[nx,1]);
@@ -66,13 +66,13 @@ function [res,A,B,D,c] = isLinearModel(model,nx,nu,nw)
         % extract system matrices
         A_ = equationsToMatrix(eqns,x);
         B_ = equationsToMatrix(eqns,u);
-        D_ = equationsToMatrix(eqns,w);
+        E_ = equationsToMatrix(eqns,w);
         c_ = func(zeros(nx,1),zeros(nu,1),zeros(nw,1));
 
         % convert from symbolic to numerical
         A = double(A_);
         B = double(B_);
-        D = double(D_);
+        E = double(E_);
         c = double(c_);
     catch
         res = 0;   

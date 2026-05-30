@@ -1,8 +1,9 @@
-function [res,t,x,u] = simulate(obj,x0,w,varargin)
+function [res,t,x,u] = simulate(obj,x0,varargin)
 % SIMULATE - simulate a trajectory of a nonlinear system controlled with 
 %            the controller based on combined control
 %
 % Syntax:
+%       [res,t,x,u] = SIMULATE(obj,x0)
 %       [res,t,x,u] = SIMULATE(obj,x0,w)
 %       [res,t,x,u] = SIMULATE(obj,x0,w,v)
 %
@@ -52,16 +53,25 @@ function [res,t,x,u] = simulate(obj,x0,w,varargin)
 %------------------------------------------------------------------    
 
     % check if the number of specified disturbance vectors is correct
-    if size(w,2) > 1
+    if nargin > 2 && ~isempty(varargin{1})
+        w = varargin{1};
+        if size(w,2) == 1
+           w = repelem(w,1,obj.N);
+        end
         Nw = size(w,2)/obj.N;
         if Nw < 1 || floor(Nw) ~= Nw
            error('Number of disturbance vectors has to be a multiple of "N"!'); 
         end
+    else
+        w = repelem(center(obj.W),1,obj.N);
     end
     
     % check if the number of specified measurement errors is correct
-   	if length(varargin) >= 1
-       v = varargin{1};
+   	if nargin > 3 && ~isempty(varargin{2})
+       v = varargin{2};
+       if size(v,2) == 1
+           v = repelem(v,1,obj.N);
+       end
        if ~all(size(v) == [obj.nx,size(w,2)])
            error('Wrong dimension for the measurement errors "v"!'); 
        end
@@ -95,7 +105,7 @@ function [t,x,u] = simulateGenSpace(obj,x0,w,v)
     dt = obj.tFinal/(obj.N*Nw);
     
     % system dynamics
-    if isempty(obj.V)
+    if representsa(obj.V,'emptySet')
         f = @(t,x,w,p) extendedDynamics(x,w,p,obj.nx,obj.nu,...
                                    obj.dynamics,obj.linSys.A,obj.linSys.B);
     else
@@ -137,7 +147,7 @@ function [t,x,u] = simulateGenSpace(obj,x0,w,v)
             p = [obj.K{i}(:);Xlin(:,i);Ulin(:,i);uff_c;GuffAlpha(:)];
             x_ext = [x_;xffc_;dxff_;beta_];
             
-            if ~isempty(obj.V)
+            if ~representsa(obj.V,'emptySet')
                x_ext = [x_ext; v(:,j)]; 
             end
             

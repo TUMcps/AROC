@@ -53,7 +53,7 @@ function R = postprocessing_truck(R)
     % settings for occupancy set computation
     dt = 0.05;
     order = 3;
-    tol = 0.05;
+    tol = 0.02;
 
     % compute occupancy set for the truck
     l1 = l_wb + (l - l_wb)/2;

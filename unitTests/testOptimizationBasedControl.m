@@ -7,13 +7,13 @@ Param = param_platoon();
 Opts = [];
 
 Opts.reachSteps = 11;           % number of reachability steps
-Opts.maxIter = 200;             % max number of iterations for optimization
+Opts.maxIter = 50;              % max number of iterations for optimization
 Opts.bound = 10000;             % diff. bet. upper and lower bound of vars.
 Opts.refTraj.Q = eye(8);        % state weighting matrix (reference traj.)
 Opts.refTraj.R = 0.02*eye(4);   % input weighting matrix (reference traj.)
 
 % offline phase computations
-[objContr,result] = optimizationBasedControl('platoon',Param,Opts);
+[objContr,result] = optimizationBasedControl('platoon4',Param,Opts);
 
 % simulation 
 [tmp,~,~] = simulateRandom(objContr);

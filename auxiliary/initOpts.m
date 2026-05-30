@@ -6,9 +6,9 @@ function Opts = initOpts(name,benchmark,Opts,Param)
 %
 % Description:
 %       Initializes algorithm settings and parameters. In particular, this
-%       function checks if all user provided settings take valid values, it
-%       generates the files for the ACADO toolbox, and it initializes the
-%       settings for computing references trajectories.
+%       function checks if all user provided settings take valid values, 
+%       and it initializes the settings for computing references 
+%       trajectories.
 %
 % Input Arguments:
 %
@@ -103,7 +103,7 @@ function Opts = initOpts(name,benchmark,Opts,Param)
     Opts.ReachParams.U = zonotope(Opts.W);
 
     % settings for optimal control to compute the reference trajectory
-    fields = {'nx','nu','nw','tFinal','xf'};
+    fields = {'nx','nu','nw','xf'}; %'tFinal','xf'};
     CentOpts = [];
     for fn = fields
        CentOpts.(fn{1}) = Opts.(fn{1}); 
@@ -119,90 +119,13 @@ function Opts = initOpts(name,benchmark,Opts,Param)
     end
     
     CentOpts.x0 = center(Opts.R0); 
-    CentOpts.uMax = supremum(Param.U);
-    CentOpts.uMin = infimum(Param.U);
-    
-    % generate ACADO or Fmincon files
-    [path,~,~] = fileparts(which(name));
-    
-    if isempty(which('BEGIN_ACADO'))
-        
-        CentOpts.useAcado = 0;
-        
-        if isfield(Opts,'extHorizon')
-            CentOpts.extHorizon = Opts.extHorizon;
-            CentOpts.extHorizon.horizon = 1;
-        end
-        
-        if strcmp(name,'generatorSpaceControl') || ...
-           strcmp(name,'safetyNetControl') || strcmp(name,'polynomialControl')
-            CentOpts.Ninter = Opts.N * Opts.Ninter;
-        else
-            CentOpts.Ninter = Opts.N; 
-        end
-        
-        w = warning();
-        warning('off','all');
-
-        rmpath(genpath(fullfile(path,'fmincon')));
-        
-        writeFminconFiles(path,benchmark,CentOpts);
-        
-        if strcmp(name,'convexInterpolationControl')
-            CentOpts.Ninter = Opts.Ninter;
-            CentOpts.extHorizon = Opts.extHorizon;
-            writeFminconFiles(path,benchmark,CentOpts);
-        end
-
-        if strcmp(name,'safetyNetControl')
-            if iscell(Opts.controller)
-                for i = 1:length(Opts.controller)
-                    if strcmp(Opts.controller{i},'MPC')
-                        for j = 1:Opts.contrOpts{i}.horizon
-                            CentOpts.Ninter = j * Opts.contrOpts{i}.Ninter;
-                            writeFminconFiles(path,benchmark,CentOpts);
-                        end
-                    end
-                end
-            elseif strcmp(Opts.controller,'MPC')
-                for j = 1:Opts.contrOpts.horizon
-                    CentOpts.Ninter = j * Opts.contrOpts.Ninter;
-                    writeFminconFiles(path,benchmark,CentOpts);
-                end
-            end
-        end
-
-        if strcmp(name,'polynomialControl') && Opts.refUpdate
-            for j = 1:Opts.N
-                CentOpts.Ninter = j*Opts.Ninter;
-                writeFminconFiles(path,benchmark,CentOpts);
-            end
-        end
-        
-        CentOpts = rmfield(CentOpts,'Ninter');
-        
-        warning(w);
-        
-    else
-        
-        CentOpts.useAcado = 1;
-        
-        if isfield(Opts,'extHorizon') && ...
-                strcmp(name,'convexInterpolationControl')
-            CentOpts.extHorizon = Opts.extHorizon;
-            CentOpts.Nc = Opts.N;
-        end
-
-        w = warning();
-        warning('off','all');
-
-        rmpath(genpath(fullfile(path,'acado')));
-
-        acadoConvertDynamics(path,CentOpts,benchmark);
-        writeAcadoFiles(path,benchmark,CentOpts);
-
-        warning(w);
+    if isfield(Param,'X')
+        CentOpts.X = Param.X;
     end
-    
+    CentOpts.U = Param.U;
+    CentOpts.W = Param.W;
+        CentOpts.uMax = supremum(Param.U);
+    CentOpts.uMin = infimum(Param.U);
+        
     Opts.CentOpts = CentOpts;
 end

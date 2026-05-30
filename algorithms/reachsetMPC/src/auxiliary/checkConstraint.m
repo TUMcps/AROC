@@ -31,7 +31,7 @@ function [res,L_,J_] = checkConstraint(x,u,L,J,Opts)
 %           -.R:            input weighting matrix for the cost function
 %                           (center trajectory)
 %           -.termReg:      terminal region around the steady state xf
-%                           (class: mptPolytope)
+%                           (class: polytope)
 %           -.alpha:        contraction rate for the contraction constraint
 %                           [{0.1} / alpha > 0]
 %

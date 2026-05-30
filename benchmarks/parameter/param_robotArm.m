@@ -13,17 +13,17 @@ function Param = param_robotArm()
 %
 %       -Param:             a structure containing following options
 %
-%           -.R0:           initial set of states (class: interval)
+%           -.R0:           initial set of states 
+%                           (class: interval)
 %           -.xf:           goal state
 %           -.tFinal:       final time after which the goal state should be
 %                           reached
-%           -.U:            set of admissible control inputs (class:
-%                           interval)
-%           -.W:            set of uncertain disturbances (class: interval 
-%                           or zonotope)
-%           -.V:            set of measurement errors (class: interval or
-%                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.U:            set of admissible control inputs 
+%                           (class: interval)
+%           -.W:            set of uncertain disturbances 
+%                           (class: interval)
+%           -.X:            set of admissible states 
+%                           (class: polytope)
 %
 % See Also:
 %       robotArm
@@ -47,20 +47,20 @@ function Param = param_robotArm()
 %------------------------------------------------------------------
     
     % initial set of states
-    x0 = [0;0;0;0];
+    x0 = [pi/6;0;0;0];
     width = [0.05; 0.05; 0.05; 0.05];
     Param.R0 = interval(x0-width,x0+width);
     
     % goal state and final time
-    Param.xf = [-0.2241;0.4482;0;0];
+    Param.xf = [0.75*pi;0.4482;0;0];
     Param.tFinal = 1;
 
     % set of admissible states
-    tmp = mptPolytope(interval([0;-pi], [pi;pi]));
+    tmp = polytope(interval([0;-pi], [pi;pi]));
     A = zeros(4,4);
-    A(:, [1 2]) = tmp.P.A;
+    A(:, [1 2]) = tmp.A;
 
-    Param.X = mptPolytope(A, tmp.P.b);
+    Param.X = polytope(A, tmp.b);
     
     % set of admissible control inputs
     width = [3;1];

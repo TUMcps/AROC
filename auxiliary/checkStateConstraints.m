@@ -12,7 +12,7 @@ function checkStateConstraints(R,X)
 % Input Arguments:
 %
 %       -R:     reachable set of the controlled system (class: reachSet)
-%       -X:     set of state constraints (class: mptPolytope)
+%       -X:     set of state constraints (class: polytope)
 %
 % See Also:
 %       generatorSpaceControl, convexInterpolationControl

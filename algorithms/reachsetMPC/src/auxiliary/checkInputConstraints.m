@@ -60,11 +60,11 @@ function res = checkInputConstraints(R,k,u,Opts)
 
         % calculate set corresponding to x-x_ref
         temp = zonotope(R{j});
-        Z = temp.Z;
+        Z = [temp.c,temp.G];
         Rdiff = zonotope(Z(1:Opts.nx,:)-Z(Opts.nx+1:end,:));
 
         % calculate minimal and maximal control input on the set
-        if isempty(Opts.V)
+        if representsa(Opts.V,'emptySet')
             Ru = interval(k' * Rdiff);
         else
             Ru = interval(k' * (Rdiff + Opts.V)); 

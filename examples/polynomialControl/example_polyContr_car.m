@@ -12,7 +12,6 @@ Opts.Ninter = 5;            % number of intermediate time steps
 Opts.ctrlOrder = 1;         % polynomial order of the controller
 Opts.Q = diag([1,2,1,1]);   % state weighting matrix
 
-% controller synthesis
 clock = tic;
 [objContr,res] = polynomialControl('car',Param,Opts);
 tComp = toc(clock);

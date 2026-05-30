@@ -39,9 +39,9 @@ title('Standard Case');
 %% EXTENDED OPTIMIZATION HORIZON
 
 % adapt algorithm options
-Opts.extHorizon.active = 1;             % use extended optimization horizon
-Opts.extHorizon.horizon = 4;            % time steps for ext. horizon
-Opts.extHorizon.decay = 'riseLinear';   % weight function for ext. horizon
+Opts.extHorizon.active = 1;                                             % use extended optimization horizon
+Opts.extHorizon.horizon = 4;                                            % time steps for ext. horizon
+Opts.extHorizon.weightingFunction = extendedHorizonWeights.riseLinear;  % weighting function for ext. horizon
 
 % controller synthesis
 clock = tic;

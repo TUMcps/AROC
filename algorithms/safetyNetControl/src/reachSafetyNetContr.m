@@ -80,7 +80,7 @@ function [R, Rcont] = reachSafetyNetContr(sys,R0,H,U,Opts)
         R0 = polyZonotope(c_,G_(:,1:size(E,2)),G_(:,size(E,2)+1:end),E);
         
         % consider measurement errors
-        if ~isempty(Opts.V)
+        if ~representsa(Opts.V,'emptySet')
            R0 = R0 + cartProd(Opts.V,zeros(Opts.nu + Opts.nGen,1)); 
         end
         
@@ -98,10 +98,10 @@ function [R, Rcont] = reachSafetyNetContr(sys,R0,H,U,Opts)
         Rfin = Rtemp.timePoint.set{end};
         
         c = Rfin.c(1:Opts.nx);
-        G_ = [Rfin.G,Rfin.Grest];
+        G_ = [Rfin.G,Rfin.GI];
         G = G_(1:Opts.nx,:);
         assignInput = G_(Opts.nx+Opts.nu+1:end,:);
-        E = Rfin.expMat;
+        E = Rfin.E;
         id = Rfin.id;
     end
 

@@ -28,7 +28,8 @@ disp([newline,'Computation time: ',num2str(tComp),'s']);
 [resSim,~,~] = simulateRandom(objContr);
 
 % animation
-animate(resSim,'ship');
+speedUp = 5;
+animate(resSim,'ship',[],[],[],speedUp);
 
 % visualization
 figure; hold on; box on

@@ -21,7 +21,7 @@ classdef termRegSubpaving < terminalRegion
 %                   represents the terminal region 
 %       -xEq:       equilibrium point for the terminal region
 %       -uEq:       control input for the equilirium point
-%       -Param:     a structure containing the benchmark parameters
+%       -Param:     a struct containing the benchmark parameters
 %
 %           -.U:            set of admissible control inputs (class:
 %                           interval)

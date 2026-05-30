@@ -56,7 +56,7 @@ function [Rfin,Rcont] = compReachSet(sys,K,uc,xc,p,Opts)
     options = Opts.ReachOpts;
     params = Opts.ReachParams;
     
-    if isempty(Opts.V)
+    if representsa(Opts.V,'emptySet')
        params.R0 = zonotope([p;xc(:,1)]);
     else
        params.R0 = cartProd(Opts.V,zonotope(zeros(Opts.nx,1)))+[p;xc(:,1)]; 

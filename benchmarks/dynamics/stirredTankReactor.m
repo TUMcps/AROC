@@ -28,8 +28,8 @@ function f = stirredTankReactor(x,u,w)
 %       cart, robotArm
 %
 % References:
-%       * *[1] Magni et al. (2001)*, A stabilizing model-based predictive 
-%              control algorithm for nonlinear systems
+%       [1] Magni et al., "A stabilizing model-based predictive control 
+%           algorithm for nonlinear systems", 2001
 %
 %------------------------------------------------------------------
 % This file is part of <a href="matlab:docsearch aroc">AROC</a>, a Toolbox for Automatic Reachset-
@@ -71,8 +71,11 @@ function f = stirredTankReactor(x,u,w)
     U = u + T_c0;
 
     % Dynamics
-    f(1,1) = q/V * (C_Af - x(1)) - k0*exp(-E_R/x(2)) * x(1) + w(1);
+    CA_dot = q/V * (C_Af - x(1)) - k0*exp(-E_R/x(2)) * x(1) + w(1);
 
-    f(2,1) = q/V * (Tf - x(2)) - (deltaH*k0)/(rho*Cp)* exp(-E_R/x(2)) * x(1) + ...
-             UA/(V*rho*Cp) * (U - x(2)) + w(2);
+    T_dot = q/V * (Tf - x(2)) - (deltaH*k0)/(rho*Cp)* exp(-E_R/x(2)) * x(1) + ...
+             UA/(V*rho*Cp) * (U(1) - x(2)) + w(2);
+
+    f = [CA_dot;T_dot];
+end
          

@@ -4,6 +4,8 @@ function Opts = checkMatrix(Opts,field,default,dim,varargin)
 % Syntax:
 %       Opts = CHECKMATRIX(Opts,field,default,dim)
 %       Opts = CHECKMATRIX(Opts,field,default,dim,posDef)
+%       Opts = CHECKMATRIX(Opts,field,default,dim,posDef,structName)
+
 %
 % Description:
 %       Checks if the specified matrix is a string and takes a valid 
@@ -11,12 +13,14 @@ function Opts = checkMatrix(Opts,field,default,dim,varargin)
 %
 % Input Arguments:
 %
-%       -Opts:      a structure containing the algorithm settings
-%       -field:     string specifying the name of the setting that is
-%                   checked
-%       -default:   default value
-%       -dim:       required dimension of the matrix
-%       -posDef:    matrix has to be positive definite
+%       -Opts:          a structure containing the algorithm settings
+%       -field:         tring specifying the name of the setting that is
+%                       checked
+%       -default:       default value
+%       -dim:           required dimension of the matrix
+%       -posDef:        matrix has to be positive definite
+%       -structName:    name of "inner" structure to deal with nested
+%                       structures (i.e., we check Opts.structName.field)
 %
 % Output Arguments:
 %
@@ -45,9 +49,13 @@ function Opts = checkMatrix(Opts,field,default,dim,varargin)
 
     % parse input arguments
     posDef = false;
+    fieldName = field;
     
     if nargin > 4
        posDef = varargin{1}; 
+       if nargin == 6
+           fieldName = [varargin{2}, '.', field];
+       end
     end
 
     % set to default value if value does not exist
@@ -56,7 +64,7 @@ function Opts = checkMatrix(Opts,field,default,dim,varargin)
             Opts.(field) = default;
             return;
         else
-            error(['Setting "Opts.',field,' is missing!']); 
+            error(['Setting "Opts.',fieldName,' is missing!']); 
         end
     end
 
@@ -64,7 +72,7 @@ function Opts = checkMatrix(Opts,field,default,dim,varargin)
     val = Opts.(field);
 
     if ~isnumeric(val) || ~checkDimension(val,dim)
-        str = ['Wrong value for "Opts.',field,'"! Has to a be a ', ...
+        str = ['Wrong value for "Opts.',fieldName,'"! Has to a be a ', ...
                         num2str(dim(1)),' x ',num2str(dim(2)), ' matrix!'];
         error(str);
     end
@@ -72,7 +80,7 @@ function Opts = checkMatrix(Opts,field,default,dim,varargin)
     % check if matrix is positive definite
     if posDef
         if ~isPositiveDefinite(val)
-            str = ['Wrong value for "Opts.',field,'"! Has to a be a ', ...
+            str = ['Wrong value for "Opts.',fieldName,'"! Has to a be a ', ...
                                          'positive semi-definite matrix!'];
             error(str);
         end

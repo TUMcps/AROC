@@ -54,14 +54,11 @@ function [R0opt,RcontOpt] = scaleInitialSet(sys,R0,H,goalSet,U,iter,Opts)
     s = []; RcontOpt = []; R0opt = []; R0_ = R0;
 
     % convert goal set to halfspace representation
-    goalSet = mptPolytope(goalSet);
+    goalSet = polytope(goalSet);
     
-    if ~isempty(Opts.V) && iter < Opts.N
+    if ~representsa(Opts.V,'emptySet') && iter < Opts.N
        goalSet = minus(goalSet,Opts.V,'approx'); 
     end
-    
-    C = get(goalSet,'A');
-    d = get(goalSet,'b');
     
     % compute reachable set for the unscaled set
     [Rfin,~] = reachSafetyNetContr(sys,R0,H,U,Opts);
@@ -70,7 +67,7 @@ function [R0opt,RcontOpt] = scaleInitialSet(sys,R0,H,goalSet,U,iter,Opts)
     for i = 1:Opts.iter   
         
         % scale the initial set by solving a optimization problem
-        s_ = factorScaling(R0_,Rfin,H,C,d,Opts.stateCon);
+        s_ = factorScaling(R0_,Rfin,H,goalSet,Opts.stateCon);
             
         if isempty(s)
            s = s_; 
@@ -85,8 +82,8 @@ function [R0opt,RcontOpt] = scaleInitialSet(sys,R0,H,goalSet,U,iter,Opts)
         [Rfin,Rcont] = reachSafetyNetContr(sys,R0_,H,U,Opts);
         
         % check if the constraints are satisfied
-        if contains(goalSet,Rfin)
-            if isempty(R0opt) || volume(R0opt) < volume(R0_)
+        if contains(goalSet,zonotope(Rfin))
+            if representsa(R0opt,'emptySet') || volume(R0opt) < volume(R0_)
                 R0opt = R0_;
                 RcontOpt = Rcont;
             end
@@ -94,7 +91,7 @@ function [R0opt,RcontOpt] = scaleInitialSet(sys,R0,H,goalSet,U,iter,Opts)
     end
     
     % check if a suitable solution could be found
-    if isempty(R0opt)
+    if representsa(R0opt,'emptySet')
        error('Failed to find a suitable solution!'); 
     end
 end

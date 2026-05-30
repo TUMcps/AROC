@@ -56,12 +56,12 @@ function res = resolveControlTemplates(P,c,Opts)
             % replace constant parameters
             pZtmp = resolve(P{i}{j},c,Opts.idc);
 
-            if isZero(pZtmp)
+            if representsa(pZtmp,'origin')
                 continue;
             end
 
             % compute coefficients (template is always linear in p)
-            Ptmp(j,:) = pZtmp.G*pZtmp.expMat';
+            Ptmp(j,:) = pZtmp.G*pZtmp.E';
         end
 
         % do not remove zero row!

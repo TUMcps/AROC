@@ -92,7 +92,7 @@ for i = 1:N
         w = randPoint(W);
         
         % simulate the system
-        [tTemp,xTemp] = ode45(@(t,x)platoon(x,u_,w),t0:sampTime:t0 + dt,x0);
+        [tTemp,xTemp] = ode45(@(t,x)platoon4(x,u_,w),t0:sampTime:t0 + dt,x0);
         
         % store the results 
         x = [x, xTemp(2:end,:)'];
@@ -113,11 +113,11 @@ end
 Opts.group = 10;
 Opts.measErr = true;
 
-[W,V] = conformantSynthesis('platoon',M,Opts);
+[W,V] = conformantSynthesis('platoon4',M,Opts);
 
 % check if the reachable set contains all measurements
 for i = 1:length(M)
-    R = reachSetConformance('platoon',M{i},W,V);
+    R = reachSetConformance('platoon4',M{i},W,V);
     for j = 1:length(R.timePoint.set)
         assert(containsFast(R.timePoint.set{j}, M{i}.x(:,j)))
     end

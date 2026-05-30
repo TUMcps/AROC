@@ -18,13 +18,16 @@ Opts.Ninter = 2;                    % number of intermediate steps
 Opts.reachSteps = 20;               % number of reachability steps
 Opts.R = 1e-7*eye(2);               % input weighting matrix
 Opts.extHorizon.active = true;      % use extended optimization horizon
-Opts.extHorizon.decay = 'fall';     % time steps for ext. horizon
-Opts.extHorizon.horizon = 5;        % weight function for extended horizon  
+Opts.extHorizon.horizon = 5;        % time steps for ext. horizon  
+Opts.extHorizon.weightingFunction = ...
+    extendedHorizonWeights.fall;    % weight function for ext. horizon  
 
 % define control inputs and initial states for motion primitives
 list_xf = {[1.6;0;0;0;0;0],[-1.6;0;0;0;0;0],[1;1;0;0;0;0],[-1;1;0;0;0;0]};
-list_Q = {[30,20,12,4,2,1],[30,20,12,4,2,1], ...
-                                [82,12.8,10,11,2,1],[82,12.8,10,11,2,1]};
+list_Q = {[30.6640,20.1357,12.0201,4.6448,2.1202,0.1334], ...
+          [30.6640,20.1357,12.0201,4.6448,2.1202,0.1334], ...
+          [82.8711,12.9859,10.3235,11.6737,1.2819,0.4013], ...
+          [82.8711,12.9859,10.3235,11.6737,1.2819,0.4013]};
 
 % loop over all motion primitives
 primitives = {};

@@ -5,7 +5,7 @@ function f = cart(x,u,w)
 %       f = CART(x, u, w)
 %
 % Description:
-%       Dynamic equation for the cart benchmark model. The benchmark 
+%       Dynamics equation for the cart benchmark model. The benchmark 
 %       represents a cart that is coupled to the environment by a spring 
 %       and a damper, where both the stiffness of the spring and the 
 %       damping of the damper are nonlinear functions of the cart position. 
@@ -25,7 +25,7 @@ function f = cart(x,u,w)
 %       -f:     value of the dynamic function = time derivative of x
 %
 % See Also:
-%       car, doubleIntegrator, robotArm
+%       -
 %
 %------------------------------------------------------------------
 % This file is part of <a href="matlab:docsearch aroc">AROC</a>, a Toolbox for Automatic Reachset-
@@ -51,7 +51,8 @@ function f = cart(x,u,w)
     d = 1;              % gain of the damping term
     
     % dynamics
-    f(1,1) = x(2) + w(1);
-    f(2,1) = 1/m * (-d * x(2)^2 - k * x(1)^3 + u) + w(2);
+    x_dot = x(2) + w(1);
+    v_dot = 1/m * (-d * x(2)^2 - k * x(1)^3 + u(1)) + w(2);
 
+    f = [x_dot; v_dot];
 end

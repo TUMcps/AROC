@@ -51,7 +51,7 @@ function im = animateQuadrotor2D(x,t,varargin)
         dynObs = varargin{2};
     end
 
-    if nargin > 4 && ~isempty(varargin{3})
+    if nargin > 4 && ~representsa(varargin{3},'emptySet')
         goalSet = varargin{3};
     end
 
@@ -70,7 +70,7 @@ function im = animateQuadrotor2D(x,t,varargin)
         hold on;
 
         % plot goal set
-        if ~isempty(goalSet)
+        if ~representsa(goalSet,'emptySet')
             plot(goalSet,[1,2],'FaceColor',[134 227 134]/255);
         end
 

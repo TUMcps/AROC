@@ -129,7 +129,7 @@ function pval = computeCtrl(p0,Rparam,alpha_c,Opts)
               'SpecifyConstraintGradient',true, 'Display','none',...
               'OptimalityTolerance',TOL_OPT, ...
               'MaxFunctionEvaluations',1000, 'maxIterations',1000);
-    
+
     % solve optimization problem
     [x,~,exitflag] = fmincon(f,x0,A,b,[],[],lb,ub,nonlconstr,options);
     

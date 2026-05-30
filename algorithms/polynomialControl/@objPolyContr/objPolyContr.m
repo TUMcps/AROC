@@ -36,7 +36,7 @@ classdef objPolyContr < objController
 %           -.W:            set of uncertain disturbances (class: interval)
 %           -.V:            set of measurement errors (class: interval or
 %                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.X:            set of state constraints (class: polytope)
 %
 %       -occSet:  cell-array storing the occupancy set  
 %

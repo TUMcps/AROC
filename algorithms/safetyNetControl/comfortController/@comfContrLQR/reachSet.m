@@ -76,8 +76,9 @@ function [res,R,Param] = reachSet(obj,R0,iter)
             % compute set of applied control inputs
             Rtemp = Rcont.timeInterval.set{j};
 
-            U_ = uc(:,i) + K{i}' * zonotope(Rtemp.Z(1:obj.nx,:) ...
-                                      - Rtemp.Z(obj.nx+1:end,:));
+            U_ = uc(:,i) + K{i}' * zonotope( ...
+                      Rtemp.c(1:obj.nx) - Rtemp.c(obj.nx+1:end), ...
+                      Rtemp.G(1:obj.nx,:) - Rtemp.G(obj.nx+1:end,:));
                                           
             % check input constraints
             if ~contains(obj.U,U_)
@@ -86,7 +87,7 @@ function [res,R,Param] = reachSet(obj,R0,iter)
             end
             
             % check state constraints
-            if isa(obj.X,'mptPolytope') && ...
+            if isa(obj.X,'polytope') && ...
                ~contains(obj.X,project(Rtemp,1:obj.nx))
                 res = 0;
                 return;

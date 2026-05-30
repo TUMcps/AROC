@@ -24,7 +24,7 @@ function [objContr,res] = polynomialControl(benchmark,Param,Opts,varargin)
 %           -.W:            set of uncertain disturbances (class: interval)
 %           -.V:            set of measurement errors (class: interval or
 %                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.X:            set of state constraints (class: polytope)
 %
 %       -Opts:              a structure containing the algorithm settings
 %
@@ -60,14 +60,11 @@ function [objContr,res] = polynomialControl(benchmark,Param,Opts,varargin)
 %           -.extHorizon.horizon:   length of the extended optimization
 %                                   horizon in center trajectory time steps
 %                                   [{'all'} / positive integer]
-%           -.extHorizon.decay:     decay function for the objective
-%                                   function of the optimization problem
-%                                   with extended optimization horizon
-%                                   [{'fall+End'} / 'uniform' / 'fall' / 
-%                                    'fallLinear' / 'fallLinear+End' / 
-%                                    'fallEqDiff' / 'FallEqDiff+End' / 
-%                                    'rise' / 'quad' /  'riseLinear' /
-%                                    'riseEqDiff' / 'end']
+%           -.extHorizon.weightingFunction:     instance of enumeration
+%                                               class extendedHorizonWeights 
+%                                               specifying the weighting 
+%                                               function for the extended 
+%                                               horizon 
 %           
 %           -.refTraj.Q:    state weighting matrix for the cost function of
 %                           the optimal control problem
@@ -129,9 +126,8 @@ if Opts.refUpdate
     xref(:,1) = center(Opts.R0);
     uref = zeros(Opts.nu,Opts.N*Opts.Ninter);
 else
-    dT = Param.tFinal;
-    centOpts = setupCentOpts(Opts.N*Opts.Ninter,1,center(Opts.R0),...
-                            Param.xf,dT,Opts.CentOpts);
+    centOpts = setupCentOpts(Opts.N*Opts.Ninter,Param.tFinal, ...
+        center(Opts.R0),Param.xf,Opts.CentOpts);
     [xref,uref] = centerTrajectory(dyn,centOpts);
 end
 
@@ -151,11 +147,11 @@ R = [];
 p0_ = zeros(Opts.Np*Opts.N,1);      % initial guess for parameter value
 
 % loop over all time steps
-for i = 1:Opts.N
-    fprintf('Time step: %i\n',i);
+for kk = 1:Opts.N
+    fprintf('Time step: %i\n',kk);
 
     % extended horizon update
-    Opts = updateExtHorizon(i,Opts);
+    Opts = updateExtHorizon(kk,Opts);
     len = Opts.extHorizon.length;
     
     % adapt length of the initial guess
@@ -163,7 +159,7 @@ for i = 1:Opts.N
     
     % enclose reachable set by a parallelotope
     Z_P = reduce(zonotope(R0),'pca',1);
-    parallelo{i} = Z_P;
+    parallelo{kk} = Z_P;
     GP_inv = inv(generators(Z_P));
     cP = center(Z_P);
 
@@ -176,19 +172,19 @@ for i = 1:Opts.N
     if Opts.refUpdate
 
         % compute new reference trajectory starting from the current state
-        dT = Param.tFinal - Param.tFinal/Opts.N * (i-1);
-        centOpts = setupCentOpts((Opts.N-i+1)*Opts.Ninter,1,cx,Param.xf,...
-                                 dT,Opts.CentOpts);
+        tf =  Param.tFinal - Param.tFinal/Opts.N * (kk-1);
+        centOpts = setupCentOpts((Opts.N-kk+1)*Opts.Ninter,tf,cx,Param.xf,...
+                                 Opts.CentOpts);
 
         [x_c,u_c] = centerTrajectory(dyn,centOpts);
 
         % add to final reference trajectory (exclude previous point)
-        xref(:,(i-1)*Opts.Ninter+2:i*Opts.Ninter+1) = x_c(:,2:Opts.Ninter+1);
-        uref(:,(i-1)*Opts.Ninter+1:i*Opts.Ninter) = u_c(:,1:Opts.Ninter);
+        xref(:,(kk-1)*Opts.Ninter+2:kk*Opts.Ninter+1) = x_c(:,2:Opts.Ninter+1);
+        uref(:,(kk-1)*Opts.Ninter+1:kk*Opts.Ninter) = u_c(:,1:Opts.Ninter);
 
     else
-        x_c = xref(:,(i-1)*Opts.Ninter+(1:len*Opts.Ninter+1));
-        u_c = uref(:,(i-1)*Opts.Ninter+(1:len*Opts.Ninter));
+        x_c = xref(:,(kk-1)*Opts.Ninter+(1:len*Opts.Ninter+1));
+        u_c = uref(:,(kk-1)*Opts.Ninter+(1:len*Opts.Ninter));
     end
 
     Opts.Xf = x_c(:,1:Opts.Ninter:end);
@@ -230,10 +226,10 @@ for i = 1:Opts.N
 
     % compute final closed-loop reachable set
     pZCtrl_x = resolve(U_x,pval,Opts.idp);
-    Ctrl_x{i} = pZCtrl_x;
+    Ctrl_x{kk} = pZCtrl_x;
     pZCtrl = subs(pZCtrl_x,R0,Opts.idx);
 
-    if ~isempty(Opts.V)
+    if ~representsa(Opts.V,'emptySet')
         tmp = subs(-center(pZCtrl_x)+pZCtrl_x,polyZonotope(Opts.V),Opts.idx);
         pZCtrl = pZCtrl + zonotope(tmp);
     end
@@ -352,14 +348,12 @@ function Opts = initialization(benchmark,Param,Opts)
     Opts.UU = zonotope([c,G]);
 end
 
-function centOpts = setupCentOpts(N,nr,x0,xf,dT,Def)
+function centOpts = setupCentOpts(N,tf,x0,xf,Def)
 % define options for reference trajectory computation
 
     centOpts = Def;
-    centOpts.Nc = N;
-    centOpts.hc = dT/N;
-    centOpts.Nr = nr;
+    centOpts.N = N;
+    centOpts.dt = tf/N;
     centOpts.x0 = x0;
     centOpts.xf = xf;
-    centOpts.tf = dT;
 end

@@ -2,7 +2,7 @@ classdef comfContrMPC
 % COMFCONTRMPC - class representing a MPC controller object 
 %
 % Syntax:
-%       obj = COMFCOnTRMPC(benchmark,Opts,ContrOpts)
+%       obj = COMFCONTRMPC(benchmark,Opts,ContrOpts)
 %
 % Description:
 %       This class represents a MPC (Model Predictive Control) controller
@@ -23,7 +23,7 @@ classdef comfContrMPC
 %           -.W:            set of uncertain disturbances (class: interval)
 %           -.V:            set of measurement errors (class: interval or
 %                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.X:            set of state constraints (class: polytope)
 %           -.N:            number of time-steps
 %                           [{10} / positive integer]
 %           -.xCenter:      reference trajectory states
@@ -83,7 +83,7 @@ properties (SetAccess = protected, GetAccess = public)
     nx = [];            % number of states
     nu = [];            % number of inputs
     nw = [];            % number of disturbances
-    path = [];          % file path to the ACADO files
+    % path = [];          % file path to the ACADO files
     benchmark = [];     % name of the bechmark
     funHandle = [];     % function handle to the dynamic function
 end
@@ -118,7 +118,7 @@ methods
         obj.Ninter = ContrOpts.Ninter;
         
         % check if allocated computation time is valid
-        obj.Npred = Opts.tComp/(Opts.tFinal/(Opts.N*obj.Ninter))+1;
+        obj.Npred = round(Opts.tComp/(Opts.tFinal/(Opts.N*obj.Ninter))+1);
         
         % set options for reachability analysis with the CORA toolbox
         [params,options] = coraOptions(obj);
@@ -162,24 +162,21 @@ methods
     % define the settings for solving optimal control problems
         
         % set options for optimal control problems
-        Opts.Nc = obj.N*obj.Ninter;
+        Opts.N = obj.N*obj.Ninter;
         Opts.nx = obj.nx;
         Opts.nu = obj.nu;
         Opts.nw = obj.nw;
-        Opts.hc = obj.tFinal/Opts.Nc;
+        Opts.dt = obj.tFinal/Opts.N;
         Opts.xf = obj.xf;
+        Opts.U = obj.U;
+        Opts.W = obj.W;
+        Opts.V = obj.V;
+        Opts.X = fullspace(Opts.nx);
         Opts.uMax = supremum(obj.U);
         Opts.uMin = infimum(obj.U);
         Opts.extHorizon.active = 0;
         Opts.extHorizon.horizon = 1;
-        Opts.extHorizon.decay = 'uniform';
-        
-        % check if ACADO toolbox is installed
-        if isempty(which('BEGIN_ACADO'))
-            Opts.useAcado = 0;
-        else
-            Opts.useAcado = 1;
-        end
+        Opts.extHorizon.weightingFunction = extendedHorizonWeights.uniform;
         
         % store state and input weightening matrix
         Opts.Q = ContrOpts.Q;

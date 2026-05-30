@@ -148,28 +148,28 @@ function con = stateAndInputConstraints(R,Rdist,auxTerm,curv,Opts)
     con = [];
 
     % construct constraints for extended system dynamics in Eq. (4) in [1]
-    if isfield(Opts,'X') && ~isempty(Opts.X)
-        poly = cartProd(Opts.X,mptPolytope(Opts.U));
+    if isfield(Opts,'X') && ~representsa(Opts.X,'emptySet')
+        poly = cartProd(Opts.X,polytope(Opts.U));
     else
-        tmp = mptPolytope(Opts.U);
+        tmp = polytope(Opts.U);
         A = [zeros(size(tmp.P.A,1),Opts.nx), tmp.P.A];
-        poly = mptPolytope(A,tmp.P.b);
+        poly = polytope(A,tmp.P.b);
     end
 
     % loop over all reachable sets
     for i = 2:Opts.N+1
         
         % subtract reachable set due to disturbances (see Eq. (9) in [1])
-        poly_ = minkDiff(poly,Rdist{i},'inner');
+        poly_ = minkDiff(poly,Rdist{i});
         
         % construct constraint
         if i < Opts.N+1
-            con = [con; poly_.P.A * (R{i} + curv{i}) + ...
-                        sum(abs(poly_.P.A)*auxTerm{i},2) - poly_.P.b <= 0];
+            con = [con; poly_.A * (R{i} + curv{i}) + ...
+                        sum(abs(poly_.A)*auxTerm{i},2) - poly_.b <= 0];
         end
                                 
-        con = [con; poly_.P.A * (R{i} + curv{i-1}) + ...
-                      sum(abs(poly_.P.A)*auxTerm{i-1},2) - poly_.P.b <= 0];
+        con = [con; poly_.A * (R{i} + curv{i-1}) + ...
+                      sum(abs(poly_.A)*auxTerm{i-1},2) - poly_.b <= 0];
     end   
 end
 
@@ -180,8 +180,8 @@ function con = contractionConstraint(R,Rdist,p,Opts)
 
     % terminal region properties
     termReg = Opts.termReg + (-Opts.xf);
-    A = termReg.P.A;
-    b = termReg.P.b;
+    A = termReg.A;
+    b = termReg.b;
     b = 1/(1 + Opts.alpha) * b;
 
     % loop over all reachable sets

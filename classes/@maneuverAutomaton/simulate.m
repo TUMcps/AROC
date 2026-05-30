@@ -54,7 +54,7 @@ function [res,t,x,u] = simulate(obj,ind,x0,varargin)
 %------------------------------------------------------------------    
 
     % check if the number of specified disturbance vectors is correct
-    if nargin > 2
+    if nargin > 3
         w = varargin{1};
         if iscell(w)
             if length(w) ~= length(ind)
@@ -67,7 +67,7 @@ function [res,t,x,u] = simulate(obj,ind,x0,varargin)
             error('Wrong format for disturbances w!');
         end
     else
-        w = center(obj.motionPrimitives{1},W);
+        w = center(obj.primitives{1}.W);
         w = repmat({w},[length(ind),1]);
     end
     

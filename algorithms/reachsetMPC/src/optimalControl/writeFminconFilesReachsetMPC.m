@@ -25,7 +25,7 @@ function writeFminconFilesReachsetMPC(path,benchmark,Opts)
 %                                   terminal region polytope
 %
 % See Also:
-%       reachsetMPC, writeAcadoFilesMPC                                                                                             
+%       reachsetMPC                                                                                             
 %
 %------------------------------------------------------------------
 % This file is part of <a href="matlab:docsearch aroc">AROC</a>, a Toolbox for Automatic Reachset-
@@ -48,8 +48,9 @@ function writeFminconFilesReachsetMPC(path,benchmark,Opts)
     % number of inequality constraints for terminal region and state cons.
     M = size(Opts.termReg.A,1);
 
-    if ~isempty(Opts.X)
-        L = size(Opts.X.P.A,1);
+    if ~representsa(Opts.X,'fullspace')
+        %L = size(Opts.X.P.A,1)
+        L = size(Opts.X.A,1);
     else
         L = 0;
     end
@@ -198,7 +199,7 @@ function generateSymbolicFunctions(path,benchmark,Opts,N,Ninter,M,L)
     for j = 1:M
         c = [c; temp{N}(j)];
     end
-    
+
     c = [c; sum(p) - J + alpha];
 
     % input constraints

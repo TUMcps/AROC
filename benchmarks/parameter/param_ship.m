@@ -13,23 +13,23 @@ function Param = param_ship()
 %
 %       -Param:             a structure containing following options
 %
-%           -.R0:           initial set of states (class: interval)
+%           -.R0:           initial set of states 
+%                           (class: interval)
 %           -.xf:           goal state
 %           -.tFinal:       final time after which the goal state should be
 %                           reached
-%           -.U:            set of admissible control inputs (class:
-%                           interval)
-%           -.W:            set of uncertain disturbances (class: interval 
-%                           or zonotope)
-%           -.V:            set of measurement errors (class: interval or
-%                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.U:            set of admissible control inputs 
+%                           (class: interval)
+%           -.W:            set of uncertain disturbances 
+%                           (class: interval)
+%           -.X:            set of admissible states 
+%                           (class: polytope)
 %
 % See Also:
 %       ship
 %
 % References:
-%       * *[1] Krasowski et al. (2022)*, CommonOcean: Vessel Models
+%       [1] Krasowski et al., "CommonOcean: Vessel Models", 2022
 %
 %------------------------------------------------------------------
 % This file is part of <a href="matlab:docsearch aroc">AROC</a>, a Toolbox for Automatic Reachset-
@@ -49,6 +49,9 @@ function Param = param_ship()
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------
     
+    % set of admissible states
+    Param.X = polytope(fullspace(6));
+
     % set of admissible control inputs (see Table 1 in [1])
     width = [5894896.77;5894896.77;1350409.48];
     Param.U = interval(-width,width);

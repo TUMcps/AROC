@@ -46,7 +46,7 @@ function R = orderReduction(R,order)
     Rtemp = diag(1./r)*R;
     
     % reduce the order of the zonotope in an underapproximative way
-    Rtemp = reduceUnderApprox(Rtemp,'linProg',order);
+    Rtemp = reduceUnderApprox(Rtemp,'sum',order);
     
     % transform the zonotope back to the original space
     R = diag(r)*Rtemp; 

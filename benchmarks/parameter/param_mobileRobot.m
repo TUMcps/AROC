@@ -13,20 +13,20 @@ function Param = param_mobileRobot()
 %
 %       -Param:             a structure containing following options
 %
-%           -.R0:           initial set of states (class: interval)
+%           -.R0:           initial set of states 
+%                           (class: interval)
 %           -.xf:           goal state
 %           -.tFinal:       final time after which the goal state should be
 %                           reached
-%           -.U:            set of admissible control inputs (class:
-%                           interval)
-%           -.W:            set of uncertain disturbances (class: interval 
-%                           or zonotope)
-%           -.V:            set of measurement errors (class: interval or
-%                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.U:            set of admissible control inputs 
+%                           (class: interval)
+%           -.W:            set of uncertain disturbances 
+%                           (class: interval)
+%           -.X:            set of admissible states 
+%                           (class: polytope)
 %
 % See Also:
-%       mobileRobot, param_car
+%       mobileRobot
 %
 %------------------------------------------------------------------
 % This file is part of <a href="matlab:docsearch aroc">AROC</a>, a Toolbox for Automatic Reachset-
@@ -39,13 +39,16 @@ function Param = param_mobileRobot()
 % More Toolbox Info by searching <a href="matlab:docsearch aroc">AROC</a> in the Matlab Documentation
 %
 %------------------------------------------------------------------
-% Authors:      Niklas Kochdumper
+% Authors:      Niklas Kochdumper, Lukas Schäfer
 % Website:      <a href="http://aroc.in.tum.de">aroc.in.tum.de</a>
 % Work Adress:  Technische Universitaet Muenchen
 % Copyright (c) 2019 Chair of Robotics, Artificial Intelligence and
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------
     
+    % set of admissible states
+    Param.X = polytope(fullspace(5));
+
     % set of admissible control inputs
     width = [0.5;0.5];
     Param.U = interval(-width,width);
@@ -55,14 +58,14 @@ function Param = param_mobileRobot()
     Param.W = interval(-width,width);
     
     % initial set of states
-    x0 = [0;0;0;3;3];
+    x0 = [0;0;0;1;1];
     width = [0.05; 0.05; 0.05; 0.05; 0.05];
     Param.R0 = interval(x0-width,x0+width);
     
     % final time
-    Param.tFinal = 10;
+    Param.tFinal = 15;
     
     % goal state
-    Param.xf = [0.5;0;0;50;50];
+    Param.xf = [1;0;0;1;1];
 
 end

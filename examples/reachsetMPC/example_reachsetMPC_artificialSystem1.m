@@ -22,10 +22,11 @@ Opts.maxIter = 12;              % max number of iterations for opt. control
 % terminal region (see Sec.5 in Yu et al. (2013): "Tube MPC scheme based on 
 % robust control invariant set with application to Lipschitz nonlinear 
 % systems", Systems & Control Letters)
-E = ellipsoid(inv([7.9997 -12.2019; -12.2019 27.0777]./10));
-Z = zonotope(E,10,'i:norm:bnd');
 
-Opts.termReg = mptPolytope(Z);
+E = ellipsoid(inv([7.9997 -12.2019; -12.2019 27.0777]./10));
+Z = zonotope(E,'inner:norm_bnd',10);
+
+Opts.termReg = polytope(Z);
 
 % execute reachset model predictive control algorithm
 res = reachsetMPC('artificialSystem',Param,Opts);

@@ -80,7 +80,7 @@ function Opts = augmentOpts(benchmark, Param, Opts)
     
     % compute disturbance set for augmented system
     W = zonotope(D * Param.W);
-    W_ = zonotope([W.Z; zeros(nu,size(W.Z, 2))]);
+    W_ = zonotope([[W.c W.G]; zeros(nu,size([W.c W.G], 2))]);
 
     % compute feedback matrix [X; K*X] for augmented system
     K = computeStateFeedbackMatrix(Opts, A, B);
@@ -100,7 +100,7 @@ function Opts = augmentOpts(benchmark, Param, Opts)
     Opts = params2options(Param,Opts);
 
     % measurement error
-    if isfield(Param,'V') && ~isempty(Param.V)
+    if isfield(Param,'V') && ~representsa(Param.V,'emptySet')
        Opts.V = cartProd(zonotope(Param.V), zeros(nu,1));
     else
        Opts.V = zonotope(zeros(nx+nu,1));
@@ -154,7 +154,14 @@ function [linSys,taylor] = computeLinearSystemAndTaylorTerms(Opts,A_,D_,c_)
     linSys = linearSys(A_,D_,c_);
     options.linAlg = 'standard';
 
+    options4taylor = options;
+    params4taylor = params;
+
     reach(linSys,params,options);
+    
+    %%taylor term
+    taylor_term = computetaylorterm(linSys, params.R0, params4taylor, options4taylor);
+
 
     % simplify + save taylor terms to struct
     taylor.FCenter = center(linSys.taylor.F);
@@ -178,4 +185,91 @@ function [dynamics, nx, nu, nw] = computeDynamics(benchmark)
     nx = out;
     nu = count(2);
     nw = count(3);
+end
+
+function taylor_term = computetaylorterm(obj,Rinit,params,options)
+
+%%
+options = validateOptionslinsysMPC(obj, 'reach',params,options);
+    specLogic = [];
+    if ~isempty(spec)
+        [spec,specLogic] = splitLogic(spec);
+        if ~isempty(spec)
+    	    options.specification = spec;
+        end
+    end
+
+%%
+%% factors computation
+for i=1:(options.taylorTerms+1)
+    %compute initial state factor
+    options.factor(i) = options.timeStep^(i)/factorial(i);    
+end
+%%
+
+% compute exponential matrix
+obj = exponential(obj,options);
+% compute time interval error (tie)
+obj = tie(obj,options);
+% compute reachable set due to input
+obj = inputSolution(obj,options);
+%change the time step
+obj.taylor.timeStep=options.timeStep;
+
+%compute reachable set of first time interval
+eAt=expm(obj.A*options.timeStep);
+%save data to object structure
+obj.taylor.eAt=eAt;
+
+F=obj.taylor.F;
+RV=obj.taylor.RV;
+inputCorr=obj.taylor.inputCorr;
+if iscell(obj.taylor.Rtrans)
+    Rtrans=obj.taylor.Rtrans{1};
+else
+    Rtrans=obj.taylor.Rtrans;
+end
+
+
+%first time step homogeneous solution
+Rhom_tp=eAt*Rinit + Rtrans;
+if isa(Rinit,'polyZonotope') || isa(Rinit,'conPolyZono')
+    Rhom=enclose(Rinit,Rhom_tp)+F*zonotope(Rinit)+inputCorr;
+elseif isa(Rinit,'zonoBundle') 
+    Rhom=enclose(Rinit,Rhom_tp)+F*Rinit.Z{1}+inputCorr;
+else
+    Rhom=enclose(Rinit,Rhom_tp)+F*Rinit+inputCorr;
+end
+
+%reduce zonotope
+Rhom=reduce(Rhom,options.reductionTechnique,options.zonotopeOrder);
+Rhom_tp=reduce(Rhom_tp,options.reductionTechnique,options.zonotopeOrder);
+RV=reduce(RV,options.reductionTechnique,options.zonotopeOrder);
+
+%save homogeneous and particulate solution
+options.Rhom=Rhom;
+options.Rhom_tp=Rhom_tp;
+options.Raux=RV;
+if strcmp(options.linAlg,'wrapping-free')
+    options.Rpar=interval(RV);
+else
+    options.Rpar=RV;
+end
+options.Rtrans=obj.taylor.Rtrans;
+
+%total solution
+if isa(Rinit,'mptPolytope')
+    %convert zonotopes to polytopes
+    Radd=mptPolytope(RV);
+    Rtotal=Rhom+Radd;
+    Rtotal_tp=Rhom_tp+Radd;
+else
+    %original computation
+    Rtotal=Rhom+RV;
+    Rtotal_tp=Rhom_tp+RV;
+end
+
+%write results to reachable set struct Rfirst
+Rfirst.tp=Rtotal_tp;
+Rfirst.ti=Rtotal;
 end

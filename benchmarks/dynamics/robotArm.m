@@ -24,7 +24,7 @@ function f = robotArm(x,u,w)
 %       -f:     value of the dynamic function = time derivative of x
 %
 % See Also:
-%       car, cart, doubleIntegrator
+%       -
 %
 %------------------------------------------------------------------
 % This file is part of <a href="matlab:docsearch aroc">AROC</a>, a Toolbox for Automatic Reachset-
@@ -58,13 +58,20 @@ function f = robotArm(x,u,w)
     b = m2*l1*r2;
     c = I2+m2*r2^2;
     
-    % Dynamic matrices
-    det = c*(a+2*b*cos(x(2)))-(c+b*cos(x(2)))^2;
-    M_inv = 1/det * [c -c-b*cos(x(2));-c-b*cos(x(2)) a+2*b*cos(x(2))];
-    D = [-b*sin(x(2))*x(4) -b*sin(x(2))*(x(3)+x(4));b * sin(x(2))*x(3) 0];
-    
+    cosx2 = cos(x(2));
+    sinx2 = sin(x(2));
+
+    % Dynamics matrices
+    det = c*(a+2*b*cosx2)-(c+b*cosx2)^2;
+    M_inv = 1/det * [c -c-b*cosx2;-c-b*cosx2 a+2*b*cosx2];
+
+    D = sinx2*[-b*x(4), -b*(x(3)+x(4));b*x(3), 0];
+   
     % Dynamic equation   
-    f(1,1) = x(3) + w(1);
-    f(2,1) = x(4) + w(2);
+    theta1_dot = x(3) + w(1);
+    theta2_dot = x(4) + w(2);
     
-    f(3:4,1) = M_inv * (-D * [x(3);x(4)] + [u(1);u(2)]) + [w(3);w(4)];   
+    theta_dotdot = M_inv * (-D * [x(3);x(4)] + [u(1);u(2)]) + [w(3);w(4)];   
+
+    f = [theta1_dot;theta2_dot;theta_dotdot];
+end

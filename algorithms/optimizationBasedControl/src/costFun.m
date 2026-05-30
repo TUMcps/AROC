@@ -59,46 +59,50 @@ function cost = costFun(x,Opts)
     
     % loop over all time steps
     for i = 1:Opts.N
+        for j = 1:Opts.Ninter
+
+            k = (i-1)*Opts.Ninter + j;
         
-        % get reference input
-        u_ref = Opts.uc(:,i);
-            
-        % compute closed loop system
-        if Opts.isLin
-            
-            % get feedback matrix
-            K = compFeedbackMatrix(x(:,i),Opts.linModel.A, ...
-                                   Opts.linModel.B);
-            
-            % construct linear system
-            sys = closedLoopSystemLin(Opts.linModel.A,Opts.linModel.B, ...
-                                      Opts.linModel.D,Opts.linModel.c, ...
-                                      K,u_ref,Opts.V);
-                                 
-            % compute the reachable set
-            R = reach(sys,params,options);
-            
-        else
-            
-            % get feedback matrix
-            K = compFeedbackMatrix(x(:,i),Opts.linModel.A{i}, ...
-                                   Opts.linModel.B{i});
-            
-            p = [u_ref;reshape(K,[Opts.nx*Opts.nu,1])];
-            params.paramInt = p;
-            
-            % compute the reachable set
-            try
-                R = reachNonlinear(Opts.sys,params,options);
-            catch
-                cost = inf;
-                return;
+            % get reference input
+            u_ref = Opts.uc(:,k);
+                
+            % compute closed loop system
+            if Opts.isLin
+                
+                % get feedback matrix
+                K = compFeedbackMatrix(x(:,i),Opts.linModel.A, ...
+                                       Opts.linModel.B);
+                
+                % construct linear system
+                sys = closedLoopSystemLin(Opts.linModel.A,Opts.linModel.B, ...
+                                          Opts.linModel.D,Opts.linModel.c, ...
+                                          K,u_ref,Opts.V);
+                                     
+                % compute the reachable set
+                R = reach(sys,params,options);
+                
+            else
+                
+                % get feedback matrix
+                K = compFeedbackMatrix(x(:,i),Opts.linModel.A{k}, ...
+                                       Opts.linModel.B{k});
+                
+                p = [u_ref;reshape(K,[Opts.nx*Opts.nu,1])];
+                params.paramInt = p;
+                
+                % compute the reachable set
+                try
+                    R = reachNonlinear(Opts.sys,params,options);
+                catch
+                    cost = inf;
+                    return;
+                end
             end
+            
+            % update initial set
+            Rfin = R.timePoint.set{end};
+            params.R0 = Rfin;
         end
-        
-        % update initial set
-        Rfin = R.timePoint.set{end};
-        params.R0 = Rfin;
     end
     
     % calculate costs (slightly modified from [1])

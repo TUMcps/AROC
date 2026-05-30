@@ -16,13 +16,14 @@ function res = linSysMPC(benchmark,Param,Opts)
 %
 %           -.x0:           initial state
 %           -.xf:           goal state
-%           -.U:            set of admissible control inputs (class:
-%                           interval)
-%           -.W:            set of uncertain disturbances (class: interval 
-%                           or zonotope)
-%           -.V:            set of measurement errors (class: interval or
-%                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.X:            set of state constraints 
+%                           (class: polytope)
+%           -.U:            set of admissible control inputs 
+%                           (class: interval)
+%           -.W:            set of uncertain disturbances 
+%                           (class: interval or zonotope)
+%           -.V:            set of measurement errors 
+%                           (class: interval or zonotope)
 %
 %       -Opts:              a structure containing the algorithm settings
 %
@@ -30,7 +31,7 @@ function res = linSysMPC(benchmark,Param,Opts)
 %           -.N:            number of time steps
 %                           [{10} / positive integer]
 %           -.termReg:      terminal region around the steady state xf
-%                           (class: mptPolytope or terminalRegion)
+%                           (class: terminalRegion)
 %           -.Q:            state weighting matrix for the cost function of
 %                           optimal control problem (reference trajectory)
 %           -.R:            input weighting matrix for the cost function of
@@ -84,7 +85,7 @@ function res = linSysMPC(benchmark,Param,Opts)
     % Initialization ------------------------------------------------------
 
     % parse parameter and options
-    Opts = loadParamAndOpts(benchmark,Param,Opts);
+    Opts = loadParamAndOptions(benchmark,Param,Opts);
     
     % initialize optimization problem
     [optimizer,optimizerInit] = initOptProblem(Opts);
@@ -128,23 +129,28 @@ function res = linSysMPC(benchmark,Param,Opts)
 
         simOpts.x0 = [x; Opts.K*(x - Opts.xf + v) + u(:,cnt)];
         simOpts.tFinal = Opts.dt;
-        simOpts.u = w;
+        %simOpts.u = w;
+        simOpts.u = 0;
+        simOpts.w = w;
 
         [tTraj,xTraj] = simulate(Opts.linearSystem,simOpts);
 
-        sim.t = [sim.t; tTraj + t]; sim.x = [sim.x; xTraj(:,1:Opts.nx)]; 
-        sim.u = [sim.u; xTraj(:,Opts.nx+1:end)];
+        sim.t = [sim.t; tTraj' + t]; 
+        sim.x = [sim.x; xTraj(1:Opts.nx,:)']; 
+        sim.u = [sim.u; xTraj(Opts.nx+1:end,:)'];
 
-        t = t + Opts.dt; x = xTraj(end,1:Opts.nx)';
+        t = t + Opts.dt; x = xTraj(1:Opts.nx,end);
 
         % store reachable set
-        Rall{end+1} = R{cnt+1}; RallCont = add(RallCont,Rcont(cnt));
+        Rall{end+1} = R{cnt+1}; 
+        RallCont = reachSet();
+        RallCont = add(RallCont,Rcont(cnt));
 
         % switch to new solution if it is feasible and better than old one
         if flag == 0 && (~Opts.realTime || tComp < Opts.dt)
             disp('Switch to new solution');
             u = u_(:,2:end); p = p_; cnt = 1;
-            [R,Rcont] = compReachSet(xTraj(1,1:Opts.nx)',u_,Opts);
+            [R,Rcont] = compReachSet(xTraj(1:Opts.nx,1),u_,Opts);
         else
             disp('Keep old solution');
             cnt = cnt + 1;
@@ -173,7 +179,9 @@ function [R,Rcont] = compReachSet(x0,u,Opts)
     R = cell(Opts.N,1);
     Rcont = [];
     param = Opts.param;
-    R0 = zonotope([x0; zeros(Opts.nu,1)]) + Opts.V;
+    R0 = zonotope([x0; zeros(Opts.nu,1)]);
+    param.W = param.U;
+    param.U = zonotope(0);
 
     % loop over all time steps
     for i = 1:Opts.N

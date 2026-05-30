@@ -66,7 +66,7 @@ function [res,t,x] = simulateRandom(obj,varargin)
     % construct disturbance vectors
     W = cell(Npoints,1);
     V = cell(Npoints,1);
-    Nw = obj.N*distChanges;
+    Nw = obj.N*obj.Ninter*distChanges;
     Nextr = floor(Nw*fracDistVert);
     Wzono = zonotope(obj.W);
     
@@ -95,7 +95,7 @@ function [res,t,x] = simulateRandom(obj,varargin)
         % draw random points from the set of measurement errors
         V{i} = zeros(obj.nx,Nw);
         
-        if ~isempty(obj.V)
+        if ~representsa(obj.V,'emptySet')
             V{i} = randPoint(obj.V,Nw);
         end
     end

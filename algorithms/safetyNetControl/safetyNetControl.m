@@ -25,7 +25,7 @@ function [objContr,res] = safetyNetControl(benchmark,Param,Opts,varargin)
 %           -.W:            set of uncertain disturbances (class: interval)
 %           -.V:            set of measurement errors (class: interval or
 %                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.X:            set of state constraints (class: polytope)
 %
 %       -Opts:              a structure containing the algorithm settings
 %
@@ -188,10 +188,10 @@ contrLaw.Usub = U;
 contrLaw.tComp = Opts.tComp;
 contrLaw.realTime = Opts.realTime;
 
-if isempty(Opts.V)    
+if representsa(Opts.V,'emptySet')    
     Param.R0 = zono{1};
 else
-    Param.R0 = minus(mptPolytope(zono{1}),Opts.V,'approx'); 
+    Param.R0 = minus(polytope(zono{1}),Opts.V,'approx'); 
 end
 
 objContr = objSafetyNetContr(Opts.funHandle,zono{end},contrLaw,Param,occSet);
@@ -207,8 +207,8 @@ function [sys,Opts] = initialization(benchmark,Param,Opts)
     Opts = initOpts(mfilename,benchmark,Opts,Param);
     
     % reference trajectory settings    
-    Opts.CentOpts.Nc = Opts.N*Opts.Ninter;
-    Opts.CentOpts.hc = Opts.tFinal/(Opts.N*Opts.Ninter);
+    Opts.CentOpts.N = Opts.N*Opts.Ninter;
+    Opts.CentOpts.dt = Opts.tFinal/(Opts.N*Opts.Ninter);
     
     Opts.U = Param.U;
     Opts.uMinTotal = infimum(Opts.U);
@@ -225,8 +225,8 @@ function [sys,Opts] = initialization(benchmark,Param,Opts)
     
     % store matrices for inequality constraints for input and state con
     if isfield(Param,'X')
-       Opts.stateCon.A = get(Param.X,'A');
-       Opts.stateCon.b = get(Param.X,'b');
+       Opts.stateCon.A = Param.X.A;
+       Opts.stateCon.b = Param.X.b;
     else
        Opts.stateCon = []; 
     end

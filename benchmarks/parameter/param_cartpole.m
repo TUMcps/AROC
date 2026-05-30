@@ -11,13 +11,17 @@ function Param = param_cartpole()
 % Output Arguments:
 %
 %       -Param:             a structure containing the following options
+%           -.R0:           set of initial states
+%                           (class: interval)
 %           -.U:            set of admissible control inputs 
 %                           (class: interval)
-%           -.X:            set of admissible states (class: interval)
-%           -.W:            set of uncertain disturbances (class: interval)
+%           -.W:            set of uncertain disturbances 
+%                           (class: interval)
+%           -.X:            set of admissible states 
+%                           (class: polytope)
 %
 % See Also:
-%       terminalRegion, termRegNonlinSysLinApproach, cartpole
+%       cartpole
 %
 % References:
 %       [1] J. Theis "Sum-of-Squares Applications in Nonlinear Controller 
@@ -41,6 +45,9 @@ function Param = param_cartpole()
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------
     
+    % set of admissible states
+    Param.X = polytope(fullspace(4));
+
     % set of admissible control inputs
     width = 10.0;
     Param.U = interval(-width, width);
@@ -48,5 +55,9 @@ function Param = param_cartpole()
     % set of uncertain disturbances
     width = [0.5;0.02];
     Param.W = interval(-width, width);
+
+    % set of initial states
+    width = [0.2;0.02;0.2;0.02];
+    Param.R0 = interval(-width,width);
 
 end

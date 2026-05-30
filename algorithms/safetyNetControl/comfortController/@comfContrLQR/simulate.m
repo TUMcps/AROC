@@ -58,7 +58,7 @@ function [t,x,u] = simulate(obj,x0,w,v,Param,iter)
     % initialization
     x_ = [x0;xc(:,1)];
     Nw = size(w,2);
-    if ~isempty(obj.V)
+    if ~representsa(obj.V,'emptySet')
        w = [w;v]; 
     end
     timeStep = obj.tFinal/(obj.N*obj.Ninter*Nw);

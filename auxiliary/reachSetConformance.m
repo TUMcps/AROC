@@ -85,7 +85,7 @@ function R = reachSetConformance(benchmark,measurement,W,varargin)
     R = reach(sys,params,options);
 
     % add measurement error
-    if ~isempty(V)
+    if ~representsa(V,'emptySet')
         R = R + zonotope(V);
     end
 end

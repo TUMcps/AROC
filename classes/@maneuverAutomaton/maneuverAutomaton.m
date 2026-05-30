@@ -88,7 +88,11 @@ methods
                 Rinit = obj.shiftFun(Rinit,xf);
                 
                 % check if final set is located in shifted initial set
-                conMat(i,j) = contains(mptPolytope(Rinit),Rfin);
+                try
+                    conMat(i,j) = contains(polytope(Rinit),Rfin);
+                catch
+                    conMat(i,j) = contains(polytope(Rinit),Rfin,'approx');
+                end
             end
         end
     end

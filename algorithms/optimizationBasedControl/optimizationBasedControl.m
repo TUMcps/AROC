@@ -27,12 +27,14 @@ function [objContr,res] = optimizationBasedControl(benchmark,Param,varargin)
 %                           or zonotope)
 %           -.V:            set of measurement errors (class: interval or
 %                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.X:            set of state constraints (class: polytope)
 %
 %       -Opts:              a structure containing the algorithm settings
 %
 %           -.N:                number of time steps
 %                               [{5} / positive integer]
+%           -.Ninter:           number of intermediate time steps
+%                               [{1} / positive integer]                            
 %           -.reachSteps:       number of reachability steps during one
 %                               time step (optimization)
 %                               [{10} / positive integer]
@@ -154,7 +156,7 @@ ub = Opts.bound*ones(size(xInit));
 
 % optimize the control law parameters using fmincon (see Eq. (8) in [1])
 options = optimoptions('fmincon','MaxIter',Opts.maxIter,'Display','iter',...
-                       'Algorithm','active-set','UseParallel',true, ...
+                       'Algorithm','sqp','UseParallel',true, ...
                        'MaxFunEval',100000);
                    
 xOpt = fmincon(fun,xInit,[],[],[],[],lb,ub,con,options);
@@ -188,6 +190,7 @@ end
 contrLaw.K = K;
 contrLaw.u_ref = uCenter;
 contrLaw.N = Opts.N;
+contrLaw.Ninter = Opts.Ninter;
 
 % construct controller object
 objContr = objOptBasedContr(dyn,R{end},contrLaw,Param,occSet);  
@@ -216,24 +219,25 @@ function Opts = initialization(benchmark,Param,Opts)
        Opts.isLin = 0;
     end
 
-    Opts.ReachParams.tFinal = Opts.tFinal/Opts.N;
+    Ntot = Opts.N * Opts.Ninter;
+    Opts.ReachParams.tFinal = Opts.tFinal/Ntot;
     if ~Opts.isLin || ~strcmp(Opts.ReachOpts.linAlg,'adap')
-        Opts.ReachOpts.timeStep = (Opts.tFinal/ Opts.N)/ Opts.reachSteps; 
+        Opts.ReachOpts.timeStep = (Opts.tFinal/Ntot)/ Opts.reachSteps; 
     end
     if ~Opts.isLin
         Opts.ReachOpts.intermediateTerms = 4; 
     end
     
-    Opts.CentOpts.Nc = Opts.N;               % number ref. traj. time steps
-    Opts.CentOpts.hc = Opts.tFinal/Opts.N;   % size center traj. time step
+    Opts.CentOpts.N = Ntot;               % number ref. traj. time steps
+    Opts.CentOpts.dt = Opts.tFinal/Ntot;   % size center traj. time step
 
     % store matrices for inequality constraints for input and state con
     if isfield(Param,'X')
-       if ~isa(Param.X,'mptPolytope')
-           Param.X = mptPolytope(Param.X);
+       if ~isa(Param.X,'polytope')
+           Param.X = polytope(Param.X);
        end
-       Opts.stateCon.A = Param.X.P.A;
-       Opts.stateCon.b = Param.X.P.b;
+       Opts.stateCon.A = Param.X.A;
+       Opts.stateCon.b = Param.X.b;
     else
        Opts.stateCon = []; 
     end
@@ -242,7 +246,7 @@ function Opts = initialization(benchmark,Param,Opts)
     Opts.inputCon.b = [Opts.uMax;-Opts.uMin];
     
     % extend the disturbance set by the set of measurement errors
-    if ~isempty(Opts.V)
+    if ~representsa(Opts.V,'emptySet')
         Opts.ReachParams.U = cartProd(Opts.ReachParams.U,Opts.V);
     end
     
@@ -252,7 +256,7 @@ function Opts = initialization(benchmark,Param,Opts)
         name = ['AROCoptBased',benchmark,Opts.ReachOpts.alg, ...
                 num2str(Opts.ReachOpts.tensorOrder)];
             
-        if isempty(Opts.V)
+        if representsa(Opts.V,'emptySet')
             funHan = @(x,u,p) closedLoopSystemNonlin(x,u,p,...
                                   Opts.funHandle,Opts.nx,Opts.nu,Opts.nw);
         
@@ -285,19 +289,23 @@ function Opts = linearizeSystem(Opts)
     Afun = matlabFunction(Jx,'Vars',{x,u,w});
     Bfun = matlabFunction(Ju,'Vars',{x,u,w});
     
-    Opts.linModel.A = cell(Opts.N,1);
-    Opts.linModel.B = cell(Opts.N,1);
+    Opts.linModel.A = cell(Opts.N*Opts.Ninter,1);
+    Opts.linModel.B = cell(Opts.N*Opts.Ninter,1);
 
     % loop over all center trajectory time steps
     for i = 1:Opts.N
+        for j = 1:Opts.Ninter
 
-        % linearize the system in the middle of the time step
-        x_ = 0.5*(Opts.xc(:,i) + Opts.xc(:,i+1));
-        u_ = Opts.uc(:,1);
-        w_ = zeros(Opts.nw,1);
+            k = (i-1)*Opts.Ninter + j;
 
-        Opts.linModel.A{i} = Afun(x_,u_,w_);
-        Opts.linModel.B{i} = Bfun(x_,u_,w_);
+            % linearize the system in the middle of the time step
+            x_ = 0.5*(Opts.xc(:,k) + Opts.xc(:,k+1));
+            u_ = Opts.uc(:,k);
+            w_ = zeros(Opts.nw,1);
+    
+            Opts.linModel.A{k} = Afun(x_,u_,w_);
+            Opts.linModel.B{k} = Bfun(x_,u_,w_);
+        end
     end
 end
 

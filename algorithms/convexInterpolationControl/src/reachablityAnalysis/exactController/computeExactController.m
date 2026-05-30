@@ -62,10 +62,9 @@ function [zonoBig,reachSet,controlLawParam] = computeExactController(dynamic,zon
 
     %% Extract parameter
 
-    % parallelotope
-    Zr = zonoR.Z;                 
-    Gr = Zr(:,2:end);
-    cr = Zr(:,1);
+    % parallelotope                 
+    Gr = zonoR.G;
+    cr = zonoR.c;
     
     % extract zonotope parameters
     if isa(zono,'zonotope')                 % linear zonotope                  
@@ -74,7 +73,7 @@ function [zonoBig,reachSet,controlLawParam] = computeExactController(dynamic,zon
     else                                    % polynomial zonotope
         c = zono.c;
         G = zono.G;
-        Grest = zono.Grest;
+        Grest = zono.GI;
     end
     
     % extract model dimensions
@@ -115,12 +114,12 @@ function [zonoBig,reachSet,controlLawParam] = computeExactController(dynamic,zon
         GExt = [G;G_];
         GrestExt = [Grest;Grest_];
 
-        R0 = polyZonotope(cExt,GExt,GrestExt,zono.expMat);      
+        R0 = polyZonotope(cExt,GExt,GrestExt,zono.E);      
     end
     
     % compute measurement error set as required for reachability analysis
-    if ~isempty(Opts.V)
-        Opts.V = zonotope(0.5*(Gr\Opts.V.Z));
+    if ~representsa(Opts.V,'emptySet')
+        Opts.V = zonotope(0.5*(Gr\[Opts.V.c,Opts.V.G]));
     end
     
     

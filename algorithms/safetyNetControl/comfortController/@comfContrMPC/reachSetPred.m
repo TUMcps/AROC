@@ -45,7 +45,7 @@ function R = reachSetPred(obj,x0,iter,Param)
 
     % initialization
     R0 = zonotope(x0);
-    if ~isempty(obj.V)
+    if ~representsa(obj.V,'emptySet')
        R0 = R0 + obj.V; 
     end
     

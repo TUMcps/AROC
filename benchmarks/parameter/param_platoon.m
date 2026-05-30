@@ -17,16 +17,15 @@ function Param = param_platoon()
 %           -.xf:           goal state
 %           -.tFinal:       final time after which the goal state should be
 %                           reached
-%           -.U:            set of admissible control inputs (class:
-%                           interval)
-%           -.W:            set of uncertain disturbances (class: interval 
-%                           or zonotope)
-%           -.V:            set of measurement errors (class: interval or
-%                           zonotope)
-%           -.X:            set of state constraints (class: mptPolytope)
+%           -.U:            set of admissible control inputs 
+%                           (class: interval)
+%           -.W:            set of uncertain disturbances 
+%                           (class: interval)
+%           -.X:            set of admissible states 
+%                           (class: polytope)
 %
 % See Also:
-%       car, param_car_driveStraight
+%       platoon
 %
 %------------------------------------------------------------------
 % This file is part of <a href="matlab:docsearch aroc">AROC</a>, a Toolbox for Automatic Reachset-
@@ -63,13 +62,13 @@ function Param = param_platoon()
     width = [1;1;1;1];
     Param.W = interval(-width,width);
 
-    % set of state constraints
+    % set of admissible states 
     A =[0, 0, -1, 0, 0, 0, 0, 0;
         0, 0, 0, 0, -1, 0, 0, 0;
         0, 0, 0, 0, 0, 0, -1, 0];
     
     b =[0;0;0];
     
-    Param.X = mptPolytope(A,b);
+    Param.X = polytope(A,b);
 
 end

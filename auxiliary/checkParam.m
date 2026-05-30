@@ -70,6 +70,12 @@ function Param = checkParam(Param,name,nx,nu,nw)
         
         % state constraints
         Param = checkStateConstraints(Param,nx); 
+
+        % check feasibility of the initial set
+        checkInitialSet(Param.R0,Param.X);
+        
+        % check feasibility of the final state
+        checkFinalState(Param.xf,Param.X);
         
         % measurement errors
         Param = checkMeasurementErrors(Param,nx);
@@ -106,21 +112,25 @@ function Param = checkParam(Param,name,nx,nu,nw)
         
         % input constraints
         if ismember(name, {'zonoLinSys'})
-            checkSet('U', Param, nu, {'mptPolytope', 'interval'})
+            checkSet('U', Param, nu, {'polytope', 'interval'})
+            checkContainsOrigin(Param,'U')
         else
             checkSet('U', Param, nu, {'interval'});
         end
         
         % set of disturbances
         checkSet('W', Param, nw, {'zonotope', 'interval'}); 
-        
+        checkContainsOrigin(Param,'W')
+   
         % state constraints
         if isfield(Param,'X')
             checkStateConstraints(Param,nx); 
+            checkContainsOrigin(Param,'W')
         end
         
         % measurement errors
         Param = checkMeasurementErrors(Param,nx);
+        checkContainsOrigin(Param,'V')
         
         % define valid fields
         validFields = {'U','W','V','X'};
@@ -189,12 +199,36 @@ function Param = checkStateConstraints(Param,nx)
 % check if set of state constraints takes a valid value
 
     if ~isfield(Param,'X')
-        Param.X = [];
+        % if no set of admissible states is provided, the set of admissible 
+        % states is R^nx
+        Param.X = fullspace(nx);
     elseif dim(Param.X) ~= nx
         error('Wrong dimension for "Param.X"! Has to match number of system states!');
     else
-        checkSetRepresentation('X', Param, {'mptPolytope', 'interval'});
+        checkSetRepresentation('X', Param, {'polytope', 'interval'});
     end
+end
+
+function checkInitialSet(R0,X)
+% check whether the set of initial states is feasible, i.e., whether it is
+% contained in the set of admissible states
+
+    if ~contains(X,R0)
+        error(['Set of initial states "Param.R0" is not contained in ' ...
+            'the set of admissible states "Param.X"!'])
+    end
+
+end
+
+function checkFinalState(xf,X)
+% check whether the final state is feasible, i.e., whether it is contained 
+% in the set of admissible states
+
+    if ~contains(X,zonotope(xf))
+        error(['Desired final state "Param.xf" is not contained in ' ...
+            'the set of admissible states "Param.X"!'])
+    end
+
 end
 
 function Param = checkMeasurementErrors(Param,nx)
@@ -238,5 +272,14 @@ function checkInitialState(Param,nx)
         error('Initial state "Param.x0" is missing!');
     elseif ~isnumeric(Param.x0) || ~all(size(Param.x0) == [nx,1])
         error('Wrong value for "Param.x0"! Has to be a vector whos length matches the number of states!');
+    end
+end
+
+function checkContainsOrigin(Param,nameOfSet)
+% check whether a given set contains the origin
+
+    set = getfield(Param,nameOfSet);
+    if ~representsa(set,'emptySet') && ~contains(set, zeros(set.dim,1))
+        error(['The set ',nameOfSet, ' is assumed to contain the origin!'])
     end
 end

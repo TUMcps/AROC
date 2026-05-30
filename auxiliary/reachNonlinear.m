@@ -16,7 +16,7 @@ function R = reachNonlinear(obj,params,options)
 %       -obj:           object containing the system dynamics (class:
 %                       nonlinParamSys or nonlinearSys)  
 %       -params:        structure containing the reachability parameters
-%       -Opts:          structure containing user defined reachability 
+%       -options:       structure containing user defined reachability 
 %                       settings   
 %
 % Output Arguments:
@@ -45,22 +45,20 @@ function R = reachNonlinear(obj,params,options)
 %------------------------------------------------------------------
 
     % parse options
-    options = params2options(params,options);
-    
-    options.uTrans = center(options.U);
-    options.U = options.U + (-options.uTrans);
+    params.uTrans = center(params.U);
+    params.U = params.U + (-params.uTrans);
     
     if ~isfield(options,'reductionTechnique')
        options.reductionTechnique = 'girard'; 
     end
     if ~isfield(options,'maxError')
-       options.maxError = inf * ones(obj.dim,1); 
+       options.maxError = inf * ones(obj.nrOfDims,1); 
     end
     if ~isfield(options,'reductionInterval')
        options.reductionInterval = inf; 
     end
-    if ~isfield(options,'tStart')
-       options.tStart = 0; 
+    if ~isfield(params,'tStart')
+       params.tStart = 0; 
     end
     if ~isfield(options,'linAlg')
        options.linAlg = 'standard'; 
@@ -73,8 +71,8 @@ function R = reachNonlinear(obj,params,options)
     end
 
     % time period
-    options.t = options.tStart;
-    tVec = options.tStart:options.timeStep:options.tFinal;
+    params.t = params.tStart;
+    tVec = params.tStart:options.timeStep:params.tFinal;
 
     % initialize cell-arrays that store the reachable set
     timeInt.set = cell(length(tVec)-1,1);
@@ -83,7 +81,7 @@ function R = reachNonlinear(obj,params,options)
     timePoint.time = cell(length(tVec)-1,1);
 
     % initialize reachable set computations
-    [Rnext, options] = initReach(obj, options.R0, options);
+    [Rnext, options] = initReach(obj, params.R0, params, options);
 
     % loop over all reachability steps
     for i = 2:length(tVec)-1
@@ -99,7 +97,7 @@ function R = reachNonlinear(obj,params,options)
         options.t = t;
 
         % compute next reachable set
-        [Rnext,options] = post(obj,Rnext,options);
+        [Rnext,options] = post(obj,Rnext,params,options);
     end
 
     % save last reachable set in cell structure

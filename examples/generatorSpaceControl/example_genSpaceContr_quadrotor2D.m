@@ -13,7 +13,8 @@ Opts.reachSteps = 20;                   % number of reachability steps
 Opts.R = 1e-7*eye(2);                   % input weighting matrix
 Opts.Q = diag([82,12.8,10,11,2,1]);     % state weighting matrix
 Opts.extHorizon.active = true;          % use extended optimization horizon
-Opts.extHorizon.decay = 'fall';         % weighting for extended horizon
+Opts.extHorizon.weightingFunction ...
+    = extendedHorizonWeights.fall;     % weighting function for extended horizon
 Opts.extHorizon.horizon = 5;            % extended optimization horizon
 
 % controller synthesis

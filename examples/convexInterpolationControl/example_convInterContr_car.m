@@ -45,7 +45,6 @@ plotSimulation(resSim,[3,4],'k');
 xlabel('x'); ylabel('y');
 title('Exact Controller');
 
-
 %% LINEAR CONTROLLER
 
 % adapt algorithm options

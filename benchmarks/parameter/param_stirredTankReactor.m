@@ -16,9 +16,12 @@ function Param = param_stirredTankReactor()
 %
 %           -.x0:           initial state
 %           -.xf:           goal state
-%           -.U:            set of admissible control inputs (class:
-%                           interval)
-%           -.W:            set of uncertain disturbances (class: interval)
+%           -.U:            set of admissible control inputs 
+%                           (class: interval)
+%           -.W:            set of uncertain disturbances 
+%                           (class: interval)
+%           -.X:            set of admissible states 
+%                           (class: polytope)
 %
 % See Also:
 %       stirredTankReactor
@@ -46,6 +49,9 @@ function Param = param_stirredTankReactor()
 
     % initial state
     Param.x0 = [-0.15;-45];
+
+    % set of admissible states
+    Param.X = polytope(fullspace(2));
     
     % set of admissible control inputs
     Param.U = interval(-20,70);

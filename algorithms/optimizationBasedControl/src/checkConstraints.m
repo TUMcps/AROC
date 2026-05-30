@@ -61,16 +61,16 @@ function c = checkConstraints(R,K,u_ref,Opts)
             
             c = Rtemp.c(1:Opts.nx,:) - Rtemp.c(Opts.nx+1:end,:);
             G = Rtemp.G(1:Opts.nx,:) - Rtemp.G(Opts.nx+1:end,:);
-            Grest = Rtemp.Grest(1:Opts.nx,:) - Rtemp.Grest(Opts.nx+1:end,:);
+            Grest = Rtemp.GI(1:Opts.nx,:) - Rtemp.GI(Opts.nx+1:end,:);
             
-            U_ = u_ref + K * polyZonotope(c,G,Grest,Rtemp.expMat);
+            U_ = u_ref + K * polyZonotope(c,G,Grest,Rtemp.E);
         else
-            U_ = u_ref + K * zonotope(Rtemp.Z(1:Opts.nx,:) ...
-                                      - Rtemp.Z(Opts.nx+1:end,:));
+            Z = [Rtemp.c,Rtemp.G];
+            U_ = u_ref + K * zonotope(Z(1:Opts.nx,:) - Z(Opts.nx+1:end,:));
         end
         
         % consider set of measurement errors
-        if ~isempty(Opts.V)
+        if ~representsa(Opts.V,'emptySet')
            U_ = U_ + K * Opts.V; 
         end
 

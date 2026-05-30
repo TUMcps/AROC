@@ -6,7 +6,7 @@ function f = doubleIntegrator(x,u,w)
 %       f = DOUBLEINTEGRATOR(x, u, w)
 %
 % Description:
-%       Dynamic equation for the double-integrator benchmark model. The 
+%       Dynamics equation for the double-integrator benchmark model. The 
 %       benchmark represents a rigid body that glides on a plane without
 %       friction. The system states are the position and the velocity of 
 %       the rigid body. The input to the system is an external force that 
@@ -25,7 +25,7 @@ function f = doubleIntegrator(x,u,w)
 %       -f:     value of the dynamic function = time derivative of x
 %
 % See Also:
-%       car, cart, robotArm
+%       -
 %
 %------------------------------------------------------------------
 % This file is part of <a href="matlab:docsearch aroc">AROC</a>, a Toolbox for Automatic Reachset-
@@ -45,5 +45,8 @@ function f = doubleIntegrator(x,u,w)
 %               Embedded Systems, TU Muenchen
 %------------------------------------------------------------------ 
 
-    f(1,1) = x(2) + w(1);
-    f(2,1) = u(1) + w(2);
+    x_dot = x(2) + w(1);
+    v_dot = u(1) + w(2);
+
+    f = [x_dot;v_dot];
+end

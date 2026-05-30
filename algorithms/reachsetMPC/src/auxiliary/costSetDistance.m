@@ -16,7 +16,7 @@ function Jset = costSetDistance(R,Opts)
 %       -Opts:  a structure containing following options
 %
 %           -.termReg:      terminal region around the steady state xf
-%                           (class: mptPolytope)
+%                           (class: polytope)
 %           -.alpha:        contraction rate for the contraction constraint
 %                           [{0.1} / alpha > 0]
 %
@@ -58,7 +58,7 @@ function Jset = costSetDistance(R,Opts)
     % compute costs for the reachable sets
     Jset = 0;
     for i = 1:length(R)
-        if isempty(Opts.V)
+        if representsa(Opts.V,'emptySet')
             Jset = Jset + distPhi(A,b,R{i}+(-Opts.xf));
         else
             Jset = Jset + distPhi(A,b,R{i}+Opts.V+(-Opts.xf));

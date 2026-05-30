@@ -29,7 +29,7 @@ res = checkFinalInInitSet(result,Param.R0);
 assert(res == 1);
 
 
-%% Test Extendet Optimization Horizon
+%% Test Extended Optimization Horizon
 
 % get benchmark parameter
 Param = param_car();
@@ -37,7 +37,7 @@ Param = param_car();
 % adapt algorithm options
 Opts.extHorizon.active = 1;         % use extended optimization horizon
 Opts.extHorizon.horizon = 3;        % time steps for ext. horizon
-Opts.extHorizon.decay = 'fall';     % weight function for ext. horizon  
+Opts.extHorizon.weightingFunction = extendedHorizonWeights.fall;  % weight function for ext. horizon  
 
 % offline phase computations
 [obj,result] = generatorSpaceControl('car',Param,Opts);

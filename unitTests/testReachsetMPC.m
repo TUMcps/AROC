@@ -24,7 +24,7 @@ Opts.maxIter = 50;              % max number of iterations for opt. control
 A = [-1.0000 0;1.0000 0;30.0000 -1.0000;66.6526 -4.8603;-66.6526 4.8603];
 b = [0.3000;0.0620;11.8400;65.0000;15.0000];
 
-Opts.termReg = mptPolytope(A,b);
+Opts.termReg = polytope(A,b);
 
 % offline phase computations
 result = reachsetMPC('stirredTankReactor',Param,Opts);

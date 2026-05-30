@@ -28,7 +28,7 @@ function f = truck(x,u,w)
 %       car, robotArm
 %
 % References:
-%       * *[1] Althoff et al. (2020)*, CommonRoad: Vehicle Models
+%       [1] Althoff et al., "CommonRoad: Vehicle Models", 2020
 %
 %------------------------------------------------------------------
 % This file is part of <a href="matlab:docsearch aroc">AROC</a>, a Toolbox for Automatic Reachset-
@@ -53,9 +53,12 @@ function f = truck(x,u,w)
     l_wbt = 8.1;
 
     % dynamic equations (see Eq. (9) in [1])
-    f(1,1) = u(1) + w(1);
-    f(2,1) = x(4)/l_wb * tan(x(1));
-    f(3,1) = -x(4)*(sin(x(3))/l_wbt + tan(x(1))/l_wb);
-    f(4,1) = u(2) + w(2);
-    f(5,1) = x(4) * cos(x(2));
-    f(6,1) = x(4) * sin(x(2));
+    x1_dot = u(1) + w(1);
+    x2_dot = x(4)/l_wb * tan(x(1));
+    x3_dot = -x(4)*(sin(x(3))/l_wbt + tan(x(1))/l_wb);
+    x4_dot = u(2) + w(2);
+    x5_dot = x(4) * cos(x(2));
+    x6_dot = x(4) * sin(x(2));
+
+    f = [x1_dot;x2_dot;x3_dot;x4_dot;x5_dot;x6_dot];
+end

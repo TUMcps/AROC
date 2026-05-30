@@ -5,7 +5,7 @@ function f = mobileRobot(x,u,w)
 %       f = MOBILEROBOT(x, u, w)
 %
 % Description:
-%       Dynamic equation for the mobile robot benchmark model (see Eq. (6),
+%       Dynamics equation for the mobile robot benchmark model (see Eq. (6),
 %       (7),(8),(14) and (15) in [1]). The benchmarks describes a Pioneer 
 %       3DX mobile robotThe system states are x and y position of the 
 %       center, the robot orientation, and the angular velocities of the 
@@ -28,7 +28,7 @@ function f = mobileRobot(x,u,w)
 %       car, platoon
 %
 % References:
-%       * *[1] Ivanjo et al. (2010)*, Modelling of mobile robot dynamics.
+%       [1] Ivanjo et al., "Modelling of mobile robot dynamics", 2010.
 %
 %------------------------------------------------------------------
 % This file is part of <a href="matlab:docsearch aroc">AROC</a>, a Toolbox for Automatic Reachset-
@@ -61,8 +61,11 @@ function f = mobileRobot(x,u,w)
     B = 0.25*m*r^2 - ((I_A + m*d^2)*r^2)/b^2;
     
     % differential equation
-    f(1,1) = r/2*(x(4)+x(5))*cos(x(3));
-    f(2,1) = r/2*(x(4)+x(5))*sin(x(3));
-    f(3,1) = r/b*(x(4)-x(5));
-    f(4,1) = 1/(A^2 - B^2)*(A*u(1) - A*K*x(4) - B*u(2) + B*K*x(5)) + w(1);
-    f(5,1) = 1/(A^2 - B^2)*(-B*u(1) + B*K*x(4) + A*u(2) - A*K*x(5)) + w(2); 
+    x_dot = r/2*(x(4)+x(5))*cos(x(3));
+    y_dot = r/2*(x(4)+x(5))*sin(x(3));
+    phi_dot = r/b*(x(4)-x(5));
+    thetaR_dot = 1/(A^2 - B^2)*(A*u(1) - A*K*x(4) - B*u(2) + B*K*x(5)) + w(1);
+    thetaL_dot = 1/(A^2 - B^2)*(-B*u(1) + B*K*x(4) + A*u(2) - A*K*x(5)) + w(2); 
+
+    f = [x_dot;y_dot;phi_dot;thetaR_dot;thetaL_dot];
+end

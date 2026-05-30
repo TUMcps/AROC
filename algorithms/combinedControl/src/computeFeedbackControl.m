@@ -188,12 +188,13 @@ function [RS,U,K] = CompReach(x,sys,objCtrl_ff,Opts,mode)
     % construct extended initial set
     Ztp_beta = zonotope([zeros(nx,1),Gbeta]);
     Ztp_x = zonotope(Opts.R0);
-    Zx = Ztp_x.Z;
-    Ztp_xffc = zonotope([Zx(:,1),zeros(nx,size(Zx,2)-1)]);
-    Ztp_dxff = zonotope([zeros(nx,1),Zx(:,2:end)]);
+    Zx = [Ztp_x.c,Ztp_x.G];
+    Ztp_xffc = zonotope(Zx(:,1),zeros(nx,size(Zx,2)-1));
+    Ztp_dxff = zonotope(zeros(nx,1),Zx(:,2:end));
     Gu_ff = generators(zonotope(objCtrl_ff.U));
     
-    Ztp = zonotope([Ztp_x.Z;Ztp_xffc.Z;Ztp_dxff.Z;Ztp_beta.Z]);
+    Ztp = zonotope([Ztp_x.c;Ztp_xffc.c;Ztp_dxff.c;Ztp_beta.c], ...
+                   [Ztp_x.G;Ztp_xffc.G;Ztp_dxff.G;Ztp_beta.G]);
     
     if ~strcmp(mode,'lin') && strcmp(Opts.ReachOpts.alg,'poly')
        Ztp = polyZonotope(Ztp); 
@@ -256,7 +257,7 @@ function [RS,U,K] = CompReach(x,sys,objCtrl_ff,Opts,mode)
             options = Opts.ReachOpts;
             
             % consider measurement errors
-            if ~isempty(Opts.V)
+            if ~representsa(Opts.V,'emptySet')
                params.U = cartProd(Opts.W,Opts.V); 
                params.R0 = cartProd(params.R0,Opts.V);
             end
@@ -283,13 +284,14 @@ function [RS,U,K] = CompReach(x,sys,objCtrl_ff,Opts,mode)
         % save set of applied control inputs U
         for j = 1:length(R_ext.timeInterval.set)
             Rti_j = zonotope(R_ext.timeInterval.set{j});
-            Z_x = Rti_j.Z(1:nx,:);
-            Z_xff = Rti_j.Z(nx+1:2*nx,:)+Rti_j.Z(2*nx+1:3*nx,:);
-            Z_beta = Rti_j.Z(3*nx+1:4*nx,:);
+            Z_x = [Rti_j.c(1:nx),Rti_j.G(1:nx,:)];
+            Z_xff = [Rti_j.c(nx+1:2*nx,:),Rti_j.G(nx+1:2*nx,:)] + ...
+                          [Rti_j.c(2*nx+1:3*nx,:),Rti_j.G(2*nx+1:3*nx,:)];
+            Z_beta = [Rti_j.c(3*nx+1:4*nx,:),Rti_j.G(3*nx+1:4*nx,:)];
             Z_uff = GuffAlpha_i*Z_beta;
             Z_uff(:,1) = Z_uff(:,1) + ulin; 
             U{i,j} = zonotope(Z_uff+Ki*(Z_x-Z_xff));
-            if ~isempty(Opts.V)
+            if ~representsa(Opts.V,'emptySet')
                U{i,j} = U{i,j} + Ki*Opts.V; 
             end
         end
@@ -327,7 +329,7 @@ function [RS,U,K] = CompReachPoly(x,sys,objCtrl_ff,Opts,mode)
     R_xff = polyZonotope(center(R0),o,o,o,idv);
     R_dxff = R0 + (-center(R0));
 
-    if ~isempty(Opts.V)
+    if ~representsa(Opts.V,'emptySet')
         tmp = subs(-center(Uff_x) + Uff_x,polyZonotope(Opts.V),idv);
         Uff = Uff + zonotope(tmp);
     end
@@ -336,7 +338,8 @@ function [RS,U,K] = CompReachPoly(x,sys,objCtrl_ff,Opts,mode)
     
     if strcmp(mode,'lin')
         Rtp_no_beta = zonotope(project(Rtp_ext,1:3*nx));
-        Rtp_ext = zonotope([Rtp_no_beta.Z;zeros(nx,1),Gbeta]);
+        Rtp_ext = zonotope([Rtp_no_beta.c;zeros(nx,1)], ...
+                                        [Rtp_no_beta.G,Gbeta]);
     end
 
     % loop over all time steps
@@ -400,7 +403,7 @@ function [RS,U,K] = CompReachPoly(x,sys,objCtrl_ff,Opts,mode)
             options = Opts.ReachOpts;
             
             % consider measurement errors
-            if isempty(Opts.V)
+            if representsa(Opts.V,'emptySet')
                 params.U = zonotope(cartProd(Opts.W,zeros(nx,1)));
             else
                 params.U = zonotope(cartProd(Opts.W,Opts.V)); 
@@ -413,7 +416,7 @@ function [RS,U,K] = CompReachPoly(x,sys,objCtrl_ff,Opts,mode)
                 options.approxErr = true;
                 options.prevErrScale = 0.85;
             elseif strcmp(mode,'nonlin_noErr')
-                if isempty(Opts.V)
+                if representsa(Opts.V,'emptySet')
                     options.prevErr = zonotope(zeros(4*nx,1));
                 else
                     nv = length(center(Opts.V));
@@ -434,12 +437,13 @@ function [RS,U,K] = CompReachPoly(x,sys,objCtrl_ff,Opts,mode)
             
             if strcmp(mode,'lin') 
                 Rti_j = zonotope(R_ext.timeInterval.set{j});
-                Z_x = Rti_j.Z(1:nx,:);
-                Z_xff = Rti_j.Z(nx+1:2*nx,:)+Rti_j.Z(2*nx+1:3*nx,:);
-                Z_beta = Rti_j.Z(3*nx+1:4*nx,:);
+                Z_x = [Rti_j.c(1:nx),Rti_j.G(1:nx,:)];
+                Z_xff = [Rti_j.c(nx+1:2*nx),Rti_j.G(nx+1:2*nx,:)] + ...
+                           [Rti_j.c(2*nx+1:3*nx,:),Rti_j.G(2*nx+1:3*nx,:)];
+                Z_beta = [Rti_j.c(3*nx+1:4*nx),Rti_j.G(3*nx+1:4*nx,:)];
                 Z_uff = [uff_c,GuffAlpha_i*Z_beta(:,2:end)]; 
                 U{i,j} = zonotope(Z_uff+Ki*(Z_x-Z_xff));
-                if ~isempty(Opts.V)
+                if ~representsa(Opts.V,'emptySet')
                    U{i,j} = U{i,j} + Ki*Opts.V; 
                 end
             else
@@ -533,7 +537,7 @@ function initReach(sys,objCtrl_ff,Opts)
     
     params.paramInt = zeros(sys.nrOfParam,1);
     
-    if ~isempty(Opts.V)
+    if ~representsa(Opts.V,'emptySet')
         params.R0 = cartProd(params.R0,Opts.V);
         params.U = cartProd(params.U,Opts.V);
     end
@@ -558,7 +562,7 @@ function initReachPoly(sys,objCtrl_ff,Opts)
     Uff = subs(Uff_x,R0,idv);
     R_xref = polyZonotope(center(R0),o,o,o,idv);
     
-    if ~isempty(Opts.V)
+    if ~representsa(Opts.V,'emptySet')
         tmp = subs(-center(Uff_x) + Uff_x,polyZonotope(Opts.V),idv);
         Uff = Uff + zonotope(tmp);
     end
@@ -574,7 +578,7 @@ function initReachPoly(sys,objCtrl_ff,Opts)
     
     params.paramInt = zeros(sys.nrOfParam,1);
     
-    if ~isempty(Opts.V)
+    if ~representsa(Opts.V,'emptySet')
         params.U = cartProd(params.U,Opts.V);
     else
         params.U = cartProd(params.U,zeros(Opts.nx,1));
@@ -592,13 +596,13 @@ function [c,G] = linPolyCtrl2GenSpace(U)
 % extract linear part from the input zonotope U
 
     c = center(U); 
-    G = zeros(size(U.G,1),size(U.expMat,1));
+    G = zeros(size(U.G,1),size(U.E,1));
 
-    ind = find(sum(U.expMat,1) == 1);
+    ind = find(sum(U.E,1) == 1);
 
     for i = 1:size(G,2)
         for j = 1:length(ind)
-            if U.expMat(i,ind(j)) == 1
+            if U.E(i,ind(j)) == 1
                 G(:,i) = U.G(:,ind(j));
                 break;
             end
